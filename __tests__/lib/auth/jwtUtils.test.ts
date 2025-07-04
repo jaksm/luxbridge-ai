@@ -149,3 +149,87 @@ describe("jwtUtils", () => {
     });
   });
 });
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import jwt from "jsonwebtoken";
+import {
+  generateJWT,
+  validateJWT,
+  extractBearerToken,
+} from "@/lib/auth/jwtUtils";
+import { PlatformType } from "@/lib/types/platformAsset";
+import { mockEnvironmentVariables } from "@/__tests__/utils/testHelpers";
+  describe("generateJWT", () => {
+    it("should generate JWT with correct payload", () => {
+      const jwtSignSpy = vi
+        .spyOn(jwt, "sign")
+        .mockReturnValue("mock.jwt.token" as any);
+
+      const userId = "test_user_1";
+      const platform: PlatformType = "splint_invest";
+      expect(jwtSignSpy).toHaveBeenCalledWith(
+        { userId, platform },
+        "test_secret",
+        { expiresIn: "24h" },
+      );
+      expect(token).toBe("mock.jwt.token");
+    });
+    it("should handle different platforms", () => {
+      const jwtSignSpy = vi
+        .spyOn(jwt, "sign")
+        .mockReturnValue("mock.jwt.token" as any);
+      const platforms: PlatformType[] = [
+        "splint_invest",
+        "masterworks",
+        "realt",
+      ];
+      platforms.forEach((platform) => {
+        generateJWT("test_user", platform);
+
+        expect(jwtSignSpy).toHaveBeenCalledWith(
+          { userId: "test_user", platform },
+          "test_secret",
+          { expiresIn: "24h" },
+        );
+      });
+    });
+        userId: "test_user_1",
+        platform: "splint_invest",
+        iat: 1640000000,
+        exp: 1640086400,
+      };
+      const jwtVerifySpy = vi
+        .spyOn(jwt, "verify")
+        .mockReturnValue(mockPayload as any);
+      const result = validateJWT("valid.jwt.token");
+      expect(jwtVerifySpy).toHaveBeenCalledWith(
+        "valid.jwt.token",
+        "test_secret",
+      );
+      expect(result).toEqual(mockPayload);
+    });
+    it("should return null for invalid JWT token", () => {
+      vi.spyOn(jwt, "verify").mockImplementation(() => {
+        throw new Error("Invalid token");
+      });
+    });
+    it("should return null for expired token", () => {
+      vi.spyOn(jwt, "verify").mockImplementation(() => {
+        throw new jwt.TokenExpiredError("Token expired", new Date());
+      });
+    });
+    it("should return null for malformed token", () => {
+      vi.spyOn(jwt, "verify").mockImplementation(() => {
+        throw new jwt.JsonWebTokenError("Malformed token");
+      });
+        "Token valid.jwt.token",
+        "Bearer",
+        "BearerToken",
+        "Bear valid.jwt.token",
+      ];
+      testCases.forEach((header) => {
+        const result = extractBearerToken(header);
+        expect(result).toBeNull();
+      });
+    });
+  });
+});

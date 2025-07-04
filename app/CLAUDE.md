@@ -316,3 +316,236 @@ test: add comprehensive OAuth flow testing
 - Use proper caching strategies
 - Implement monitoring and logging
 - Handle edge cases gracefully
+## App Router Structure
+### Route Organization
+
+- `api/` - API route handlers (see `api/CLAUDE.md` for detailed guidelines)
+- `oauth/` - OAuth 2.1 authorization pages and flows
+- `[transport]/` - Dynamic MCP transport routes (SSE/HTTP)
+## Development Rules
+### Before Implementation
+
+1. **Always run typecheck first**: `npm run typecheck`
+2. Fix all TypeScript errors before proceeding
+3. Follow Next.js 15 app router conventions
+### Next.js App Router Patterns
+#### Dynamic Routes
+
+```typescript
+// app/[transport]/route.ts
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ transport: string }> },
+) {
+  const { transport } = await context.params;
+
+  // Handle dynamic segment
+  if (!["sse", "mcp"].includes(transport)) {
+    return new Response("Not Found", { status: 404 });
+  }
+
+  // Implementation
+}
+```
+#### Page Components
+
+```typescript
+// app/oauth/authorize/page.tsx
+interface PageProps {
+export default async function AuthorizePage({ searchParams }: PageProps) {
+  const params = await searchParams;
+
+  // Implementation
+  return (
+    <div>
+```
+#### Layout Components
+
+```typescript
+// app/layout.tsx
+export default function RootLayout({
+### Route Handler Guidelines
+#### HTTP Methods
+
+```typescript
+// Support all necessary HTTP methods
+export async function GET(request: NextRequest) {
+  /* ... */
+}
+export async function POST(request: NextRequest) {
+  /* ... */
+}
+export async function OPTIONS() {
+  /* CORS handling */
+}
+```
+#### Error Handling
+
+```typescript
+export async function POST(request: NextRequest) {
+  try {
+    console.error("Route error:", error);
+    return Response.json(
+      { error: "internal_error", message: "An unexpected error occurred" },
+      { status: 500 },
+    );
+  }
+}
+```
+#### CORS Headers
+
+```typescript
+export async function OPTIONS() {
+  return new Response(null, {
+### OAuth Implementation
+#### Authorization Page Pattern
+
+```typescript
+// app/oauth/authorize/page.tsx
+export default async function AuthorizePage({ searchParams }: PageProps) {
+  const params = await searchParams;
+
+  // Validate OAuth parameters
+  const clientId = params.client_id as string;
+  const redirectUri = params.redirect_uri as string;
+
+  if (!clientId || !redirectUri) {
+    return <ErrorPage error="Invalid OAuth parameters" />;
+  }
+
+  return <AuthorizeForm clientId={clientId} redirectUri={redirectUri} />;
+}
+```
+#### Form Handling
+
+```typescript
+"use client";
+export function AuthorizeForm({ clientId, redirectUri }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsLoading(true);
+    try {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form action={handleSubmit}>
+      {/* Form fields */}
+### MCP Transport Handling
+#### Dynamic Transport Routes
+
+```typescript
+// app/[transport]/route.ts
+import { createMcpHandler } from "@vercel/mcp-adapter";
+```
+#### Transport Validation
+
+```typescript
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ transport: string }> },
+) {
+  const { transport } = await context.params;
+
+  if (!["sse", "mcp"].includes(transport)) {
+    return new Response("Unsupported transport", { status: 400 });
+  }
+
+  // Handle transport-specific logic
+}
+```
+## Testing Requirements
+### Page Component Testing
+
+```typescript
+import { render, screen } from "@testing-library/react";
+import { expect, test } from "vitest";
+```
+### Route Handler Testing
+
+```typescript
+import { createMockRequest } from "@/__tests__/utils/testHelpers";
+test("should handle GET request", async () => {
+  const request = createMockRequest();
+  const response = await GET(request);
+
+  expect(response.status).toBe(200);
+});
+```
+## Performance Guidelines
+### Static Generation
+
+```typescript
+// Use static generation where possible
+export const dynamic = "force-static";
+// Or configure specific behavior
+export const revalidate = 3600; // Revalidate every hour
+```
+### Dynamic Imports
+
+```typescript
+// Lazy load heavy components
+const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
+```
+### Edge Runtime
+
+```typescript
+// Use edge runtime for better performance
+export const runtime = "edge";
+```
+## Security Guidelines
+### Input Validation
+
+```typescript
+// Validate all inputs
+const schema = z.object({
+```
+### Authentication
+
+```typescript
+// Always validate authentication
+const authHeader = request.headers.get("authorization");
+```
+### CSRF Protection
+
+```typescript
+// Implement CSRF protection for forms
+if (request.method === "POST") {
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host");
+
+  if (origin !== `https://${host}`) {
+    return Response.json({ error: "CSRF check failed" }, { status: 403 });
+  }
+## Commit Guidelines
+### Before Committing App Changes
+
+1. `npm run typecheck` - Fix all TypeScript errors
+2. `npm run test:run` - Ensure all tests pass
+3. `npm run format` - Format code consistently
+4. Test pages manually in browser
+### Commit Message Format
+
+```
+feat: add OAuth authorization page with PKCE support
+fix: handle edge case in MCP transport routing
+```
+### File Organization
+
+- Keep route handlers focused and single-purpose
+- Use proper TypeScript types for all props
+- Implement proper error boundaries
+## Environment Considerations
+### Development
+
+- Use `npm run dev` for local development
+- Set up proper environment variables
+- Test both SSE and HTTP transport modes
+### Production
+
+- Optimize for Vercel deployment
+- Use proper caching strategies
+- Implement monitoring and logging
+- Handle edge cases gracefully

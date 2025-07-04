@@ -250,3 +250,30 @@ vercel inspect [url]    # Deployment details
 - `tailwindcss@3.4.17` - Styling
 - `lucide-react@0.468.0` - Icons
 
+## Development Rules
+### Pre-Implementation Requirements
+
+1. **Always run typecheck before implementing new features**: `npm run typecheck`
+2. **Always run typecheck before running newly implemented tests**: Fix all TypeScript errors first
+3. **Write tests before or alongside implementation**: Follow TDD practices
+4. **Review existing patterns**: Check relevant CLAUDE.md files in subdirectories
+### Testing Requirements
+
+- Run `npm run typecheck` before running any new tests
+- Ensure all tests pass before proceeding with new development
+- Write comprehensive tests for all new functionality
+- Mock all external dependencies properly
+### Commit Requirements
+
+- **Only commit working and tested code**: All tests must pass
+- **Make small logical commits**: One feature/fix per commit
+- **Run full validation before each commit**:
+- **Include tests in the same commit as implementation**
+### Directory-Specific Guidelines
+
+- See `__tests__/CLAUDE.md` for testing guidelines and patterns
+- See `app/api/CLAUDE.md` for API implementation standards
+- See `lib/CLAUDE.md` for library and utility development rules
+- `@radix-ui/*` - UI component primitives
+- `tailwindcss@3.4.17` - Styling
+- `lucide-react@0.468.0` - Icons

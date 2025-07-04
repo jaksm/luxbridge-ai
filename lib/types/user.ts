@@ -49,3 +49,7 @@ export interface UserInfo {
   email: string;
   platform: PlatformType;
 }
+  name: string;
+  email: string;
+  platform: PlatformType;
+}

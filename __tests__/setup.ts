@@ -94,3 +94,59 @@ process.env.OPENAI_API_KEY = "test_openai_key";
 process.env.REDIS_URL = "redis://localhost:6379";
 
 export { mockRedisClient, mockPineconeClient, mockPineconeIndex };
+};
+const mockOpenAIResponse = {
+  data: [{ embedding: new Array(1536).fill(0.1) }],
+};
+vi.mock("@pinecone-database/pinecone", () => ({
+  const response = {
+    json: () => Promise.resolve(data),
+    text: () => Promise.resolve(JSON.stringify(data)),
+    clone: function () {
+      return createFetchResponse(data);
+    },
+    ok: true,
+global.fetch = vi.fn().mockImplementation((url: string) => {
+  // Handle Pinecone API calls
+  if (url.includes("pinecone")) {
+    return Promise.resolve(
+      createFetchResponse({
+        indexes: [{ name: "test-index", dimension: 1536 }],
+      }),
+    );
+  }
+  // Default to OpenAI embeddings response
+  return Promise.resolve(createFetchResponse(mockOpenAIResponse));
+vi.mock("jsonwebtoken", () => ({
+  default: {
+    sign: vi.fn().mockReturnValue("mock.jwt.token"),
+    verify: vi
+      .fn()
+      .mockReturnValue({ userId: "test_user", platform: "splint_invest" }),
+    TokenExpiredError: class extends Error {
+      constructor(message: string, _expiredAt: Date) {
+        super(message);
+      }
+    },
+    JsonWebTokenError: class extends Error {
+      constructor(message: string) {
+        super(message);
+      }
+    },
+  },
+  sign: vi.fn().mockReturnValue("mock.jwt.token"),
+  verify: vi
+    .fn()
+    .mockReturnValue({ userId: "test_user", platform: "splint_invest" }),
+  TokenExpiredError: class extends Error {
+    constructor(message: string, _expiredAt: Date) {
+      super(message);
+    }
+  },
+  JsonWebTokenError: class extends Error {
+    constructor(message: string) {
+      super(message);
+    }
+  },
+}));
+// Set environment variables before any imports

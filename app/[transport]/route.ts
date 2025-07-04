@@ -280,3 +280,45 @@ export async function OPTIONS() {
   );
   return response;
 }
+import { NextRequest } from "next/server";
+import { assetStorage } from "@/lib/storage/redisClient";
+import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
+import {
+  GetAssetSchema,
+  GetAssetsByPlatformSchema,
+  GetUserPortfolioSchema,
+  SemanticSearchSchema,
+} from "@/lib/types/schemas";
+import { getUserById } from "@/lib/auth/authCommon";
+import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
+        GetAssetsByPlatformSchema.shape,
+        async ({ platform, limit = 50 }) => {
+          try {
+            const assets = await assetStorage.getAssetsByPlatform({
+              platform,
+              limit,
+            });
+            return {
+              content: [
+                {
+              };
+            }
+            const holdings =
+              user.portfolios[platform as keyof typeof user.portfolios];
+            if (holdings.length === 0) {
+              return {
+                content: [
+              };
+            }
+            const constructedAssets = await constructUserPortfolio(
+              holdings,
+              platform,
+            );
+            return {
+              content: [
+                {
+              };
+            }
+            const assets = platform
+              ? await assetStorage.getAssetsByIds(assetIds, platform)
+              : [];

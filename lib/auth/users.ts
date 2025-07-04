@@ -14,3 +14,10 @@ export const users: Record<string, User> = {
     }
   }
 };
+    portfolios: {
+      splint_invest: [],
+      masterworks: [],
+      realt: [],
+    },
+  },
+};

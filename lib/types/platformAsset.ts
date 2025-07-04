@@ -121,3 +121,35 @@ export interface CrossPlatformAnalysis {
   arbitrageOpportunities: ArbitrageOpportunity[];
   rebalanceRecommendations: RebalanceRecommendation[];
 }
+  name: string;
+  category: string;
+  subcategory?: string;
+
+  valuation: {
+    currentValue: number;
+    sharePrice: number;
+    lastValuationDate: string;
+    valuationFrequency: "monthly" | "quarterly" | "annual";
+  };
+
+  expertAnalysis: {
+    investmentHorizon: {
+      minimumYears: number;
+      yearsExperience: number;
+    };
+  };
+
+  physicalAttributes: {
+    description: string;
+    characteristics: string;
+    condition: string;
+    provenance: string;
+  };
+
+  metadata: {
+    createdAt: string;
+    updatedAt: string;
+  };
+  arbitrageOpportunities: ArbitrageOpportunity[];
+  rebalanceRecommendations: RebalanceRecommendation[];
+}

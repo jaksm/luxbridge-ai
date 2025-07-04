@@ -192,3 +192,109 @@ MIT License - See [LICENSE](LICENSE) for details.
 ---
 
 **LuxBridge AI**: *Where Real-World Assets Meet Universal Liquidity*
+**The Universal Liquidity Layer for Real-World Assets**
+_Making $15.2B in fragmented RWA markets tradeable through AI-powered cross-platform aggregation_
+---
+**Our Solution**: AI-powered synthetic tokenization that bridges platforms, enabling natural language portfolio management and cross-platform asset swaps.
+```
+"Trade my $5,000 wine investment for contemporary art"
+→ AI automatically tokenizes, finds liquidity, executes swap, settles across platforms
+```
+## 🎯 Core Innovation
+### **Synthetic Tokenization Layer**
+
+- **Custody Proof System**: Cryptographic verification of asset backing
+- **Cross-Platform Bridges**: Platform-specific integrations with unified interface
+### **AI-Powered Orchestration**
+
+- **Model Context Protocol Server**: Enable AI models to execute complex financial operations
+- **Natural Language Trading**: Express investment intentions conversationally
+- **Cross-Platform Intelligence**: AI enhances platform expertise without replacing specialist knowledge
+### **Universal Liquidity Aggregation**
+
+- **Intent-Based Trading**: Swap wine → art → real estate through single AI interaction
+- **Automated Market Making**: Improve liquidity for traditionally illiquid assets
+- **Cross-Platform Settlement**: Atomic transactions with cryptographic guarantees
+## ⚡ Technical Architecture
+### **MCP Server Foundation**
+
+```typescript
+// AI models can execute sophisticated financial operations through standardized tools
+// Cross-platform asset tokenization, liquidity aggregation, and settlement
+```
+### **Privy Authentication Integration**
+
+- Embedded wallet creation during authentication flow
+- OAuth 2.1 with PKCE for secure token-based access
+- Support for SSE and HTTP transport protocols
+### **Using LuxBridge AI with Claude**
+1. **Add MCP Integration**: Go to [claude.ai](https://claude.ai) and add LuxBridge AI MCP server:
+
+   ```
+   https://luxbridge-ai.vercel.app/mcp
+   ```
+### **Development Setup**
+### **Prerequisites**
+
+- Node.js 18+
+- Redis instance (required for SSE transport)
+- Git
+## 📡 API Endpoints
+### **MCP Transports**
+
+- `GET /sse` - Server-Sent Events (persistent connections)
+- `POST /mcp` - HTTP transport (stateless)
+### **OAuth 2.1 Flow**
+
+- `GET /oauth/authorize` - Authorization endpoint
+- `POST /api/oauth/token` - Token exchange
+- `POST /api/oauth/register` - Client registration
+### **Discovery**
+
+- `GET /.well-known/oauth-authorization-server` - OAuth metadata
+- `GET /.well-known/resource-metadata` - Resource server info
+## 🎭 Demo Scenarios
+### **Scenario 1: Cross-Platform Portfolio Rebalancing**
+
+```
+User: "I want to reduce my wine exposure and increase contemporary art"
+```
+### **Scenario 2: AI-Enhanced Portfolio Insights**
+
+```
+User: "Should I buy more real estate given current market conditions?"
+## 🔐 Security Features
+### **Authentication & Authorization**
+
+- OAuth 2.1 with PKCE (Proof Key for Code Exchange) via Privy
+- JWT access tokens with configurable expiration
+- Bearer token validation for all MCP requests
+- Embedded wallet creation and management
+### **Asset Custody**
+
+- Mock cryptographic proof of custody system (for demonstration purposes)
+- Designed for platform teams to implement our Asset schema and bridge standards in production
+- On-chain verification patterns for asset backing
+- Segregated custody concepts preventing double-spending
+### **Account Security**
+
+- Guardian-based account recovery via Privy
+- Circuit breaker patterns for failed integrations
+## 📊 Market Opportunity
+### **RWA Market Size**
+
+- **Current**: $15.2B tokenized (85% YoY growth)
+- **Projected**: $18.9T by 2030
+- **Problem**: 0.5% of DEX volume despite billions in assets
+### **Platform Fragmentation**
+
+- **Splint Invest**: €21M+ AUM, 15K+ investors, wine/art/collectibles
+- **Masterworks**: $1B+ AUM, exclusive art market access
+- **RealT**: 970+ tokenized properties, blockchain-native
+### **Competitive Moat**
+
+- First universal RWA liquidity aggregator
+- AI-powered cross-platform intelligence that enhances (not replaces) platform expertise
+- Compliance-first architecture for institutional adoption
+---
+**LuxBridge AI**: _Where Real-World Assets Meet Universal Liquidity_

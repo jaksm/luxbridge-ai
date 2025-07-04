@@ -113,3 +113,67 @@ ${asset.expertAnalysis.expertProfile.trackRecord}`;
     return "5m+";
   }
 }
+  async searchAssets(params: SemanticSearchParams): Promise<string[]> {
+    try {
+      const index = this.pinecone.index(this.indexName);
+
+      const filter: any = {};
+      if (params.platform) {
+        filter.platform = { $eq: params.platform };
+      const results = await index.query(queryOptions);
+      return (
+        results.matches
+          ?.filter((match) => (match.score || 0) >= params.minScore)
+          .map((match) => match.metadata?.assetId as string)
+          .filter(Boolean) || []
+      );
+    } catch (error) {
+      console.error("Pinecone search error:", error);
+      return [];
+  async upsertAsset(asset: PlatformAsset, platform: PlatformType) {
+    try {
+      const index = this.pinecone.index(this.indexName);
+      const embedding = await this.generateEmbedding(
+        this.createAssetText(asset),
+      );
+
+      await index.upsert([
+        {
+          id: `${platform}:${asset.assetId}`,
+          values: embedding,
+          metadata: {
+            platform,
+            assetId: asset.assetId,
+            name: asset.name,
+            category: asset.category,
+            subcategory: asset.subcategory || "",
+            riskCategory: asset.expertAnalysis.riskProfile.riskCategory,
+            valueRange: this.getValueRange(asset.valuation.currentValue),
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Pinecone upsert error:", error);
+    }
+    const response = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+  private createAssetText(asset: PlatformAsset): string {
+    return `# ${asset.name}
+**Category**: ${asset.category} > ${asset.subcategory || "N/A"}
+**Asset ID**: ${asset.assetId}
+**Investment Horizon**: ${asset.expertAnalysis.investmentHorizon.optimalYears} years
+**Risk Profile**: ${asset.expertAnalysis.riskProfile.riskCategory} (${asset.expertAnalysis.riskProfile.overallRiskScore}/10)
+${asset.physicalAttributes.description}
+## Risk Factors
+${asset.expertAnalysis.riskProfile.riskFactors.join(", ")}
+## Investment Thesis
+${asset.expertAnalysis.expertProfile.trackRecord}`;
+    if (value < 5000000) return "1m-5m";
+    return "5m+";
+  }
+}

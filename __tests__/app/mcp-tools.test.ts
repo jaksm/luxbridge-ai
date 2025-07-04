@@ -228,3 +228,119 @@ describe("MCP Tools with Zod Validation", () => {
     });
   });
 });
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { createMockAsset } from "@/__tests__/fixtures/mockAssets";
+import { mockPortfolioHoldings } from "@/__tests__/fixtures/mockUsers";
+import { mockTokenPayloads } from "@/__tests__/fixtures/mockTokens";
+import { assetStorage } from "@/lib/storage/redisClient";
+import { PineconeClient } from "@/lib/storage/pineconeClient";
+import {
+  GetAssetSchema,
+  GetAssetsByPlatformSchema,
+  GetUserPortfolioSchema,
+  SemanticSearchSchema,
+} from "@/lib/types/schemas";
+vi.mock("@/lib/storage/redisClient");
+vi.mock("@/lib/storage/pineconeClient");
+    it("should validate correct parameters", () => {
+      const validParams = {
+        platform: "splint_invest",
+        assetId: "WINE-BORDEAUX-001",
+      };
+      const result = GetAssetSchema.safeParse(validParams);
+    it("should reject invalid platform", () => {
+      const invalidParams = {
+        platform: "invalid_platform",
+        assetId: "WINE-BORDEAUX-001",
+      };
+      const result = GetAssetSchema.safeParse(invalidParams);
+    it("should reject missing assetId", () => {
+      const invalidParams = {
+        platform: "splint_invest",
+      };
+      const result = GetAssetSchema.safeParse(invalidParams);
+      vi.mocked(assetStorage.getAsset).mockResolvedValue(mockAsset);
+      const params = {
+        platform: "splint_invest" as const,
+        assetId: "WINE-BORDEAUX-001",
+      };
+      const result = await assetStorage.getAsset(params);
+    it("should validate correct parameters", () => {
+      const validParams = {
+        platform: "masterworks",
+        limit: 20,
+      };
+      const result = GetAssetsByPlatformSchema.safeParse(validParams);
+    it("should provide default limit", () => {
+      const params = {
+        platform: "realt",
+      };
+      const result = GetAssetsByPlatformSchema.safeParse(params);
+    it("should validate limit boundaries", () => {
+      const tooHighLimit = {
+        platform: "splint_invest",
+        limit: 250,
+      };
+      const result = GetAssetsByPlatformSchema.safeParse(tooHighLimit);
+    it("should allow optional parameters", () => {
+      const minimalParams = {
+        platform: "splint_invest",
+      };
+      const result = GetAssetsByPlatformSchema.safeParse(minimalParams);
+    it("should validate correct parameters", () => {
+      const validParams = {
+        platform: "splint_invest",
+        userId: "test_user_1",
+      };
+      const result = GetUserPortfolioSchema.safeParse(validParams);
+    it("should accept any string userId", () => {
+      const params = {
+        platform: "splint_invest",
+        userId: "any_user_id_123",
+      };
+      const result = GetUserPortfolioSchema.safeParse(params);
+    });
+    it("should handle tool execution with portfolio construction", async () => {
+      vi.mocked(assetStorage.getUserPortfolio).mockResolvedValue(
+        mockPortfolioHoldings.splint_invest,
+      );
+      vi.mocked(assetStorage.getAssetsByIds).mockResolvedValue([
+        createMockAsset(),
+      ]);
+      const params = {
+        platform: "splint_invest" as const,
+        userId: "test_user_1",
+      };
+      const holdings = await assetStorage.getUserPortfolio(params);
+        query: "high yield wine investments",
+        platform: "splint_invest",
+        limit: 5,
+        minScore: 0.7,
+      };
+      const result = SemanticSearchSchema.safeParse(validParams);
+    it("should provide default values", () => {
+      const params = {
+        query: "art investments",
+      };
+      const result = SemanticSearchSchema.safeParse(params);
+    it("should accept any query string", () => {
+      const shortQuery = {
+        query: "a",
+      };
+      const result = SemanticSearchSchema.safeParse(shortQuery);
+    it("should validate score boundaries", () => {
+      const invalidScore = {
+        query: "investments",
+        minScore: 1.5,
+      };
+      const result = SemanticSearchSchema.safeParse(invalidScore);
+        query: "fine wine",
+        platform: "splint_invest",
+        limit: 5,
+        minScore: 0.6,
+      };
+      const results = await mockPineconeClient.searchAssets(params);
+      expect(tokenPayload).toBeNull();
+    });
+  });
+});
