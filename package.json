@@ -22,3 +22,48 @@
   },
   "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc"
 }
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@pinecone-database/pinecone": "^6.1.1",
+    "@privy-io/react-auth": "^2.17.3",
+    "@privy-io/server-auth": "^1.28.2",
+    "@radix-ui/react-alert-dialog": "^1.1.4",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@vercel/mcp-adapter": "0.8.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "langchain": "^0.3.29",
+    "lucide-react": "^0.468.0",
+    "next": "15.2.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "redis": "^4.7.0",
+    "tailwind-merge": "^2.5.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@vitest/ui": "^3.2.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.0",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
+  }
+}
