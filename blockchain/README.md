@@ -11,6 +11,7 @@ This blockchain implementation enables cross-platform trading of tokenized Real-
 ### Core Contracts
 
 #### 1. RWATokenFactory (`contracts/core/RWATokenFactory.sol`)
+
 - **Purpose**: Factory for creating and managing synthetic RWA tokens
 - **Features**:
   - Gas-optimized storage with packed structs
@@ -20,6 +21,7 @@ This blockchain implementation enables cross-platform trading of tokenized Real-
   - Oracle integration for real-time valuations
 
 #### 2. RWA20Token (`contracts/core/RWA20Token.sol`)
+
 - **Purpose**: ERC-20 compliant tokens representing platform assets
 - **Features**:
   - Asset metadata storage (platform, type, legal documents)
@@ -28,15 +30,17 @@ This blockchain implementation enables cross-platform trading of tokenized Real-
   - Factory-controlled ownership for oracle updates
 
 #### 3. LuxBridgeAMM (`contracts/core/LuxBridgeAMM.sol`)
+
 - **Purpose**: Automated Market Maker for cross-platform asset swaps
 - **Features**:
-  - Constant product formula (x * y = k)
+  - Constant product formula (x \* y = k)
   - Multi-pool support for different asset pairs
   - Liquidity provision and removal
   - Configurable swap fees
   - Route optimization for best prices
 
 #### 4. LuxBridgePriceOracle (`contracts/oracles/LuxBridgePriceOracle.sol`)
+
 - **Purpose**: Chainlink Functions integration for cross-platform pricing
 - **Features**:
   - WEB2 API integration via Chainlink Functions
@@ -46,6 +50,7 @@ This blockchain implementation enables cross-platform trading of tokenized Real-
   - Real-time valuation updates
 
 #### 5. LuxBridgeAutomation (`contracts/core/LuxBridgeAutomation.sol`)
+
 - **Purpose**: EIP-7702 account abstraction for AI-powered trading
 - **Features**:
   - Delegated trading permissions with limits
@@ -201,7 +206,7 @@ graph deploy --product hosted-service your-github-username/luxbridge-rwa
 ### Performance Metrics
 
 - **Token Creation**: ~200k gas per asset
-- **AMM Swap**: ~80k gas per trade  
+- **AMM Swap**: ~80k gas per trade
 - **Liquidity Operations**: ~120k gas per add/remove
 - **Oracle Update**: ~50k gas per price update
 
@@ -234,19 +239,20 @@ The blockchain layer is designed to integrate seamlessly with the existing MCP s
 
 ```typescript
 // MCP tool for cross-platform trading
-server.tool("execute_cross_platform_trade", 
+server.tool(
+  "execute_cross_platform_trade",
   "Trade assets between different RWA platforms",
   z.object({
     sellAsset: z.string(),
     buyAsset: z.string(),
     amount: z.string(),
-    minAmountOut: z.string()
+    minAmountOut: z.string(),
   }),
   async ({ sellAsset, buyAsset, amount, minAmountOut }) => {
     // Call blockchain via ethers.js
     const tx = await amm.swap(sellToken, buyToken, amount, minAmountOut);
     return { transactionHash: tx.hash };
-  }
+  },
 );
 ```
 
@@ -255,7 +261,7 @@ server.tool("execute_cross_platform_trade",
 ### Planned Features
 
 1. **Multi-chain Support**: Bridge to other EVM networks
-2. **Advanced Routing**: MEV-resistant swap optimization  
+2. **Advanced Routing**: MEV-resistant swap optimization
 3. **Yield Farming**: Liquidity mining rewards
 4. **Insurance Integration**: Asset protection mechanisms
 5. **Governance Token**: Decentralized protocol governance
