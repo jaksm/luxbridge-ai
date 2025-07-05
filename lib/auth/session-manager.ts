@@ -6,7 +6,7 @@ import {
 } from "@/lib/types/luxbridge-auth";
 import { PlatformType } from "@/lib/types/platformAsset";
 
-const SESSION_TTL = 15 * 60; // 15 minutes in seconds
+const SESSION_TTL = 24 * 60 * 60; // 24 hours in seconds
 
 export async function createAuthSession(
   luxUserId: string,

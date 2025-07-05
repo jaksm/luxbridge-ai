@@ -128,7 +128,7 @@ export async function storeAccessToken(
     userId: accessToken.userId,
   });
 
-  await redis.expire(key, 3600);
+  await redis.expire(key, 2592000); // 30 days in seconds
 }
 
 export async function getAccessToken(

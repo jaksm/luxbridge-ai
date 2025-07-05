@@ -262,7 +262,7 @@ describe("Redis OAuth Operations", () => {
         );
         expect(mockRedisClient.expire).toHaveBeenCalledWith(
           `oauth:token:${mockAccessToken.token}`,
-          3600,
+          2592000,
         );
       });
     });

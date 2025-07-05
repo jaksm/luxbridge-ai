@@ -11,7 +11,7 @@ Authenticate user with LuxBridge using Privy token and establish MCP session. Cr
 
 <use-cases>
 - Initial login: privyToken = "eyJhbGciOiJIUzI1NiIs..." (Privy JWT token)
-- Session creation: Establishes 15-minute MCP session for API access
+- Session creation: Establishes 24-hour MCP session for API access
 - User verification: Validates Privy authentication before platform linking
 - Security setup: Required before using cross-platform portfolio tools
 - Multi-platform auth: Gateway to linking external RWA platform accounts
@@ -20,7 +20,7 @@ Authenticate user with LuxBridge using Privy token and establish MCP session. Cr
 🚨 CRITICAL WARNINGS:
 
 - Privy token must be valid and non-expired
-- Session expires in 15 minutes and requires re-authentication
+- Session expires in 24 hours and requires re-authentication
 - Failed authentication blocks access to all cross-platform features
 
 ⚠️ IMPORTANT NOTES:
@@ -60,7 +60,7 @@ export const registerAuthenticateLuxBridgeUserTool: RegisterTool =
             content: [
               {
                 type: "text" as const,
-                text: `✅ LuxBridge authentication successful!\n\nSession ID: ${sessionId}\nUser: ${luxUser.name} (${luxUser.email})\nSession expires in 15 minutes\n\nYou can now link platform accounts and perform cross-platform operations.`,
+                text: `✅ LuxBridge authentication successful!\n\nSession ID: ${sessionId}\nUser: ${luxUser.name} (${luxUser.email})\nSession expires in 24 hours\n\nYou can now link platform accounts and perform cross-platform operations.`,
               },
             ],
           };
