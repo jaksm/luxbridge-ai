@@ -7,8 +7,19 @@ This directory contains comprehensive test suites for the LuxBridge AI Mock API 
 ### Core Infrastructure Tests
 
 - `lib/storage/` - Redis client and Pinecone vector search tests
-- `lib/auth/` - Authentication utilities and JWT handling tests
+- `lib/auth/` - Authentication utilities, session management, and multi-platform authentication tests
+- `lib/tools/` - MCP tool tests including multi-platform portfolio and search functionality
 - `lib/utils/` - Portfolio calculation and utility function tests
+
+### Multi-Platform Authentication Tests
+
+**New Test Suites** (Added for multi-platform functionality):
+
+- `lib/auth/session-manager.test.ts` - Session lifecycle, platform linking, and multi-platform bridge tests
+- `lib/auth/platform-auth.test.ts` - Cross-platform authentication and API call tests
+- `lib/tools/get-portfolio-tool.test.ts` - Multi-platform portfolio aggregation tests
+- `lib/tools/search-assets-tool.test.ts` - Intelligent cross-platform search tests
+- `integration/multi-platform-flow.test.ts` - End-to-end multi-platform authentication flow tests
 
 ### API Route Tests
 

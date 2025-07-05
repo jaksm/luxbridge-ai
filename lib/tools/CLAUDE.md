@@ -3,6 +3,15 @@
 - `./types.ts` contains types that you will reuse when creating tools (type RegisterTool is what you will use most of the time)
 - create tool description markdown in `./templates/{tool-name}-tool-description.md` by following the guide below
 
+## Multi-Platform Tools
+
+**Current Implementation**: All tools now support multi-platform operations through the enhanced authentication system:
+
+- **`get-portfolio-tool.ts`**: Automatically aggregates portfolio data from all connected platforms. Replaces previous cross-platform tool with simplified interface.
+- **`search-assets-tool.ts`**: Intelligently searches across all connected platforms with automatic platform selection. Enhanced with recommendations and performance sorting.
+
+**Authentication Context**: Tools receive `accessToken` with embedded `sessionId` that enables real-time access to connected platform credentials via session management system.
+
 ## Registering the tool
 
 This is an example of tool description:

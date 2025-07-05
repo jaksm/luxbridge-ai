@@ -8,12 +8,13 @@ This is a Next.js MCP (Model Context Protocol) server implementation with compre
 
 **Authentication Architecture**: 
 - **Primary Layer**: OAuth 2.1 + Privy for LuxBridge user authentication
-- **Platform Layer**: Redis-backed user registration/login for individual RWA platforms
-- **Security**: bcrypt password hashing, JWT tokens, comprehensive session management
+- **Platform Layer**: Redis-backed user registration/login for individual RWA platforms  
+- **Multi-Platform Bridge**: OAuth tokens now include sessionId to enable simultaneous connections to multiple platforms
+- **Security**: bcrypt password hashing, JWT tokens, comprehensive session management with platform link tracking
 
 **Blockchain Integration**: Includes a complete smart contract infrastructure for Real-World Asset (RWA) tokenization and cross-platform trading. The blockchain layer enables universal liquidity aggregation across mock RWA platforms through sophisticated AMMs and AI-powered automation using ETH-based settlements.
 
-**Current State**: Production-ready authentication system with user registration, Redis-backed storage, and smart contracts optimized for Zircuit network.
+**Current State**: Production-ready multi-platform authentication system with simultaneous platform connectivity, cross-platform portfolio aggregation, Redis-backed storage, and smart contracts optimized for Zircuit network.
 
 ## Development Commands
 
@@ -140,13 +141,19 @@ ETHERSCAN_API_KEY=...
 
 - **Clients**: `oauth:client:{clientId}` - OAuth client configurations
 - **Auth Codes**: `oauth:auth_code:{code}` - Temporary authorization codes (10min TTL)
-- **Access Tokens**: `oauth:access_token:{token}` - Long-lived access tokens (24hr TTL)
+- **Access Tokens**: `oauth:access_token:{token}` - Long-lived access tokens (24hr TTL) with sessionId for platform linking
 
 **User Authentication Schema** (`lib/auth/redis-users.ts`):
 
 - **Users**: `user:{email}` - Complete user profiles with portfolios
 - **User ID Index**: `user_id:{userId}` → email - Quick userId lookup
 - **Portfolio Data**: Embedded in user object with platform-specific holdings
+
+**Session Management Schema** (`lib/auth/session-manager.ts`):
+
+- **Sessions**: `session:{sessionId}` - Multi-platform authentication sessions (24hr TTL)
+- **User Sessions**: `user_sessions:{luxUserId}` - Active session tracking per user
+- **Platform Links**: Embedded in session object for real-time platform connectivity
 
 **Redis User Structure**:
 ```json
@@ -171,13 +178,24 @@ ETHERSCAN_API_KEY=...
 **OAuth Management**:
 - `storeClient()` / `getClient()` - Client management
 - `storeAuthCode()` / `getAuthCode()` - Authorization code lifecycle
-- `generateAccessToken()` / `storeAccessToken()` / `getAccessToken()` - Token management
+- `generateAccessToken()` / `storeAccessToken()` / `getAccessToken()` - Token management with sessionId support
 
 **User Management**:
 - `createUser()` / `getUserByEmail()` / `getUserById()` - User CRUD operations
 - `validateCredentials()` / `registerUser()` - Authentication operations
 - `addAssetToPortfolio()` / `removeAssetFromPortfolio()` - Portfolio management
 - `updatePortfolioAsset()` / `getUserPortfolio()` - Portfolio operations
+
+**Session Management** (`lib/auth/session-manager.ts`):
+- `createAuthSession()` / `getAuthSession()` / `deleteAuthSession()` - Session lifecycle
+- `getUserConnectedPlatforms()` - Multi-platform connectivity status
+- `updateSessionPlatformLink()` - Real-time platform link management
+- `getActiveUserSession()` - Current session retrieval
+
+**Platform Authentication** (`lib/auth/platform-auth.ts`):
+- `validatePlatformCredentials()` - Platform-specific authentication
+- `makeAuthenticatedPlatformCall()` - Cross-platform API calls with session context
+- `getAllUserPlatformLinks()` - Multi-platform connectivity overview
 
 ### MCP Tool Pattern
 
@@ -202,6 +220,8 @@ server.tool(
 **Currently Implemented:**
 
 - `get_auth_state`: Returns authenticated user information from access token
+- `get_portfolio`: Aggregates portfolio data from all connected platforms automatically
+- `search_assets`: Searches across all connected platforms with intelligent platform selection
 
 ## Authentication Flow Details
 

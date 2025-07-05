@@ -9,7 +9,7 @@ This directory contains the complete authentication infrastructure for LuxBridge
 **Layer 1: LuxBridge OAuth 2.1** (Primary Access)
 - **Purpose**: Main application access and MCP server authentication
 - **Provider**: Privy-based authentication with email verification
-- **Storage**: Redis-based OAuth state management
+- **Storage**: Redis-based OAuth state management with sessionId bridging
 - **Scope**: System-wide access, MCP tool execution, cross-platform operations
 
 **Layer 2: Platform Authentication** (RWA Platform Access)
@@ -17,6 +17,11 @@ This directory contains the complete authentication infrastructure for LuxBridge
 - **Storage**: Redis-backed user profiles with bcrypt password hashing
 - **Scope**: Platform-specific API access, portfolio management, asset operations
 - **Platforms**: Splint Invest, Masterworks, RealT
+
+**Multi-Platform Bridge** (Session Management)
+- **Purpose**: Enable simultaneous connections to multiple RWA platforms
+- **Implementation**: OAuth tokens include sessionId that links to platform authentication sessions
+- **Features**: Real-time platform connectivity, cross-platform data aggregation, unified portfolio views
 
 ## File Structure
 
@@ -103,7 +108,41 @@ registerUser(params: CreateUserParams): Promise<RedisUserAuthResult>
 - **Data Integrity**: Atomic Redis operations with error handling
 - **User Lookup**: Dual indexing (email and userId) for performance
 
-### 3. Platform Authentication (`platform-auth.ts`)
+### 3. Session Management (`session-manager.ts`)
+
+**Purpose**: OAuth session lifecycle with multi-platform connectivity bridge
+
+**Key Functions**:
+```typescript
+// Session lifecycle
+createAuthSession(luxUserId: string, privyToken: string): Promise<string>
+getAuthSession(sessionId: string): Promise<AuthSession | null>
+deleteAuthSession(sessionId: string): Promise<void>
+extendSession(sessionId: string): Promise<void>
+
+// Multi-platform bridge
+getUserConnectedPlatforms(userId: string, sessionId?: string): Promise<Record<PlatformType, PlatformLink | null>>
+getActiveUserSession(userId: string): Promise<AuthSession | null>
+updateSessionPlatformLink(sessionId: string, platform: PlatformType, platformLink: PlatformLink): Promise<void>
+
+// User management
+storeLuxBridgeUser(user: LuxBridgeUser): Promise<void>
+getLuxBridgeUser(privyId: string): Promise<LuxBridgeUser | null>
+```
+
+**Session Data Model**:
+```typescript
+interface AuthSession {
+  sessionId: string;
+  luxUserId: string;
+  privyToken: string;
+  platforms: Record<PlatformType, PlatformLink | null>;
+  createdAt: string;
+  expiresAt: string;
+}
+```
+
+### 4. Platform Authentication (`platform-auth.ts`)
 
 **Purpose**: Cross-platform session management and platform linking
 
