@@ -1,5 +1,18 @@
 import type { NextConfig } from "next";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  webpack: (config) => {
+    config.plugins.push(
+      new CopyWebpackPlugin({
+        patterns: [
+          { from: "templates", to: "templates" },
+          { from: "lib/tools/templates", to: "lib/tools/templates" }
+        ]
+      })
+    );
+    return config;
+  }
+};
 
 export default nextConfig;
