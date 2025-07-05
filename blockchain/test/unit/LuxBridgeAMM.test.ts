@@ -2,7 +2,11 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-import { LuxBridgeAMM, RWATokenFactory, RWA20Token } from "../../typechain-types";
+import {
+  LuxBridgeAMM,
+  RWATokenFactory,
+  RWA20Token,
+} from "../../typechain-types";
 
 describe("LuxBridgeAMM", function () {
   async function deployAMMFixture() {
@@ -14,45 +18,61 @@ describe("LuxBridgeAMM", function () {
     const RWATokenFactory = await ethers.getContractFactory("RWATokenFactory");
     const factory = await RWATokenFactory.deploy();
 
-    await factory.registerPlatform("splint_invest", "https://api.splintinvest.com");
-    await factory.registerPlatform("masterworks", "https://api.masterworks.com");
+    await factory.registerPlatform(
+      "splint_invest",
+      "https://api.splintinvest.com",
+    );
+    await factory.registerPlatform(
+      "masterworks",
+      "https://api.masterworks.com",
+    );
 
-    await factory.connect(alice).tokenizeAsset(
+    await factory
+      .connect(alice)
+      .tokenizeAsset(
+        "splint_invest",
+        "WINE-001",
+        ethers.parseEther("1000000"),
+        "wine",
+        ethers.keccak256(ethers.toUtf8Bytes("wine-legal")),
+        ethers.parseEther("50000"),
+      );
+
+    await factory
+      .connect(alice)
+      .tokenizeAsset(
+        "masterworks",
+        "ART-001",
+        ethers.parseEther("500000"),
+        "art",
+        ethers.keccak256(ethers.toUtf8Bytes("art-legal")),
+        ethers.parseEther("100000"),
+      );
+
+    const wineTokenAddress = await factory.getTokenAddress(
       "splint_invest",
       "WINE-001",
-      ethers.parseEther("1000000"),
-      "wine",
-      ethers.keccak256(ethers.toUtf8Bytes("wine-legal")),
-      ethers.parseEther("50000")
     );
-
-    await factory.connect(alice).tokenizeAsset(
+    const artTokenAddress = await factory.getTokenAddress(
       "masterworks",
       "ART-001",
-      ethers.parseEther("500000"),
-      "art",
-      ethers.keccak256(ethers.toUtf8Bytes("art-legal")),
-      ethers.parseEther("100000")
     );
-
-    const wineTokenAddress = await factory.getTokenAddress("splint_invest", "WINE-001");
-    const artTokenAddress = await factory.getTokenAddress("masterworks", "ART-001");
 
     const RWA20Token = await ethers.getContractFactory("RWA20Token");
     const wineToken = RWA20Token.attach(wineTokenAddress) as RWA20Token;
     const artToken = RWA20Token.attach(artTokenAddress) as RWA20Token;
 
-    return { 
-      amm, 
-      factory, 
-      owner, 
-      alice, 
-      bob, 
-      charlie, 
-      wineToken, 
+    return {
+      amm,
+      factory,
+      owner,
+      alice,
+      bob,
+      charlie,
+      wineToken,
       artToken,
       wineTokenAddress,
-      artTokenAddress
+      artTokenAddress,
     };
   }
 
@@ -63,24 +83,24 @@ describe("LuxBridgeAMM", function () {
       const tx = await amm.createPool(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        30 // 0.3% fee
+        30, // 0.3% fee
       );
 
       const poolId = await amm.getPoolId(
         await wineToken.getAddress(),
-        await artToken.getAddress()
+        await artToken.getAddress(),
       );
 
       await expect(tx)
         .to.emit(amm, "PoolCreated")
         .withArgs(
-          await wineToken.getAddress() < await artToken.getAddress() 
-            ? await wineToken.getAddress() 
+          (await wineToken.getAddress()) < (await artToken.getAddress())
+            ? await wineToken.getAddress()
             : await artToken.getAddress(),
-          await wineToken.getAddress() < await artToken.getAddress() 
-            ? await artToken.getAddress() 
+          (await wineToken.getAddress()) < (await artToken.getAddress())
+            ? await artToken.getAddress()
             : await wineToken.getAddress(),
-          poolId
+          poolId,
         );
 
       const pool = await amm.getPool(poolId);
@@ -95,15 +115,15 @@ describe("LuxBridgeAMM", function () {
       await amm.createPool(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        30
+        30,
       );
 
       await expect(
         amm.createPool(
           await wineToken.getAddress(),
           await artToken.getAddress(),
-          50
-        )
+          50,
+        ),
       ).to.be.revertedWith("Pool exists");
     });
 
@@ -114,8 +134,8 @@ describe("LuxBridgeAMM", function () {
         amm.createPool(
           await wineToken.getAddress(),
           await wineToken.getAddress(),
-          30
-        )
+          30,
+        ),
       ).to.be.revertedWith("Identical tokens");
     });
   });
@@ -128,34 +148,39 @@ describe("LuxBridgeAMM", function () {
       await amm.createPool(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        30
+        30,
       );
 
       return { ...fixture };
     }
 
     it("Should add initial liquidity", async function () {
-      const { amm, wineToken, artToken, alice } = await loadFixture(setupPoolFixture);
+      const { amm, wineToken, artToken, alice } =
+        await loadFixture(setupPoolFixture);
 
       const wineAmount = ethers.parseEther("100000");
       const artAmount = ethers.parseEther("50000");
 
-      await wineToken.connect(alice).approve(await amm.getAddress(), wineAmount);
+      await wineToken
+        .connect(alice)
+        .approve(await amm.getAddress(), wineAmount);
       await artToken.connect(alice).approve(await amm.getAddress(), artAmount);
 
       const poolId = await amm.getPoolId(
         await wineToken.getAddress(),
-        await artToken.getAddress()
+        await artToken.getAddress(),
       );
 
-      const tx = await amm.connect(alice).addLiquidity(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        wineAmount,
-        artAmount,
-        wineAmount,
-        artAmount
-      );
+      const tx = await amm
+        .connect(alice)
+        .addLiquidity(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          wineAmount,
+          artAmount,
+          wineAmount,
+          artAmount,
+        );
 
       await expect(tx)
         .to.emit(amm, "LiquidityAdded")
@@ -168,77 +193,104 @@ describe("LuxBridgeAMM", function () {
     });
 
     it("Should add subsequent liquidity proportionally", async function () {
-      const { amm, wineToken, artToken, alice, bob } = await loadFixture(setupPoolFixture);
+      const { amm, wineToken, artToken, alice, bob } =
+        await loadFixture(setupPoolFixture);
 
       const initialWineAmount = ethers.parseEther("100000");
       const initialArtAmount = ethers.parseEther("50000");
 
-      await wineToken.connect(alice).approve(await amm.getAddress(), initialWineAmount);
-      await artToken.connect(alice).approve(await amm.getAddress(), initialArtAmount);
+      await wineToken
+        .connect(alice)
+        .approve(await amm.getAddress(), initialWineAmount);
+      await artToken
+        .connect(alice)
+        .approve(await amm.getAddress(), initialArtAmount);
 
-      await amm.connect(alice).addLiquidity(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        initialWineAmount,
-        initialArtAmount,
-        initialWineAmount,
-        initialArtAmount
-      );
+      await amm
+        .connect(alice)
+        .addLiquidity(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          initialWineAmount,
+          initialArtAmount,
+          initialWineAmount,
+          initialArtAmount,
+        );
 
-      await wineToken.connect(alice).transfer(bob.address, ethers.parseEther("50000"));
-      await artToken.connect(alice).transfer(bob.address, ethers.parseEther("25000"));
+      await wineToken
+        .connect(alice)
+        .transfer(bob.address, ethers.parseEther("50000"));
+      await artToken
+        .connect(alice)
+        .transfer(bob.address, ethers.parseEther("25000"));
 
       const additionalWineAmount = ethers.parseEther("50000");
       const additionalArtAmount = ethers.parseEther("25000");
 
-      await wineToken.connect(bob).approve(await amm.getAddress(), additionalWineAmount);
-      await artToken.connect(bob).approve(await amm.getAddress(), additionalArtAmount);
+      await wineToken
+        .connect(bob)
+        .approve(await amm.getAddress(), additionalWineAmount);
+      await artToken
+        .connect(bob)
+        .approve(await amm.getAddress(), additionalArtAmount);
 
       await expect(
-        amm.connect(bob).addLiquidity(
-          await wineToken.getAddress(),
-          await artToken.getAddress(),
-          additionalWineAmount,
-          additionalArtAmount,
-          additionalWineAmount,
-          additionalArtAmount
-        )
+        amm
+          .connect(bob)
+          .addLiquidity(
+            await wineToken.getAddress(),
+            await artToken.getAddress(),
+            additionalWineAmount,
+            additionalArtAmount,
+            additionalWineAmount,
+            additionalArtAmount,
+          ),
       ).to.not.be.reverted;
     });
 
     it("Should remove liquidity", async function () {
-      const { amm, wineToken, artToken, alice } = await loadFixture(setupPoolFixture);
+      const { amm, wineToken, artToken, alice } =
+        await loadFixture(setupPoolFixture);
 
       const wineAmount = ethers.parseEther("100000");
       const artAmount = ethers.parseEther("50000");
 
-      await wineToken.connect(alice).approve(await amm.getAddress(), wineAmount);
+      await wineToken
+        .connect(alice)
+        .approve(await amm.getAddress(), wineAmount);
       await artToken.connect(alice).approve(await amm.getAddress(), artAmount);
 
-      await amm.connect(alice).addLiquidity(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        wineAmount,
-        artAmount,
-        wineAmount,
-        artAmount
-      );
+      await amm
+        .connect(alice)
+        .addLiquidity(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          wineAmount,
+          artAmount,
+          wineAmount,
+          artAmount,
+        );
 
       const poolId = await amm.getPoolId(
         await wineToken.getAddress(),
-        await artToken.getAddress()
+        await artToken.getAddress(),
       );
 
-      const liquidityBalance = await amm.liquidityBalances(poolId, alice.address);
+      const liquidityBalance = await amm.liquidityBalances(
+        poolId,
+        alice.address,
+      );
       const halfLiquidity = liquidityBalance / 2n;
 
-      const tx = await amm.connect(alice).removeLiquidity(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        halfLiquidity,
-        0,
-        0
-      );
+      const tx = await amm
+        .connect(alice)
+        .removeLiquidity(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          halfLiquidity,
+          0,
+          0,
+        );
 
       await expect(tx)
         .to.emit(amm, "LiquidityRemoved")
@@ -254,53 +306,63 @@ describe("LuxBridgeAMM", function () {
       await amm.createPool(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        30
+        30,
       );
 
       const wineAmount = ethers.parseEther("100000");
       const artAmount = ethers.parseEther("50000");
 
-      await wineToken.connect(alice).approve(await amm.getAddress(), wineAmount);
+      await wineToken
+        .connect(alice)
+        .approve(await amm.getAddress(), wineAmount);
       await artToken.connect(alice).approve(await amm.getAddress(), artAmount);
 
-      await amm.connect(alice).addLiquidity(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        wineAmount,
-        artAmount,
-        wineAmount,
-        artAmount
-      );
+      await amm
+        .connect(alice)
+        .addLiquidity(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          wineAmount,
+          artAmount,
+          wineAmount,
+          artAmount,
+        );
 
-      await wineToken.connect(alice).transfer(bob.address, ethers.parseEther("10000"));
+      await wineToken
+        .connect(alice)
+        .transfer(bob.address, ethers.parseEther("10000"));
 
       return { ...fixture };
     }
 
     it("Should perform a swap", async function () {
-      const { amm, wineToken, artToken, bob } = await loadFixture(setupLiquidityFixture);
+      const { amm, wineToken, artToken, bob } = await loadFixture(
+        setupLiquidityFixture,
+      );
 
       const swapAmount = ethers.parseEther("1000");
-      
+
       await wineToken.connect(bob).approve(await amm.getAddress(), swapAmount);
 
       const expectedAmountOut = await amm.getAmountOut(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        swapAmount
+        swapAmount,
       );
 
       const poolId = await amm.getPoolId(
         await wineToken.getAddress(),
-        await artToken.getAddress()
+        await artToken.getAddress(),
       );
 
-      const tx = await amm.connect(bob).swap(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        swapAmount,
-        0
-      );
+      const tx = await amm
+        .connect(bob)
+        .swap(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          swapAmount,
+          0,
+        );
 
       await expect(tx)
         .to.emit(amm, "Swap")
@@ -310,7 +372,7 @@ describe("LuxBridgeAMM", function () {
           await wineToken.getAddress(),
           await artToken.getAddress(),
           swapAmount,
-          expectedAmountOut
+          expectedAmountOut,
         );
 
       const bobArtBalance = await artToken.balanceOf(bob.address);
@@ -318,32 +380,38 @@ describe("LuxBridgeAMM", function () {
     });
 
     it("Should revert swap with insufficient output", async function () {
-      const { amm, wineToken, artToken, bob } = await loadFixture(setupLiquidityFixture);
+      const { amm, wineToken, artToken, bob } = await loadFixture(
+        setupLiquidityFixture,
+      );
 
       const swapAmount = ethers.parseEther("1000");
       const minAmountOut = ethers.parseEther("10000"); // Unrealistic expectation
-      
+
       await wineToken.connect(bob).approve(await amm.getAddress(), swapAmount);
 
       await expect(
-        amm.connect(bob).swap(
-          await wineToken.getAddress(),
-          await artToken.getAddress(),
-          swapAmount,
-          minAmountOut
-        )
+        amm
+          .connect(bob)
+          .swap(
+            await wineToken.getAddress(),
+            await artToken.getAddress(),
+            swapAmount,
+            minAmountOut,
+          ),
       ).to.be.revertedWith("Insufficient output");
     });
 
     it("Should calculate correct swap amounts", async function () {
-      const { amm, wineToken, artToken } = await loadFixture(setupLiquidityFixture);
+      const { amm, wineToken, artToken } = await loadFixture(
+        setupLiquidityFixture,
+      );
 
       const swapAmount = ethers.parseEther("1000");
-      
+
       const expectedAmountOut = await amm.getAmountOut(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        swapAmount
+        swapAmount,
       );
 
       expect(expectedAmountOut).to.be.greaterThan(0);
@@ -353,33 +421,38 @@ describe("LuxBridgeAMM", function () {
 
   describe("Route Finding", function () {
     it("Should find direct route between tokens", async function () {
-      const { amm, wineToken, artToken, alice } = await loadFixture(deployAMMFixture);
+      const { amm, wineToken, artToken, alice } =
+        await loadFixture(deployAMMFixture);
 
       await amm.createPool(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        30
+        30,
       );
 
       const wineAmount = ethers.parseEther("100000");
       const artAmount = ethers.parseEther("50000");
 
-      await wineToken.connect(alice).approve(await amm.getAddress(), wineAmount);
+      await wineToken
+        .connect(alice)
+        .approve(await amm.getAddress(), wineAmount);
       await artToken.connect(alice).approve(await amm.getAddress(), artAmount);
 
-      await amm.connect(alice).addLiquidity(
-        await wineToken.getAddress(),
-        await artToken.getAddress(),
-        wineAmount,
-        artAmount,
-        wineAmount,
-        artAmount
-      );
+      await amm
+        .connect(alice)
+        .addLiquidity(
+          await wineToken.getAddress(),
+          await artToken.getAddress(),
+          wineAmount,
+          artAmount,
+          wineAmount,
+          artAmount,
+        );
 
       const route = await amm.findBestRoute(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        ethers.parseEther("1000")
+        ethers.parseEther("1000"),
       );
 
       expect(route.path.length).to.equal(2);
@@ -394,7 +467,7 @@ describe("LuxBridgeAMM", function () {
       const route = await amm.findBestRoute(
         await wineToken.getAddress(),
         await artToken.getAddress(),
-        ethers.parseEther("1000")
+        ethers.parseEther("1000"),
       );
 
       expect(route.path.length).to.equal(0);
@@ -415,7 +488,7 @@ describe("LuxBridgeAMM", function () {
       const { amm, owner } = await loadFixture(deployAMMFixture);
 
       await expect(
-        amm.connect(owner).setDefaultSwapFee(1001) // 10.01%
+        amm.connect(owner).setDefaultSwapFee(1001), // 10.01%
       ).to.be.revertedWith("Fee too high");
     });
 
@@ -423,7 +496,7 @@ describe("LuxBridgeAMM", function () {
       const { amm, alice } = await loadFixture(deployAMMFixture);
 
       await expect(
-        amm.connect(alice).setDefaultSwapFee(50)
+        amm.connect(alice).setDefaultSwapFee(50),
       ).to.be.revertedWithCustomError(amm, "OwnableUnauthorizedAccount");
     });
   });

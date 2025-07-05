@@ -7,7 +7,7 @@ type Platform @entity {
   totalValueLocked: BigInt!
   createdAt: BigInt!
   updatedAt: BigInt!
-  
+
   # Relations
   assets: [Asset!]! @derivedFrom(field: "platform")
   trades: [CrossPlatformTrade!]! @derivedFrom(field: "platform")
@@ -25,7 +25,7 @@ type Asset @entity {
   legalHash: Bytes!
   isActive: Boolean!
   createdAt: BigInt!
-  
+
   # Relations
   tokenizationEvents: [TokenizationEvent!]! @derivedFrom(field: "asset")
   burnEvents: [AssetBurnEvent!]! @derivedFrom(field: "asset")
@@ -77,7 +77,7 @@ type LiquidityPool @entity {
   swapFee: BigInt!
   isActive: Boolean!
   createdAt: BigInt!
-  
+
   # Relations
   assets: [Asset!]!
   liquidityEvents: [LiquidityEvent!]! @derivedFrom(field: "pool")

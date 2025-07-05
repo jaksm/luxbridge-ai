@@ -14,12 +14,14 @@ async function main() {
   const GAS_LIMIT = 500000;
 
   // Deploy LuxBridgePriceOracle
-  const LuxBridgePriceOracle = await ethers.getContractFactory("LuxBridgePriceOracle");
+  const LuxBridgePriceOracle = await ethers.getContractFactory(
+    "LuxBridgePriceOracle",
+  );
   const oracle = await LuxBridgePriceOracle.deploy(
     MOCK_ROUTER,
     MOCK_DON_ID,
     MOCK_SUBSCRIPTION_ID,
-    GAS_LIMIT
+    GAS_LIMIT,
   );
   await oracle.waitForDeployment();
 
@@ -69,16 +71,28 @@ async function main() {
   console.log("✓ Set mock Functions source for local testing");
 
   // Add some mock price data
-  await oracle.mockPriceUpdate("splint_invest", "BORDEAUX-2019", ethers.parseEther("12000"));
-  await oracle.mockPriceUpdate("masterworks", "PICASSO-042", ethers.parseEther("45000"));
-  await oracle.mockPriceUpdate("realt", "DETROIT-HOUSE-001", ethers.parseEther("5000"));
+  await oracle.mockPriceUpdate(
+    "splint_invest",
+    "BORDEAUX-2019",
+    ethers.parseEther("12000"),
+  );
+  await oracle.mockPriceUpdate(
+    "masterworks",
+    "PICASSO-042",
+    ethers.parseEther("45000"),
+  );
+  await oracle.mockPriceUpdate(
+    "realt",
+    "DETROIT-HOUSE-001",
+    ethers.parseEther("5000"),
+  );
   console.log("✓ Added mock price data");
 
   console.log("Oracle deployment completed!");
-  
+
   return {
     oracle: await oracle.getAddress(),
-    deployer: deployer.address
+    deployer: deployer.address,
   };
 }
 

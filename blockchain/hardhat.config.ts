@@ -8,10 +8,10 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200
+        runs: 200,
       },
-      viaIR: true
-    }
+      viaIR: true,
+    },
   },
   networks: {
     hardhat: {
@@ -21,33 +21,35 @@ const config: HardhatUserConfig = {
       allowUnlimitedContractSize: true,
       mining: {
         auto: true,
-        interval: 1000
-      }
+        interval: 1000,
+      },
     },
     localhost: {
-      url: "http://127.0.0.1:8545"
+      url: "http://127.0.0.1:8545",
     },
     zircuit: {
       url: process.env.ZIRCUIT_RPC_URL || "https://zircuit1.p2pify.com",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 48899
+      chainId: 48899,
     },
     sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
+      url:
+        process.env.SEPOLIA_RPC_URL ||
+        "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 11155111
-    }
+      chainId: 11155111,
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
     gasPrice: 21,
-    excludeContracts: ["contracts/test/"]
+    excludeContracts: ["contracts/test/"],
   },
   etherscan: {
     apiKey: {
       zircuit: process.env.ZIRCUIT_API_KEY || "",
-      sepolia: process.env.ETHERSCAN_API_KEY || ""
+      sepolia: process.env.ETHERSCAN_API_KEY || "",
     },
     customChains: [
       {
@@ -55,20 +57,20 @@ const config: HardhatUserConfig = {
         chainId: 48899,
         urls: {
           apiURL: "https://explorer.zircuit.com/api",
-          browserURL: "https://explorer.zircuit.com"
-        }
-      }
-    ]
+          browserURL: "https://explorer.zircuit.com",
+        },
+      },
+    ],
   },
   paths: {
     sources: "./contracts",
     tests: "./test",
     cache: "./cache",
-    artifacts: "./artifacts"
+    artifacts: "./artifacts",
   },
   mocha: {
-    timeout: 120000
-  }
+    timeout: 120000,
+  },
 };
 
 export default config;

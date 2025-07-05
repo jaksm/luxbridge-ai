@@ -18,10 +18,10 @@ async function main() {
   console.log("✓ Set default swap fee to 0.3%");
 
   console.log("AMM deployment completed!");
-  
+
   return {
     amm: await amm.getAddress(),
-    deployer: deployer.address
+    deployer: deployer.address,
   };
 }
 

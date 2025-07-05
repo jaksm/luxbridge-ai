@@ -8,7 +8,7 @@ async function main() {
   console.log("=====================================");
 
   const [deployer, aiAgent] = await ethers.getSigners();
-  
+
   // Deploy all contracts
   const factoryResult = await deployFactory();
   const ammResult = await deployAMM();
@@ -17,9 +17,15 @@ async function main() {
   console.log("\n📋 Connecting contracts...");
 
   // Get contract instances
-  const factory = await ethers.getContractAt("RWATokenFactory", factoryResult.factory);
+  const factory = await ethers.getContractAt(
+    "RWATokenFactory",
+    factoryResult.factory,
+  );
   const amm = await ethers.getContractAt("LuxBridgeAMM", ammResult.amm);
-  const oracle = await ethers.getContractAt("LuxBridgePriceOracle", oracleResult.oracle);
+  const oracle = await ethers.getContractAt(
+    "LuxBridgePriceOracle",
+    oracleResult.oracle,
+  );
 
   // Connect factory to oracle
   await factory.setPriceOracle(oracleResult.oracle);
@@ -27,25 +33,30 @@ async function main() {
 
   // Deploy automation contract
   console.log("\n🤖 Deploying automation contract...");
-  const LuxBridgeAutomation = await ethers.getContractFactory("LuxBridgeAutomation");
+  const LuxBridgeAutomation = await ethers.getContractFactory(
+    "LuxBridgeAutomation",
+  );
   const automation = await LuxBridgeAutomation.deploy(
     ammResult.amm,
     factoryResult.factory,
-    aiAgent.address
+    aiAgent.address,
   );
   await automation.waitForDeployment();
-  console.log("LuxBridgeAutomation deployed to:", await automation.getAddress());
+  console.log(
+    "LuxBridgeAutomation deployed to:",
+    await automation.getAddress(),
+  );
 
   // Set up some demo assets
   console.log("\n🍷 Creating demo assets...");
-  
+
   await factory.tokenizeAsset(
     "splint_invest",
     "BORDEAUX-2019",
     ethers.parseEther("1000000"),
     "wine",
     ethers.keccak256(ethers.toUtf8Bytes("bordeaux-legal-doc")),
-    ethers.parseEther("100000")
+    ethers.parseEther("100000"),
   );
   console.log("✓ Created Bordeaux 2019 wine asset");
 
@@ -55,7 +66,7 @@ async function main() {
     ethers.parseEther("500000"),
     "art",
     ethers.keccak256(ethers.toUtf8Bytes("picasso-legal-doc")),
-    ethers.parseEther("200000")
+    ethers.parseEther("200000"),
   );
   console.log("✓ Created Picasso artwork asset");
 
@@ -65,16 +76,25 @@ async function main() {
     ethers.parseEther("100000"),
     "real_estate",
     ethers.keccak256(ethers.toUtf8Bytes("detroit-house-legal")),
-    ethers.parseEther("50000")
+    ethers.parseEther("50000"),
   );
   console.log("✓ Created Detroit house real estate asset");
 
   // Create AMM pools
   console.log("\n💧 Setting up liquidity pools...");
-  
-  const wineTokenAddress = await factory.getTokenAddress("splint_invest", "BORDEAUX-2019");
-  const artTokenAddress = await factory.getTokenAddress("masterworks", "PICASSO-042");
-  const realEstateTokenAddress = await factory.getTokenAddress("realt", "DETROIT-HOUSE-001");
+
+  const wineTokenAddress = await factory.getTokenAddress(
+    "splint_invest",
+    "BORDEAUX-2019",
+  );
+  const artTokenAddress = await factory.getTokenAddress(
+    "masterworks",
+    "PICASSO-042",
+  );
+  const realEstateTokenAddress = await factory.getTokenAddress(
+    "realt",
+    "DETROIT-HOUSE-001",
+  );
 
   await amm.createPool(wineTokenAddress, artTokenAddress, 30);
   console.log("✓ Created Wine-Art pool");
@@ -87,10 +107,13 @@ async function main() {
 
   // Add initial liquidity
   console.log("\n💰 Adding initial liquidity...");
-  
+
   const wineToken = await ethers.getContractAt("RWA20Token", wineTokenAddress);
   const artToken = await ethers.getContractAt("RWA20Token", artTokenAddress);
-  const realEstateToken = await ethers.getContractAt("RWA20Token", realEstateTokenAddress);
+  const realEstateToken = await ethers.getContractAt(
+    "RWA20Token",
+    realEstateTokenAddress,
+  );
 
   // Approve AMM to spend tokens
   await wineToken.approve(ammResult.amm, ethers.parseEther("100000"));
@@ -102,9 +125,9 @@ async function main() {
     wineTokenAddress,
     artTokenAddress,
     ethers.parseEther("100000"), // 100k wine tokens
-    ethers.parseEther("50000"),  // 50k art tokens
-    ethers.parseEther("90000"),  // min wine
-    ethers.parseEther("45000")   // min art
+    ethers.parseEther("50000"), // 50k art tokens
+    ethers.parseEther("90000"), // min wine
+    ethers.parseEther("45000"), // min art
   );
   console.log("✓ Added liquidity to Wine-Art pool");
 
@@ -119,7 +142,10 @@ async function main() {
   console.log("\n🏛️ Platform Assets:");
   console.log("   Wine Token (BORDEAUX-2019):", wineTokenAddress);
   console.log("   Art Token (PICASSO-042):", artTokenAddress);
-  console.log("   Real Estate Token (DETROIT-HOUSE-001):", realEstateTokenAddress);
+  console.log(
+    "   Real Estate Token (DETROIT-HOUSE-001):",
+    realEstateTokenAddress,
+  );
   console.log("\n👥 Key Accounts:");
   console.log("   Deployer:", deployer.address);
   console.log("   AI Agent:", aiAgent.address);
@@ -137,10 +163,10 @@ async function main() {
     tokens: {
       wine: wineTokenAddress,
       art: artTokenAddress,
-      realEstate: realEstateTokenAddress
+      realEstate: realEstateTokenAddress,
     },
     deployer: deployer.address,
-    aiAgent: aiAgent.address
+    aiAgent: aiAgent.address,
   };
 }
 
