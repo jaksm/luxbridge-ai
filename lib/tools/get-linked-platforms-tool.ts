@@ -7,7 +7,7 @@ const DESCRIPTION = `<description>
 Check status of linked platform accounts. Shows which RWA platforms are connected to the user's LuxBridge session with detailed connection information.
 
 <use-cases>
-- Connection status: sessionId = "session_123" (view all linked platform accounts)
+- Connection status: View all linked platform accounts
 - Account verification: Check if specific platforms are properly connected
 - Session management: Review active vs expired platform connections
 - Troubleshooting: Identify authentication issues with specific platforms
@@ -16,6 +16,7 @@ Check status of linked platform accounts. Shows which RWA platforms are connecte
 
 ⚠️ IMPORTANT NOTES:
 
+- Automatically uses your authenticated session
 - Shows detailed status including active, expired, and failed connections
 - Displays platform-specific user IDs and last usage timestamps
 - Connection status affects availability of cross-platform features
@@ -31,15 +32,27 @@ export const registerGetLinkedPlatformsTool: RegisterTool =
       "get_linked_platforms",
       DESCRIPTION,
       GetLinkedPlatformsSchema.shape,
-      async ({ sessionId }) => {
+      async () => {
         try {
-          const session = await getAuthSession(sessionId);
+          // Get sessionId from access token
+          if (!accessToken.sessionId) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: "❌ No active session found. This may be due to an older authentication. Please reconnect to create a new session.",
+                },
+              ],
+            };
+          }
+
+          const session = await getAuthSession(accessToken.sessionId);
           if (!session) {
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: "❌ Invalid or expired session. Please authenticate first.",
+                  text: "❌ Invalid or expired session. Please reconnect to refresh your session.",
                 },
               ],
             };

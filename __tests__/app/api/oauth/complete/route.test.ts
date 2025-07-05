@@ -132,6 +132,11 @@ describe("OAuth Complete Route", () => {
     expect(storeAuthCode).toHaveBeenCalledWith({
       ...mockAuthCode,
       userId: "privy_user_123",
+      userData: {
+        email: "user@example.com",
+        privyUserId: "privy_user_123",
+        walletAddress: "0x123...",
+      },
     });
   });
 

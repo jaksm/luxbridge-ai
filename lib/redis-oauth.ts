@@ -23,6 +23,11 @@ export interface AuthCode {
   redirectUri: string;
   codeChallenge?: string;
   codeChallengeMethod?: string;
+  userData?: {
+    email?: string;
+    privyUserId?: string;
+    walletAddress?: string;
+  };
 }
 
 export interface AccessToken {
@@ -30,6 +35,12 @@ export interface AccessToken {
   expiresAt: string;
   clientId: string;
   userId: string;
+  sessionId?: string;
+  userData?: {
+    email?: string;
+    privyUserId?: string;
+    walletAddress?: string;
+  };
 }
 
 export async function storeClient(client: OAuthClient): Promise<void> {
@@ -80,6 +91,7 @@ export async function storeAuthCode(authCode: AuthCode): Promise<void> {
     redirectUri: authCode.redirectUri,
     codeChallenge: authCode.codeChallenge || "",
     codeChallengeMethod: authCode.codeChallengeMethod || "",
+    userData: authCode.userData ? JSON.stringify(authCode.userData) : "",
   });
 
   await redis.expire(key, 600);
@@ -95,7 +107,7 @@ export async function getAuthCode(code: string): Promise<AuthCode | null> {
     return null;
   }
 
-  const result = {
+  const result: AuthCode = {
     code: authCode.code,
     expiresAt: authCode.expiresAt,
     clientId: authCode.clientId,
@@ -103,6 +115,7 @@ export async function getAuthCode(code: string): Promise<AuthCode | null> {
     redirectUri: authCode.redirectUri,
     codeChallenge: authCode.codeChallenge || undefined,
     codeChallengeMethod: authCode.codeChallengeMethod || undefined,
+    userData: authCode.userData ? JSON.parse(authCode.userData) : undefined,
   };
 
   return result;
@@ -126,6 +139,8 @@ export async function storeAccessToken(
     expiresAt: accessToken.expiresAt,
     clientId: accessToken.clientId,
     userId: accessToken.userId,
+    sessionId: accessToken.sessionId || "",
+    userData: accessToken.userData ? JSON.stringify(accessToken.userData) : "",
   });
 
   await redis.expire(key, 2592000); // 30 days in seconds
@@ -143,11 +158,13 @@ export async function getAccessToken(
     return null;
   }
 
-  const result = {
+  const result: AccessToken = {
     token: accessToken.token,
     expiresAt: accessToken.expiresAt,
     clientId: accessToken.clientId,
     userId: accessToken.userId,
+    sessionId: accessToken.sessionId || undefined,
+    userData: accessToken.userData ? JSON.parse(accessToken.userData) : undefined,
   };
 
   return result;

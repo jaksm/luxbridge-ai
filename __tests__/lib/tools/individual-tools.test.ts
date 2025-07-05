@@ -17,7 +17,6 @@ import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Import all tool registration functions
-import { registerAuthenticateLuxBridgeUserTool } from "@/lib/tools/authenticate-luxbridge-user-tool";
 import { registerGeneratePlatformAuthLinksTool } from "@/lib/tools/generate-platform-auth-links-tool";
 import { registerGetAssetTool } from "@/lib/tools/get-asset-tool";
 import { registerGetAssetsByPlatformTool } from "@/lib/tools/get-assets-by-platform-tool";
@@ -49,6 +48,7 @@ describe("Individual MCP Tools", () => {
       userId: "test_user_1",
       clientId: "test_client",
       expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      sessionId: "session_123",
     };
 
     mockServer = {
@@ -205,44 +205,6 @@ describe("Individual MCP Tools", () => {
     });
   });
 
-  describe("registerAuthenticateLuxBridgeUserTool", () => {
-    it("should register tool and handle successful authentication", async () => {
-      const mockLuxUser = {
-        userId: "test_user",
-        name: "Test User",
-        email: "test@example.com",
-        privyId: "privy_123",
-        createdAt: new Date().toISOString(),
-        lastActiveAt: new Date().toISOString(),
-      };
-      vi.mocked(validatePrivyToken).mockResolvedValue(mockLuxUser);
-      vi.mocked(storeLuxBridgeUser).mockResolvedValue(undefined);
-      vi.mocked(createAuthSession).mockResolvedValue("session_123");
-
-      registerAuthenticateLuxBridgeUserTool({ accessToken: mockAccessToken })(
-        mockServer
-      );
-      const toolHandler = mockServer.tool.mock.calls[0][3];
-      const result = await toolHandler({ privyToken: "valid_token" });
-
-      expect(result.content[0].text).toContain(
-        "✅ LuxBridge authentication successful"
-      );
-      expect(result.content[0].text).toContain("session_123");
-    });
-
-    it("should handle invalid Privy token", async () => {
-      vi.mocked(validatePrivyToken).mockResolvedValue(null);
-
-      registerAuthenticateLuxBridgeUserTool({ accessToken: mockAccessToken })(
-        mockServer
-      );
-      const toolHandler = mockServer.tool.mock.calls[0][3];
-      const result = await toolHandler({ privyToken: "invalid_token" });
-
-      expect(result.content[0].text).toContain("❌ Invalid Privy token");
-    });
-  });
 
   describe("registerListSupportedPlatformsTool", () => {
     it("should register tool and handle successful platform listing", async () => {
@@ -262,7 +224,7 @@ describe("Individual MCP Tools", () => {
         mockServer
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
-      const result = await toolHandler({ sessionId: "session_123" });
+      const result = await toolHandler({});
 
       expect(result.content[0].text).toContain("📋 Supported RWA Platforms");
     });
@@ -274,9 +236,21 @@ describe("Individual MCP Tools", () => {
         mockServer
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
-      const result = await toolHandler({ sessionId: "invalid_session" });
+      const result = await toolHandler({});
 
       expect(result.content[0].text).toContain("❌ Invalid or expired session");
+    });
+
+    it("should handle missing sessionId in access token", async () => {
+      const tokenWithoutSession = { ...mockAccessToken, sessionId: undefined };
+      
+      registerListSupportedPlatformsTool({ accessToken: tokenWithoutSession })(
+        mockServer
+      );
+      const toolHandler = mockServer.tool.mock.calls[0][3];
+      const result = await toolHandler({});
+
+      expect(result.content[0].text).toContain("❌ No active session found");
     });
   });
 
@@ -293,7 +267,6 @@ describe("Individual MCP Tools", () => {
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
-        sessionId: "session_123",
         platforms: ["splint_invest"],
       });
 
@@ -321,7 +294,7 @@ describe("Individual MCP Tools", () => {
         mockServer
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
-      const result = await toolHandler({ sessionId: "session_123" });
+      const result = await toolHandler({});
 
       expect(result.content[0].text).toContain("🔗 Linked Platform Accounts");
     });
@@ -346,7 +319,6 @@ describe("Individual MCP Tools", () => {
       })(mockServer);
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
-        sessionId: "session_123",
         platform: "splint_invest",
       });
 
@@ -370,7 +342,6 @@ describe("Individual MCP Tools", () => {
       })(mockServer);
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
-        sessionId: "session_123",
         platform: "splint_invest",
       });
 
@@ -399,7 +370,6 @@ describe("Individual MCP Tools", () => {
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
-        sessionId: "session_123",
         semanticQuery: "luxury investments",
         platforms: ["splint_invest", "masterworks"],
       });

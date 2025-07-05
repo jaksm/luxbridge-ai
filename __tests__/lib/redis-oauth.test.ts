@@ -162,6 +162,7 @@ describe("Redis OAuth Operations", () => {
             redirectUri: mockAuthCode.redirectUri,
             codeChallenge: mockAuthCode.codeChallenge,
             codeChallengeMethod: mockAuthCode.codeChallengeMethod,
+            userData: "",
           },
         );
         expect(mockRedisClient.expire).toHaveBeenCalledWith(
@@ -258,7 +259,11 @@ describe("Redis OAuth Operations", () => {
 
         expect(mockRedisClient.hSet).toHaveBeenCalledWith(
           `oauth:token:${mockAccessToken.token}`,
-          mockAccessToken,
+          {
+            ...mockAccessToken,
+            sessionId: "",
+            userData: "",
+          },
         );
         expect(mockRedisClient.expire).toHaveBeenCalledWith(
           `oauth:token:${mockAccessToken.token}`,

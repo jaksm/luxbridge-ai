@@ -5,6 +5,8 @@ import {
   getClient,
   storeAccessToken,
 } from "@/lib/redis-oauth";
+import { createAuthSession, storeLuxBridgeUser } from "@/lib/auth/session-manager";
+import { LuxBridgeUser } from "@/lib/types/luxbridge-auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -232,6 +234,23 @@ export async function POST(request: NextRequest) {
 
     await deleteAuthCode(code);
 
+    // Create LuxBridge user and session
+    let sessionId: string | undefined;
+    if (authCode.userData) {
+      const luxUser: LuxBridgeUser = {
+        userId: authCode.userId,
+        email: authCode.userData.email || "",
+        name: authCode.userData.email?.split("@")[0] || "User",
+        privyId: authCode.userData.privyUserId || authCode.userId,
+        walletAddress: authCode.userData.walletAddress,
+        createdAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString(),
+      };
+      
+      await storeLuxBridgeUser(luxUser);
+      sessionId = await createAuthSession(luxUser.userId, "");
+    }
+
     const accessToken = generateAccessToken();
     const tokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
@@ -240,6 +259,8 @@ export async function POST(request: NextRequest) {
       expiresAt: tokenExpiresAt.toISOString(),
       clientId: client_id,
       userId: authCode.userId,
+      sessionId,
+      userData: authCode.userData,
     });
 
     return NextResponse.json(

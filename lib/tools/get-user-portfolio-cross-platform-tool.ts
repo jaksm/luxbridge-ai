@@ -7,9 +7,9 @@ const DESCRIPTION = `<description>
 Retrieve user portfolio from specified platform using stored credentials. Fetches real-time portfolio data directly from linked platform accounts.
 
 <use-cases>
-- Live portfolio: sessionId = "session_123", platform = "splint_invest"
-- Account sync: sessionId = "session_456", platform = "masterworks"
-- Portfolio refresh: sessionId = "session_789", platform = "realt"
+- Live portfolio: platform = "splint_invest"
+- Account sync: platform = "masterworks"
+- Portfolio refresh: platform = "realt"
 - Investment tracking: Get current holdings and valuations from platform
 - Performance monitoring: Retrieve updated portfolio metrics and returns
 </use-cases>
@@ -22,6 +22,7 @@ Retrieve user portfolio from specified platform using stored credentials. Fetche
 
 ⚠️ IMPORTANT NOTES:
 
+- Automatically uses your authenticated session
 - Returns real-time data directly from platform APIs
 - Portfolio values reflect current market conditions
 - Platform-specific user credentials are automatically used
@@ -37,15 +38,27 @@ export const registerGetUserPortfolioCrossPlatformTool: RegisterTool =
       "get_user_portfolio_cross_platform",
       DESCRIPTION,
       GetUserPortfolioCrossPlatformSchema.shape,
-      async ({ sessionId, platform }) => {
+      async ({ platform }) => {
         try {
-          const session = await getAuthSession(sessionId);
+          // Get sessionId from access token
+          if (!accessToken.sessionId) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: "❌ No active session found. This may be due to an older authentication. Please reconnect to create a new session.",
+                },
+              ],
+            };
+          }
+
+          const session = await getAuthSession(accessToken.sessionId);
           if (!session) {
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: "❌ Invalid or expired session. Please authenticate first.",
+                  text: "❌ Invalid or expired session. Please reconnect to refresh your session.",
                 },
               ],
             };
@@ -64,7 +77,7 @@ export const registerGetUserPortfolioCrossPlatformTool: RegisterTool =
           }
 
           const portfolio = await makeAuthenticatedPlatformCall(
-            sessionId,
+            accessToken.sessionId,
             platform,
             "/portfolio",
           );

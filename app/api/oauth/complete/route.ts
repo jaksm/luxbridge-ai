@@ -33,9 +33,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get user data from the frontend (passed during OAuth flow)
+    const userData = body.user_data || {};
+
     await storeAuthCode({
       ...existingAuthCode,
       userId: authInfo.userId,
+      userData: {
+        email: userData.email,
+        privyUserId: userData.privy_user_id || authInfo.userId,
+        walletAddress: userData.wallet_address,
+      },
     });
 
     return NextResponse.json({

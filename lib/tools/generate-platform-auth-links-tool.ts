@@ -7,8 +7,8 @@ const DESCRIPTION = `<description>
 Generate authentication links for specified platforms. Creates time-limited URLs that users can visit to link their platform accounts to LuxBridge.
 
 <use-cases>
-- Single platform: sessionId = "session_123", platforms = ["splint_invest"]
-- Multiple platforms: sessionId = "session_456", platforms = ["masterworks", "realt"]
+- Single platform: platforms = ["splint_invest"]
+- Multiple platforms: platforms = ["masterworks", "realt"]
 - Portfolio setup: Generate auth links for all desired investment platforms
 - Account linking: Create secure URLs for platform OAuth flows
 - Re-authentication: Generate new links when platform tokens expire
@@ -17,7 +17,7 @@ Generate authentication links for specified platforms. Creates time-limited URLs
 🚨 CRITICAL WARNINGS:
 
 - Authentication links expire in 10 minutes for security
-- Session must be valid and non-expired before generating links
+- Automatically uses your authenticated session
 - Each platform requires separate authentication flow completion
 
 ⚠️ IMPORTANT NOTES:
@@ -36,15 +36,27 @@ export const registerGeneratePlatformAuthLinksTool: RegisterTool =
       "generate_platform_auth_links",
       DESCRIPTION,
       GeneratePlatformAuthLinksSchema.shape,
-      async ({ sessionId, platforms }) => {
+      async ({ platforms }) => {
         try {
-          const session = await getAuthSession(sessionId);
+          // Get sessionId from access token
+          if (!accessToken.sessionId) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: "❌ No active session found. This may be due to an older authentication. Please reconnect to create a new session.",
+                },
+              ],
+            };
+          }
+
+          const session = await getAuthSession(accessToken.sessionId);
           if (!session) {
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: "❌ Invalid or expired session. Please authenticate first.",
+                  text: "❌ Invalid or expired session. Please reconnect to refresh your session.",
                 },
               ],
             };
@@ -56,7 +68,7 @@ export const registerGeneratePlatformAuthLinksTool: RegisterTool =
 
           const authLinks = platforms.map((platform) => ({
             platform,
-            authUrl: `${baseUrl}/auth/${platform.replace("_", "-")}?session=${sessionId}`,
+            authUrl: `${baseUrl}/auth/${platform.replace("_", "-")}?session=${accessToken.sessionId}`,
             expiresAt,
             instructions: `Click the link to authenticate with ${SUPPORTED_PLATFORMS.find((p) => p.platform === platform)?.name || platform}`,
           }));

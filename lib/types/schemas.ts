@@ -84,27 +84,15 @@ export const AssetQuerySchema = z.object({
     .describe("Risk category filter"),
 });
 
-export const AuthenticateLuxBridgeUserSchema = z
-  .object({
-    privyToken: z
-      .string()
-      .describe("Privy authentication token from user login"),
-  })
-  .describe(
-    "Parameters for authenticating user with LuxBridge using Privy token",
-  );
 
 export const ListSupportedPlatformsSchema = z
-  .object({
-    sessionId: z.string().describe("Active LuxBridge session ID"),
-  })
+  .object({})
   .describe(
     "Parameters for listing supported RWA platforms with connection status",
   );
 
 export const GeneratePlatformAuthLinksSchema = z
   .object({
-    sessionId: z.string().describe("Active LuxBridge session ID"),
     platforms: z
       .array(z.enum(["splint_invest", "masterworks", "realt"]))
       .describe("List of platforms to generate auth links for"),
@@ -114,14 +102,11 @@ export const GeneratePlatformAuthLinksSchema = z
   );
 
 export const GetLinkedPlatformsSchema = z
-  .object({
-    sessionId: z.string().describe("Active LuxBridge session ID"),
-  })
+  .object({})
   .describe("Parameters for checking status of linked platform accounts");
 
 export const GetUserPortfolioCrossPlatformSchema = z
   .object({
-    sessionId: z.string().describe("Active LuxBridge session ID"),
     platform: z
       .enum(["splint_invest", "masterworks", "realt"])
       .describe("Platform to retrieve portfolio from"),
@@ -132,7 +117,6 @@ export const GetUserPortfolioCrossPlatformSchema = z
 
 export const SearchAssetsCrossPlatformSchema = z
   .object({
-    sessionId: z.string().describe("Active LuxBridge session ID"),
     platforms: z
       .array(z.enum(["splint_invest", "masterworks", "realt"]))
       .optional()
@@ -165,9 +149,6 @@ export type GetAssetsByPlatformParams = z.infer<
 export type GetUserPortfolioParams = z.infer<typeof GetUserPortfolioSchema>;
 export type SemanticSearchParams = z.infer<typeof SemanticSearchSchema>;
 export type AssetQueryParams = z.infer<typeof AssetQuerySchema>;
-export type AuthenticateLuxBridgeUserParams = z.infer<
-  typeof AuthenticateLuxBridgeUserSchema
->;
 export type ListSupportedPlatformsParams = z.infer<
   typeof ListSupportedPlatformsSchema
 >;

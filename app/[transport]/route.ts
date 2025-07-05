@@ -1,5 +1,4 @@
 import { authenticateRequest } from "@/lib/auth/authenticate-request";
-import { registerAuthenticateLuxBridgeUserTool } from "@/lib/tools/authenticate-luxbridge-user-tool";
 import { registerGeneratePlatformAuthLinksTool } from "@/lib/tools/generate-platform-auth-links-tool";
 import { registerGetAssetTool } from "@/lib/tools/get-asset-tool";
 import { registerGetAssetsByPlatformTool } from "@/lib/tools/get-assets-by-platform-tool";
@@ -36,7 +35,6 @@ const handler = async (req: Request) => {
       registerGetAssetsByPlatformTool({ accessToken })(server);
       registerGetUserPortfolioTool({ accessToken })(server);
       registerSemanticSearchTool({ accessToken })(server);
-      registerAuthenticateLuxBridgeUserTool({ accessToken })(server);
       registerListSupportedPlatformsTool({ accessToken })(server);
       registerGeneratePlatformAuthLinksTool({ accessToken })(server);
       registerGetLinkedPlatformsTool({ accessToken })(server);

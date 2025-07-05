@@ -7,7 +7,7 @@ const DESCRIPTION = `<description>
 Get list of RWA platforms supported by LuxBridge with connection status. Shows which platforms are available for linking and their current authentication state.
 
 <use-cases>
-- Platform discovery: sessionId = "session_123" (view all available platforms)
+- Platform discovery: View all available RWA platforms
 - Connection status: Check which platforms are already linked to user account
 - Integration planning: See supported platforms before authentication setup
 - Account management: Review linked vs unlinked platform accounts
@@ -16,7 +16,7 @@ Get list of RWA platforms supported by LuxBridge with connection status. Shows w
 
 ⚠️ IMPORTANT NOTES:
 
-- Requires valid sessionId from authenticate_luxbridge_user tool
+- Automatically uses your authenticated session
 - Shows both linked and unlinked platforms with status indicators
 - Platform availability may vary by user region and verification level
 - Use generate_platform_auth_links to connect unlinked platforms
@@ -31,15 +31,27 @@ export const registerListSupportedPlatformsTool: RegisterTool =
       "list_supported_platforms",
       DESCRIPTION,
       ListSupportedPlatformsSchema.shape,
-      async ({ sessionId }) => {
+      async () => {
         try {
-          const session = await getAuthSession(sessionId);
+          // Get sessionId from access token
+          if (!accessToken.sessionId) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: "❌ No active session found. This may be due to an older authentication. Please reconnect to create a new session.",
+                },
+              ],
+            };
+          }
+
+          const session = await getAuthSession(accessToken.sessionId);
           if (!session) {
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: "❌ Invalid or expired session. Please authenticate first.",
+                  text: "❌ Invalid or expired session. Please reconnect to refresh your session.",
                 },
               ],
             };
