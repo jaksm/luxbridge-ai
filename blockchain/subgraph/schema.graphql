@@ -1,0 +1,162 @@
+type Platform @entity {
+  id: ID!
+  name: String!
+  apiEndpoint: String!
+  isActive: Boolean!
+  totalAssetsTokenized: BigInt!
+  totalValueLocked: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  
+  # Relations
+  assets: [Asset!]! @derivedFrom(field: "platform")
+  trades: [CrossPlatformTrade!]! @derivedFrom(field: "platform")
+}
+
+type Asset @entity {
+  id: ID!
+  platform: Platform!
+  platformAssetId: String!
+  assetType: String!
+  tokenAddress: Bytes!
+  totalSupply: BigInt!
+  lastValuation: BigInt!
+  valuationTimestamp: BigInt!
+  legalHash: Bytes!
+  isActive: Boolean!
+  createdAt: BigInt!
+  
+  # Relations
+  tokenizationEvents: [TokenizationEvent!]! @derivedFrom(field: "asset")
+  burnEvents: [AssetBurnEvent!]! @derivedFrom(field: "asset")
+  valuationUpdates: [ValuationUpdateEvent!]! @derivedFrom(field: "asset")
+  sellTrades: [CrossPlatformTrade!]! @derivedFrom(field: "sellAsset")
+  buyTrades: [CrossPlatformTrade!]! @derivedFrom(field: "buyAsset")
+  liquidityPools: [LiquidityPool!]! @derivedFrom(field: "assets")
+}
+
+type TokenizationEvent @entity {
+  id: ID!
+  asset: Asset!
+  tokenAddress: Bytes!
+  totalSupply: BigInt!
+  valuation: BigInt!
+  user: Bytes!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type AssetBurnEvent @entity {
+  id: ID!
+  asset: Asset!
+  holder: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type ValuationUpdateEvent @entity {
+  id: ID!
+  asset: Asset!
+  oldValuation: BigInt!
+  newValuation: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type LiquidityPool @entity {
+  id: ID!
+  tokenA: Bytes!
+  tokenB: Bytes!
+  reserveA: BigInt!
+  reserveB: BigInt!
+  totalLiquidity: BigInt!
+  swapFee: BigInt!
+  isActive: Boolean!
+  createdAt: BigInt!
+  
+  # Relations
+  assets: [Asset!]!
+  liquidityEvents: [LiquidityEvent!]! @derivedFrom(field: "pool")
+  swapEvents: [SwapEvent!]! @derivedFrom(field: "pool")
+}
+
+type LiquidityEvent @entity {
+  id: ID!
+  pool: LiquidityPool!
+  provider: Bytes!
+  amountA: BigInt!
+  amountB: BigInt!
+  liquidity: BigInt!
+  eventType: LiquidityEventType!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+enum LiquidityEventType {
+  ADD
+  REMOVE
+}
+
+type SwapEvent @entity {
+  id: ID!
+  pool: LiquidityPool!
+  trader: Bytes!
+  tokenIn: Bytes!
+  tokenOut: Bytes!
+  amountIn: BigInt!
+  amountOut: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type CrossPlatformTrade @entity {
+  id: ID!
+  user: Bytes!
+  sellAsset: Asset!
+  buyAsset: Asset!
+  platform: Platform!
+  sellAmount: BigInt!
+  buyAmount: BigInt!
+  executionPrice: BigInt!
+  arbitrageSpread: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type PriceUpdate @entity {
+  id: ID!
+  platform: String!
+  assetId: String!
+  price: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type ArbitrageOpportunity @entity {
+  id: ID!
+  assetId: String!
+  spread: BigInt!
+  threshold: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type DailyStats @entity {
+  id: ID!
+  date: Int!
+  totalVolume: BigInt!
+  totalTrades: BigInt!
+  totalArbitrageOpportunities: BigInt!
+  averageSpread: BigInt!
+  activeAssets: BigInt!
+  activePlatforms: BigInt!
+}
