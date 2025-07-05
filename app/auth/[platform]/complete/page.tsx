@@ -1,47 +1,48 @@
-'use client';
+"use client";
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, ArrowLeft, ExternalLink } from 'lucide-react';
+import { useSearchParams, useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, XCircle, ArrowLeft, ExternalLink } from "lucide-react";
 
 interface CompletePageProps {
   params: { platform: string };
 }
 
 const PLATFORM_CONFIG = {
-  'splint-invest': {
-    name: 'Splint Invest',
-    color: 'from-purple-600 to-purple-800',
-    category: 'Alternative Assets'
+  "splint-invest": {
+    name: "Splint Invest",
+    color: "from-purple-600 to-purple-800",
+    category: "Alternative Assets",
   },
-  'masterworks': {
-    name: 'Masterworks',
-    color: 'from-blue-600 to-blue-800',
-    category: 'Art & Collectibles'
+  masterworks: {
+    name: "Masterworks",
+    color: "from-blue-600 to-blue-800",
+    category: "Art & Collectibles",
   },
-  'realt': {
-    name: 'RealT',
-    color: 'from-green-600 to-green-800',
-    category: 'Real Estate'
-  }
+  realt: {
+    name: "RealT",
+    color: "from-green-600 to-green-800",
+    category: "Real Estate",
+  },
 } as const;
 
 export default function AuthCompletePage({ params }: CompletePageProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const status = searchParams.get('status');
-  const sessionId = searchParams.get('session');
+  const status = searchParams.get("status");
+  const sessionId = searchParams.get("session");
 
-  const platformConfig = PLATFORM_CONFIG[params.platform as keyof typeof PLATFORM_CONFIG];
-  const isSuccess = status === 'success';
+  const platformConfig =
+    PLATFORM_CONFIG[params.platform as keyof typeof PLATFORM_CONFIG];
+  const isSuccess = status === "success";
 
   const handleGoBack = () => {
     router.push(`/auth/${params.platform}?session=${sessionId}`);
   };
 
   const handleCloseWindow = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.close();
     }
   };
@@ -51,7 +52,9 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-destructive">Platform Not Found</CardTitle>
+            <CardTitle className="text-destructive">
+              Platform Not Found
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p>The platform "{params.platform}" is not supported.</p>
@@ -68,7 +71,9 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
           <div className="mx-auto">
             {isSuccess ? (
               <div className="flex flex-col items-center space-y-4">
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${platformConfig.color} flex items-center justify-center shadow-lg`}>
+                <div
+                  className={`w-16 h-16 rounded-full bg-gradient-to-r ${platformConfig.color} flex items-center justify-center shadow-lg`}
+                >
                   <CheckCircle2 className="w-8 h-8 text-white" />
                 </div>
                 <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
@@ -77,7 +82,9 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
               </div>
             ) : (
               <div className="flex flex-col items-center space-y-4">
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${platformConfig.color} flex items-center justify-center shadow-lg opacity-50`}>
+                <div
+                  className={`w-16 h-16 rounded-full bg-gradient-to-r ${platformConfig.color} flex items-center justify-center shadow-lg opacity-50`}
+                >
                   <ExternalLink className="w-8 h-8 text-white" />
                 </div>
                 <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -88,7 +95,7 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold">
-              {isSuccess ? 'Connection Successful!' : 'Connection Failed'}
+              {isSuccess ? "Connection Successful!" : "Connection Failed"}
             </CardTitle>
           </div>
         </CardHeader>
@@ -96,16 +103,16 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
         <CardContent className="text-center space-y-6">
           <div className="space-y-2">
             <p className="text-muted-foreground">
-              {isSuccess 
+              {isSuccess
                 ? `Your ${platformConfig.name} account has been successfully linked to LuxBridge.`
-                : `Failed to connect your ${platformConfig.name} account. Please check your credentials and try again.`
-              }
+                : `Failed to connect your ${platformConfig.name} account. Please check your credentials and try again.`}
             </p>
-            
+
             {isSuccess && (
               <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                 <p className="text-sm text-green-700 dark:text-green-300 font-medium">
-                  ✅ You can now access your {platformConfig.name} portfolio through LuxBridge MCP tools.
+                  ✅ You can now access your {platformConfig.name} portfolio
+                  through LuxBridge MCP tools.
                 </p>
               </div>
             )}
@@ -113,16 +120,12 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
 
           <div className="space-y-3">
             {isSuccess ? (
-              <Button 
-                onClick={handleCloseWindow}
-                className="w-full"
-                size="lg"
-              >
+              <Button onClick={handleCloseWindow} className="w-full" size="lg">
                 Close Window & Return to MCP
               </Button>
             ) : (
               <div className="space-y-2">
-                <Button 
+                <Button
                   onClick={handleGoBack}
                   variant="default"
                   className="w-full"
@@ -131,7 +134,7 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Try Again
                 </Button>
-                <Button 
+                <Button
                   onClick={handleCloseWindow}
                   variant="outline"
                   className="w-full"
@@ -158,7 +161,10 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
           {sessionId && (
             <div className="mt-4 p-3 bg-muted rounded-lg">
               <p className="text-xs text-muted-foreground">
-                Session: <code className="bg-background px-1 py-0.5 rounded text-xs">{sessionId}</code>
+                Session:{" "}
+                <code className="bg-background px-1 py-0.5 rounded text-xs">
+                  {sessionId}
+                </code>
               </p>
             </div>
           )}

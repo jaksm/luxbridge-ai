@@ -1,17 +1,21 @@
 import redis from "@/lib/redis";
-import { AuthSession, LuxBridgeUser, PlatformLink } from "@/lib/types/luxbridge-auth";
+import {
+  AuthSession,
+  LuxBridgeUser,
+  PlatformLink,
+} from "@/lib/types/luxbridge-auth";
 import { PlatformType } from "@/lib/types/platformAsset";
 
 const SESSION_TTL = 15 * 60; // 15 minutes in seconds
 
 export async function createAuthSession(
-  luxUserId: string, 
-  privyToken: string
+  luxUserId: string,
+  privyToken: string,
 ): Promise<string> {
   const sessionId = `lux_session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_TTL * 1000);
-  
+
   const session: AuthSession = {
     sessionId,
     luxUserId,
@@ -27,28 +31,30 @@ export async function createAuthSession(
 
   const key = `session:${sessionId}`;
   await redis.setEx(key, SESSION_TTL, JSON.stringify(session));
-  
+
   await addSessionToUser(luxUserId, sessionId);
-  
+
   return sessionId;
 }
 
-export async function getAuthSession(sessionId: string): Promise<AuthSession | null> {
+export async function getAuthSession(
+  sessionId: string,
+): Promise<AuthSession | null> {
   try {
     const key = `session:${sessionId}`;
     const sessionData = await redis.get(key);
-    
+
     if (!sessionData) {
       return null;
     }
-    
+
     const session = JSON.parse(sessionData) as AuthSession;
-    
+
     if (new Date(session.expiresAt) < new Date()) {
       await deleteAuthSession(sessionId);
       return null;
     }
-    
+
     return session;
   } catch (error) {
     console.error("Failed to get auth session:", error);
@@ -62,7 +68,7 @@ export async function deleteAuthSession(sessionId: string): Promise<void> {
     if (session) {
       await removeSessionFromUser(session.luxUserId, sessionId);
     }
-    
+
     const key = `session:${sessionId}`;
     await redis.del(key);
   } catch (error) {
@@ -76,11 +82,11 @@ export async function extendSession(sessionId: string): Promise<void> {
     if (!session) {
       return;
     }
-    
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + SESSION_TTL * 1000);
     session.expiresAt = expiresAt.toISOString();
-    
+
     const key = `session:${sessionId}`;
     await redis.setEx(key, SESSION_TTL, JSON.stringify(session));
   } catch (error) {
@@ -91,19 +97,21 @@ export async function extendSession(sessionId: string): Promise<void> {
 export async function updateSessionPlatformLink(
   sessionId: string,
   platform: PlatformType,
-  platformLink: PlatformLink
+  platformLink: PlatformLink,
 ): Promise<void> {
   try {
     const session = await getAuthSession(sessionId);
     if (!session) {
       throw new Error("Session not found");
     }
-    
+
     session.platforms[platform] = platformLink;
-    
+
     const key = `session:${sessionId}`;
-    const ttl = Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000);
-    
+    const ttl = Math.floor(
+      (new Date(session.expiresAt).getTime() - Date.now()) / 1000,
+    );
+
     if (ttl > 0) {
       await redis.setEx(key, ttl, JSON.stringify(session));
     }
@@ -115,19 +123,21 @@ export async function updateSessionPlatformLink(
 
 export async function removeSessionPlatformLink(
   sessionId: string,
-  platform: PlatformType
+  platform: PlatformType,
 ): Promise<void> {
   try {
     const session = await getAuthSession(sessionId);
     if (!session) {
       return;
     }
-    
+
     session.platforms[platform] = null;
-    
+
     const key = `session:${sessionId}`;
-    const ttl = Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000);
-    
+    const ttl = Math.floor(
+      (new Date(session.expiresAt).getTime() - Date.now()) / 1000,
+    );
+
     if (ttl > 0) {
       await redis.setEx(key, ttl, JSON.stringify(session));
     }
@@ -146,15 +156,17 @@ export async function storeLuxBridgeUser(user: LuxBridgeUser): Promise<void> {
   }
 }
 
-export async function getLuxBridgeUser(privyId: string): Promise<LuxBridgeUser | null> {
+export async function getLuxBridgeUser(
+  privyId: string,
+): Promise<LuxBridgeUser | null> {
   try {
     const key = `lux_user:${privyId}`;
     const userData = await redis.get(key);
-    
+
     if (!userData) {
       return null;
     }
-    
+
     return JSON.parse(userData) as LuxBridgeUser;
   } catch (error) {
     console.error("Failed to get LuxBridge user:", error);
@@ -162,7 +174,9 @@ export async function getLuxBridgeUser(privyId: string): Promise<LuxBridgeUser |
   }
 }
 
-export async function updateLuxBridgeUserActivity(privyId: string): Promise<void> {
+export async function updateLuxBridgeUserActivity(
+  privyId: string,
+): Promise<void> {
   try {
     const user = await getLuxBridgeUser(privyId);
     if (user) {
@@ -174,33 +188,39 @@ export async function updateLuxBridgeUserActivity(privyId: string): Promise<void
   }
 }
 
-async function addSessionToUser(luxUserId: string, sessionId: string): Promise<void> {
+async function addSessionToUser(
+  luxUserId: string,
+  sessionId: string,
+): Promise<void> {
   try {
     const key = `user_sessions:${luxUserId}`;
     const existingSessions = await redis.get(key);
-    
+
     let sessions: string[] = [];
     if (existingSessions) {
       sessions = JSON.parse(existingSessions);
     }
-    
+
     sessions.push(sessionId);
-    
+
     await redis.setEx(key, SESSION_TTL, JSON.stringify(sessions));
   } catch (error) {
     console.error("Failed to add session to user:", error);
   }
 }
 
-async function removeSessionFromUser(luxUserId: string, sessionId: string): Promise<void> {
+async function removeSessionFromUser(
+  luxUserId: string,
+  sessionId: string,
+): Promise<void> {
   try {
     const key = `user_sessions:${luxUserId}`;
     const existingSessions = await redis.get(key);
-    
+
     if (existingSessions) {
       let sessions: string[] = JSON.parse(existingSessions);
-      sessions = sessions.filter(id => id !== sessionId);
-      
+      sessions = sessions.filter((id) => id !== sessionId);
+
       if (sessions.length > 0) {
         await redis.setEx(key, SESSION_TTL, JSON.stringify(sessions));
       } else {
@@ -212,25 +232,27 @@ async function removeSessionFromUser(luxUserId: string, sessionId: string): Prom
   }
 }
 
-export async function getUserActiveSessions(luxUserId: string): Promise<string[]> {
+export async function getUserActiveSessions(
+  luxUserId: string,
+): Promise<string[]> {
   try {
     const key = `user_sessions:${luxUserId}`;
     const sessionsData = await redis.get(key);
-    
+
     if (!sessionsData) {
       return [];
     }
-    
+
     const sessionIds = JSON.parse(sessionsData) as string[];
     const activeSessions: string[] = [];
-    
+
     for (const sessionId of sessionIds) {
       const session = await getAuthSession(sessionId);
       if (session) {
         activeSessions.push(sessionId);
       }
     }
-    
+
     if (activeSessions.length !== sessionIds.length) {
       if (activeSessions.length > 0) {
         await redis.setEx(key, SESSION_TTL, JSON.stringify(activeSessions));
@@ -238,7 +260,7 @@ export async function getUserActiveSessions(luxUserId: string): Promise<string[]
         await redis.del(key);
       }
     }
-    
+
     return activeSessions;
   } catch (error) {
     console.error("Failed to get user active sessions:", error);
@@ -250,7 +272,7 @@ export async function cleanupExpiredSessions(): Promise<void> {
   try {
     const pattern = "session:*";
     const keys = await redis.keys(pattern);
-    
+
     for (const key of keys) {
       const sessionData = await redis.get(key);
       if (sessionData) {

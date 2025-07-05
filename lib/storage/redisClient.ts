@@ -20,7 +20,7 @@ export class AssetStorage {
   }
 
   async getAssetsByPlatform(
-    params: GetAssetsByPlatformParams
+    params: GetAssetsByPlatformParams,
   ): Promise<PlatformAsset[]> {
     await ensureConnected();
     const pattern = `platform:${params.platform}:assets:*`;
@@ -39,7 +39,7 @@ export class AssetStorage {
 
   async storeAsset(
     asset: PlatformAsset,
-    platform: PlatformType
+    platform: PlatformType,
   ): Promise<void> {
     await ensureConnected();
     const key = `platform:${platform}:assets:${asset.assetId}`;
@@ -47,7 +47,7 @@ export class AssetStorage {
   }
 
   async getUserPortfolio(
-    params: GetUserPortfolioParams
+    params: GetUserPortfolioParams,
   ): Promise<UserPortfolioHolding[]> {
     await ensureConnected();
     const key = `platform:${params.platform}:users:${params.userId}:portfolio`;
@@ -58,7 +58,7 @@ export class AssetStorage {
   async storeUserPortfolio(
     userId: string,
     platform: PlatformType,
-    holdings: UserPortfolioHolding[]
+    holdings: UserPortfolioHolding[],
   ): Promise<void> {
     await ensureConnected();
     const key = `platform:${platform}:users:${userId}:portfolio`;
@@ -80,7 +80,7 @@ export class AssetStorage {
 
   async getAssetsByIds(
     assetIds: string[],
-    platform: PlatformType
+    platform: PlatformType,
   ): Promise<PlatformAsset[]> {
     await ensureConnected();
     const keys = assetIds.map((id) => `platform:${platform}:assets:${id}`);

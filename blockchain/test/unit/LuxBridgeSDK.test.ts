@@ -34,7 +34,7 @@ describe("LuxBridge SDK", function () {
       owner.address, // router
       ethers.keccak256(ethers.toUtf8Bytes("fun-ethereum-sepolia-1")), // donId
       1, // subscriptionId
-      300000 // gasLimit
+      300000, // gasLimit
     );
 
     const LuxBridgeAutomation = await ethers.getContractFactory(
@@ -50,7 +50,8 @@ describe("LuxBridge SDK", function () {
     sdk = new LuxBridgeSDK({
       network: "localhost",
       provider: provider,
-      privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
+      privateKey:
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
       contracts: {
         factory: await factory.getAddress(),
         amm: await amm.getAddress(),
@@ -174,11 +175,13 @@ describe("LuxBridge SDK", function () {
       });
 
       // Get token contract and approve factory to burn
-      const tokenAddress = await sdk.getTokenAddress({
-        platform: "splint_invest",
-        assetId: "WHISKEY-123",
-      }).then((r) => r.tokenAddress);
-      
+      const tokenAddress = await sdk
+        .getTokenAddress({
+          platform: "splint_invest",
+          assetId: "WHISKEY-123",
+        })
+        .then((r) => r.tokenAddress);
+
       const tokenContract = await sdk.getTokenContract(tokenAddress);
       await tokenContract.approve(factory.target, ethers.parseEther("10000"));
 
@@ -242,15 +245,19 @@ describe("LuxBridge SDK", function () {
         valuation: "100000",
       });
 
-      tokenA = await sdk.getTokenAddress({
-        platform: "splint_invest",
-        assetId: "TOKEN-A",
-      }).then((r) => r.tokenAddress);
+      tokenA = await sdk
+        .getTokenAddress({
+          platform: "splint_invest",
+          assetId: "TOKEN-A",
+        })
+        .then((r) => r.tokenAddress);
 
-      tokenB = await sdk.getTokenAddress({
-        platform: "masterworks",
-        assetId: "TOKEN-B",
-      }).then((r) => r.tokenAddress);
+      tokenB = await sdk
+        .getTokenAddress({
+          platform: "masterworks",
+          assetId: "TOKEN-B",
+        })
+        .then((r) => r.tokenAddress);
     });
 
     it("should create a liquidity pool", async function () {
@@ -269,8 +276,7 @@ describe("LuxBridge SDK", function () {
 
       const tokenContractA = await sdk.getTokenContract(tokenA);
       const tokenContractB = await sdk.getTokenContract(tokenB);
-      
-      
+
       await tokenContractA.approve(amm.target, ethers.parseEther("1000"));
       await tokenContractB.approve(amm.target, ethers.parseEther("1000"));
 
@@ -291,8 +297,7 @@ describe("LuxBridge SDK", function () {
 
       const tokenContractA = await sdk.getTokenContract(tokenA);
       const tokenContractB = await sdk.getTokenContract(tokenB);
-      
-      
+
       await tokenContractA.approve(amm.target, ethers.parseEther("1000"));
       await tokenContractB.approve(amm.target, ethers.parseEther("1000"));
 
@@ -433,7 +438,8 @@ describe("LuxBridge SDK", function () {
       const userSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
-        privateKey: "0x59c6995e998f97436be9bb29aaf45c02b5e9c5bce6b5c6baa1cfcb14e34b98e5e0", // hardhat account 1
+        privateKey:
+          "0x59c6995e998f97436be9bb29aaf45c02b5e9c5bce6b5c6baa1cfcb14e34b98e5e0", // hardhat account 1
         contracts: {
           factory: await factory.getAddress(),
           amm: await amm.getAddress(),
@@ -453,7 +459,8 @@ describe("LuxBridge SDK", function () {
       const userSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
-        privateKey: "0x59c6995e998f97436be9bb29aaf45c02b5e9c5bce6b5c6baa1cfcb14e34b98e5e0", // hardhat account 1
+        privateKey:
+          "0x59c6995e998f97436be9bb29aaf45c02b5e9c5bce6b5c6baa1cfcb14e34b98e5e0", // hardhat account 1
         contracts: {
           factory: await factory.getAddress(),
           amm: await amm.getAddress(),
@@ -475,7 +482,8 @@ describe("LuxBridge SDK", function () {
       const aiSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
-        privateKey: "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a", // hardhat account 2
+        privateKey:
+          "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a", // hardhat account 2
         contracts: {
           factory: await factory.getAddress(),
           amm: await amm.getAddress(),
@@ -502,7 +510,8 @@ describe("LuxBridge SDK", function () {
       const aiSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
-        privateKey: "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a", // hardhat account 2
+        privateKey:
+          "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a", // hardhat account 2
         contracts: {
           factory: await factory.getAddress(),
           amm: await amm.getAddress(),
@@ -571,10 +580,12 @@ describe("LuxBridge SDK", function () {
         valuation: "50000",
       });
 
-      const tokenAddress = await sdk.getTokenAddress({
-        platform: "test_platform",
-        assetId: "TOKEN-TEST",
-      }).then((r) => r.tokenAddress);
+      const tokenAddress = await sdk
+        .getTokenAddress({
+          platform: "test_platform",
+          assetId: "TOKEN-TEST",
+        })
+        .then((r) => r.tokenAddress);
 
       const tokenContract = await sdk.getTokenContract(tokenAddress);
       expect(tokenContract).to.not.be.undefined;

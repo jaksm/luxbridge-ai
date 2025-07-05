@@ -18,8 +18,17 @@ import {
 import { getUserById } from "@/lib/auth/authCommon";
 import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 import { validatePrivyToken } from "@/lib/auth/privy-validation";
-import { createAuthSession, getAuthSession, storeLuxBridgeUser, updateLuxBridgeUserActivity } from "@/lib/auth/session-manager";
-import { SUPPORTED_PLATFORMS, getAllUserPlatformLinks, makeAuthenticatedPlatformCall } from "@/lib/auth/platform-auth";
+import {
+  createAuthSession,
+  getAuthSession,
+  storeLuxBridgeUser,
+  updateLuxBridgeUserActivity,
+} from "@/lib/auth/session-manager";
+import {
+  SUPPORTED_PLATFORMS,
+  getAllUserPlatformLinks,
+  makeAuthenticatedPlatformCall,
+} from "@/lib/auth/platform-auth";
 import { PlatformType } from "@/lib/types/platformAsset";
 
 const handler = async (req: Request) => {
@@ -260,7 +269,10 @@ const handler = async (req: Request) => {
             }
 
             await storeLuxBridgeUser(luxUser);
-            const sessionId = await createAuthSession(luxUser.userId, privyToken);
+            const sessionId = await createAuthSession(
+              luxUser.userId,
+              privyToken,
+            );
 
             return {
               content: [
@@ -301,7 +313,7 @@ const handler = async (req: Request) => {
               };
             }
 
-            const platformStatus = SUPPORTED_PLATFORMS.map(platform => {
+            const platformStatus = SUPPORTED_PLATFORMS.map((platform) => {
               const link = session.platforms[platform.platform];
               return {
                 platform: platform.platform,
@@ -314,7 +326,7 @@ const handler = async (req: Request) => {
               };
             });
 
-            const linkedCount = platformStatus.filter(p => p.isLinked).length;
+            const linkedCount = platformStatus.filter((p) => p.isLinked).length;
 
             return {
               content: [
@@ -327,7 +339,7 @@ const handler = async (req: Request) => {
                       linkedCount,
                     },
                     null,
-                    2
+                    2,
                   )}`,
                 },
               ],
@@ -363,14 +375,17 @@ const handler = async (req: Request) => {
               };
             }
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-            const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+            const baseUrl =
+              process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+            const expiresAt = new Date(
+              Date.now() + 10 * 60 * 1000,
+            ).toISOString(); // 10 minutes
 
-            const authLinks = platforms.map(platform => ({
+            const authLinks = platforms.map((platform) => ({
               platform,
-              authUrl: `${baseUrl}/auth/${platform.replace('_', '-')}?session=${sessionId}`,
+              authUrl: `${baseUrl}/auth/${platform.replace("_", "-")}?session=${sessionId}`,
               expiresAt,
-              instructions: `Click the link to authenticate with ${SUPPORTED_PLATFORMS.find(p => p.platform === platform)?.name || platform}`,
+              instructions: `Click the link to authenticate with ${SUPPORTED_PLATFORMS.find((p) => p.platform === platform)?.name || platform}`,
             }));
 
             return {
@@ -381,10 +396,11 @@ const handler = async (req: Request) => {
                     {
                       authLinks,
                       sessionExpiresAt: session.expiresAt,
-                      instructions: "Visit each link to authenticate with the respective platform. Links expire in 10 minutes.",
+                      instructions:
+                        "Visit each link to authenticate with the respective platform. Links expire in 10 minutes.",
                     },
                     null,
-                    2
+                    2,
                   )}`,
                 },
               ],
@@ -432,8 +448,11 @@ const handler = async (req: Request) => {
 
             const summary = {
               totalLinked: linkedPlatforms.length,
-              activeCount: linkedPlatforms.filter(p => p.status === 'active').length,
-              expiredCount: linkedPlatforms.filter(p => p.status === 'expired').length,
+              activeCount: linkedPlatforms.filter((p) => p.status === "active")
+                .length,
+              expiredCount: linkedPlatforms.filter(
+                (p) => p.status === "expired",
+              ).length,
             };
 
             return {
@@ -443,7 +462,7 @@ const handler = async (req: Request) => {
                   text: `🔗 Linked Platform Accounts:\n\n${JSON.stringify(
                     { linkedPlatforms, summary },
                     null,
-                    2
+                    2,
                   )}`,
                 },
               ],
@@ -480,7 +499,7 @@ const handler = async (req: Request) => {
             }
 
             const platformLink = session.platforms[platform];
-            if (!platformLink || platformLink.status !== 'active') {
+            if (!platformLink || platformLink.status !== "active") {
               return {
                 content: [
                   {
@@ -494,7 +513,7 @@ const handler = async (req: Request) => {
             const portfolio = await makeAuthenticatedPlatformCall(
               sessionId,
               platform,
-              '/portfolio'
+              "/portfolio",
             );
 
             const response = {
@@ -547,7 +566,9 @@ const handler = async (req: Request) => {
             }
 
             const searchStartTime = Date.now();
-            const targetPlatforms = platforms || (['splint_invest', 'masterworks', 'realt'] as PlatformType[]);
+            const targetPlatforms =
+              platforms ||
+              (["splint_invest", "masterworks", "realt"] as PlatformType[]);
             const results = [];
 
             let totalResults = 0;
@@ -555,7 +576,7 @@ const handler = async (req: Request) => {
 
             for (const platform of targetPlatforms) {
               const platformLink = session.platforms[platform];
-              if (!platformLink || platformLink.status !== 'active') {
+              if (!platformLink || platformLink.status !== "active") {
                 continue;
               }
 
@@ -563,7 +584,7 @@ const handler = async (req: Request) => {
                 const searchResponse = await makeAuthenticatedPlatformCall(
                   sessionId,
                   platform,
-                  `/assets?semanticSearch=${encodeURIComponent(semanticQuery)}&limit=${limit}`
+                  `/assets?semanticSearch=${encodeURIComponent(semanticQuery)}&limit=${limit}`,
                 );
 
                 const assets = searchResponse.assets || [];
@@ -581,7 +602,7 @@ const handler = async (req: Request) => {
                   platform,
                   assets: [],
                   resultCount: 0,
-                  credentialStatus: 'invalid',
+                  credentialStatus: "invalid",
                 });
               }
             }

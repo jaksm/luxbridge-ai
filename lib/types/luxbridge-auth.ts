@@ -31,7 +31,6 @@ export interface AuthSession {
   expiresAt: string;
 }
 
-
 export interface PlatformAuthResult {
   success: boolean;
   user?: {

@@ -5,12 +5,18 @@ import {
   constructUserPortfolio,
   calculatePortfolioMetrics,
 } from "@/lib/utils/portfolioCalculator";
-import { createPlatformHandler, AuthenticatedRequest } from "@/lib/auth/platform-middleware";
+import {
+  createPlatformHandler,
+  AuthenticatedRequest,
+} from "@/lib/auth/platform-middleware";
 
-async function handlePortfolioRequest(request: AuthenticatedRequest, platform: string) {
+async function handlePortfolioRequest(
+  request: AuthenticatedRequest,
+  platform: string,
+) {
   const platformType = platform as PlatformType;
   const userId = request.user.userId;
-  
+
   try {
     const user = getUserById(userId);
     if (!user) {
@@ -33,7 +39,10 @@ async function handlePortfolioRequest(request: AuthenticatedRequest, platform: s
       };
     }
 
-    const constructedAssets = await constructUserPortfolio(holdings, platformType);
+    const constructedAssets = await constructUserPortfolio(
+      holdings,
+      platformType,
+    );
     const metrics = calculatePortfolioMetrics(constructedAssets);
 
     const categories = constructedAssets.reduce(
@@ -56,7 +65,7 @@ async function handlePortfolioRequest(request: AuthenticatedRequest, platform: s
       lastUpdated: new Date().toISOString(),
     };
   } catch (error) {
-    throw new Error('Failed to retrieve portfolio');
+    throw new Error("Failed to retrieve portfolio");
   }
 }
 
