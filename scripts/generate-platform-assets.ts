@@ -10,6 +10,7 @@ import { join } from "path";
 import { PlatformAssetSchema } from "../lib/types/platformAssetSchema";
 import { PlatformType } from "../lib/types/platformAsset";
 import { assetStorage } from "../lib/storage/redisClient";
+import { PineconeClient } from "../lib/storage/pineconeClient";
 import { getAllAssetIds } from "./generate-asset-ids";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -24,6 +25,8 @@ const llm = new ChatOpenAI({
   temperature: 0.7,
   apiKey: OPENAI_API_KEY,
 });
+
+const pineconeClient = new PineconeClient();
 
 const outputParser = StructuredOutputParser.fromZodSchema(
   z.object({
@@ -109,10 +112,16 @@ async function generateAndStoreAssets(platform: PlatformType, assetIds: string[]
     try {
       const assets = await generateAssetChunk(platform, chunk);
       
-      console.log(`Generated ${assets.length} assets, storing in Redis...`);
+      console.log(`Generated ${assets.length} assets, storing in Redis and Pinecone...`);
       
       for (const asset of assets) {
         await assetStorage.storeAsset(asset, platform);
+        
+        try {
+          await pineconeClient.upsertAsset(asset, platform);
+        } catch (error) {
+          console.error(`Failed to save asset ${asset.assetId} to Pinecone:`, error);
+        }
       }
       
       console.log(`✓ Chunk ${i + 1} completed successfully`);
