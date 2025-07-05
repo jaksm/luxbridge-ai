@@ -32,7 +32,7 @@ export const GetUserPortfolioSchema = z
     userId: z.string().describe("Unique user identifier for portfolio lookup"),
   })
   .describe(
-    "Parameters for retrieving user portfolio holdings from a specific platform",
+    "Parameters for retrieving user portfolio holdings from a specific platform"
   );
 
 export const SemanticSearchSchema = z
@@ -60,7 +60,7 @@ export const SemanticSearchSchema = z
       .describe("Minimum relevance score threshold (0.0-1.0, default: 0.1)"),
   })
   .describe(
-    "Parameters for semantic search across RWA assets using natural language queries",
+    "Parameters for semantic search across RWA assets using natural language queries"
   );
 
 export const AssetQuerySchema = z.object({

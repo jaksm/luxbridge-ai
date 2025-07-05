@@ -13,6 +13,6 @@
     "sourceMap": true,
     "noImplicitAny": true
   },
-  "include": ["./scripts", "./test", "./typechain-types"],
+  "include": ["./scripts", "./test", "./typechain-types", "./index.ts"],
   "files": ["./hardhat.config.ts"]
 }

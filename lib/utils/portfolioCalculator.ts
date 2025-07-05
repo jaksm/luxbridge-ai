@@ -1,13 +1,13 @@
+import { assetStorage } from "../storage/redisClient";
 import {
   PlatformAsset,
-  UserPortfolioHolding,
   PlatformType,
+  UserPortfolioHolding,
 } from "../types/platformAsset";
-import { assetStorage } from "../storage/redisClient";
 
 export async function constructUserPortfolio(
   holdings: UserPortfolioHolding[],
-  platform: PlatformType,
+  platform: PlatformType
 ): Promise<
   Array<
     PlatformAsset &
@@ -36,22 +36,22 @@ export async function constructUserPortfolio(
         currentValue,
         unrealizedGain,
       };
-    }),
+    })
   );
 
   return constructedAssets;
 }
 
 export function calculatePortfolioMetrics(
-  holdings: Array<{ currentValue: number; unrealizedGain: number }>,
+  holdings: Array<{ currentValue: number; unrealizedGain: number }>
 ) {
   const totalValue = holdings.reduce(
     (sum, holding) => sum + holding.currentValue,
-    0,
+    0
   );
   const totalGain = holdings.reduce(
     (sum, holding) => sum + holding.unrealizedGain,
-    0,
+    0
   );
   const totalReturn =
     totalValue > 0 ? (totalGain / (totalValue - totalGain)) * 100 : 0;
@@ -67,7 +67,7 @@ export function calculatePortfolioMetrics(
 export function calculateDiversificationScore(assets: PlatformAsset[]): number {
   const categories = new Set(assets.map((asset) => asset.category));
   const riskCategories = new Set(
-    assets.map((asset) => asset.expertAnalysis.riskProfile.riskCategory),
+    assets.map((asset) => asset.expertAnalysis.riskProfile.riskCategory)
   );
 
   const categoryScore = Math.min(categories.size / 3, 1);
@@ -80,7 +80,7 @@ export function calculateLiquidityScore(assets: PlatformAsset[]): number {
   const avgLiquidityYears =
     assets.reduce(
       (sum, asset) => sum + asset.expertAnalysis.investmentHorizon.minimumYears,
-      0,
+      0
     ) / assets.length;
 
   return Math.max(0, 1 - avgLiquidityYears / 10);
@@ -90,7 +90,7 @@ export function calculateRiskScore(assets: PlatformAsset[]): number {
   const avgRiskScore =
     assets.reduce(
       (sum, asset) => sum + asset.expertAnalysis.riskProfile.overallRiskScore,
-      0,
+      0
     ) / assets.length;
 
   return avgRiskScore / 10;
