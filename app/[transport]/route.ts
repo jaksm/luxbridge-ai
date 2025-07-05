@@ -1,42 +1,14 @@
-import { createMcpHandler } from "@vercel/mcp-adapter";
-import { z } from "zod";
-
-const handler = createMcpHandler(
-  async (server) => {
-    server.tool(
-      "echo",
-      "description",
-      {
-        message: z.string(),
-      },
-      async ({ message }) => ({
-        content: [{ type: "text", text: `Tool echo: ${message}` }],
-      })
-    );
-  },
-  {
-    capabilities: {
-      tools: {
-        echo: {
-          description: "Echo a message",
-        },
-      },
-    },
-  },
-  {
-    basePath: "",
-    verboseLogs: true,
-    maxDuration: 60,
-  }
-);
-
-export { handler as GET, handler as POST, handler as DELETE };
 import { authenticateRequest } from "@/lib/auth/authenticate-request";
 import { createMcpHandler } from "@vercel/mcp-adapter";
 import { NextRequest } from "next/server";
 import { assetStorage } from "@/lib/storage/redisClient";
 import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
-import { GetAssetSchema, GetAssetsByPlatformSchema, GetUserPortfolioSchema, SemanticSearchSchema } from "@/lib/types/schemas";
+import {
+  GetAssetSchema,
+  GetAssetsByPlatformSchema,
+  GetUserPortfolioSchema,
+  SemanticSearchSchema,
+} from "@/lib/types/schemas";
 import { getUserById } from "@/lib/auth/authCommon";
 import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 
@@ -128,7 +100,10 @@ const handler = async (req: Request) => {
         GetAssetsByPlatformSchema.shape,
         async ({ platform, limit = 50 }) => {
           try {
-            const assets = await assetStorage.getAssetsByPlatform({ platform, limit });
+            const assets = await assetStorage.getAssetsByPlatform({
+              platform,
+              limit,
+            });
             return {
               content: [
                 {
@@ -168,7 +143,8 @@ const handler = async (req: Request) => {
               };
             }
 
-            const holdings = user.portfolios[platform as keyof typeof user.portfolios];
+            const holdings =
+              user.portfolios[platform as keyof typeof user.portfolios];
             if (holdings.length === 0) {
               return {
                 content: [
@@ -180,7 +156,10 @@ const handler = async (req: Request) => {
               };
             }
 
-            const constructedAssets = await constructUserPortfolio(holdings, platform);
+            const constructedAssets = await constructUserPortfolio(
+              holdings,
+              platform,
+            );
             return {
               content: [
                 {
@@ -227,7 +206,7 @@ const handler = async (req: Request) => {
               };
             }
 
-            const assets = platform 
+            const assets = platform
               ? await assetStorage.getAssetsByIds(assetIds, platform)
               : [];
 
@@ -280,45 +259,3 @@ export async function OPTIONS() {
   );
   return response;
 }
-import { NextRequest } from "next/server";
-import { assetStorage } from "@/lib/storage/redisClient";
-import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
-import {
-  GetAssetSchema,
-  GetAssetsByPlatformSchema,
-  GetUserPortfolioSchema,
-  SemanticSearchSchema,
-} from "@/lib/types/schemas";
-import { getUserById } from "@/lib/auth/authCommon";
-import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
-        GetAssetsByPlatformSchema.shape,
-        async ({ platform, limit = 50 }) => {
-          try {
-            const assets = await assetStorage.getAssetsByPlatform({
-              platform,
-              limit,
-            });
-            return {
-              content: [
-                {
-              };
-            }
-            const holdings =
-              user.portfolios[platform as keyof typeof user.portfolios];
-            if (holdings.length === 0) {
-              return {
-                content: [
-              };
-            }
-            const constructedAssets = await constructUserPortfolio(
-              holdings,
-              platform,
-            );
-            return {
-              content: [
-                {
-              };
-            }
-            const assets = platform
-              ? await assetStorage.getAssetsByIds(assetIds, platform)
-              : [];

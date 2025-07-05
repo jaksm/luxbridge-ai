@@ -3,14 +3,17 @@ import { PlatformType } from "@/lib/types/platformAsset";
 import { assetStorage } from "@/lib/storage/redisClient";
 import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
 
-export async function GET(request: NextRequest, context: { params: Promise<{ platform: string }> }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
   try {
     const params = await context.params;
     const platform = params.platform as PlatformType;
     if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
       return NextResponse.json(
         { error: "invalid_platform", message: "Invalid platform specified" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -18,8 +21,12 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pla
     const semanticSearch = searchParams.get("semanticSearch");
     const category = searchParams.get("category");
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 200);
-    const minValue = searchParams.get("minValue") ? parseFloat(searchParams.get("minValue")!) : undefined;
-    const maxValue = searchParams.get("maxValue") ? parseFloat(searchParams.get("maxValue")!) : undefined;
+    const minValue = searchParams.get("minValue")
+      ? parseFloat(searchParams.get("minValue")!)
+      : undefined;
+    const maxValue = searchParams.get("maxValue")
+      ? parseFloat(searchParams.get("maxValue")!)
+      : undefined;
     const riskCategory = searchParams.get("riskCategory");
 
     const startTime = Date.now();
@@ -31,9 +38,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pla
         query: semanticSearch,
         platform,
         limit,
-        minScore: 0.1
+        minScore: 0.1,
       });
-      
+
       assets = await assetStorage.getAssetsByIds(assetIds, platform);
     } else {
       assets = await assetStorage.getAssetsByPlatform({ platform, limit });
@@ -42,20 +49,27 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pla
     let filteredAssets = assets;
 
     if (category) {
-      filteredAssets = filteredAssets.filter(asset => asset.category === category);
+      filteredAssets = filteredAssets.filter(
+        (asset) => asset.category === category,
+      );
     }
 
     if (minValue !== undefined) {
-      filteredAssets = filteredAssets.filter(asset => asset.valuation.currentValue >= minValue);
+      filteredAssets = filteredAssets.filter(
+        (asset) => asset.valuation.currentValue >= minValue,
+      );
     }
 
     if (maxValue !== undefined) {
-      filteredAssets = filteredAssets.filter(asset => asset.valuation.currentValue <= maxValue);
+      filteredAssets = filteredAssets.filter(
+        (asset) => asset.valuation.currentValue <= maxValue,
+      );
     }
 
     if (riskCategory) {
-      filteredAssets = filteredAssets.filter(asset => 
-        asset.expertAnalysis.riskProfile.riskCategory === riskCategory
+      filteredAssets = filteredAssets.filter(
+        (asset) =>
+          asset.expertAnalysis.riskProfile.riskCategory === riskCategory,
       );
     }
 
@@ -71,90 +85,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pla
           minValue,
           maxValue,
           riskCategory,
-          platform
-        },
-        searchTimeMs
-      }
-    });
-
-  } catch (error) {
-    return NextResponse.json(
-      { error: "internal_error", message: "An unexpected error occurred" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
-  });
-}
-import { assetStorage } from "@/lib/storage/redisClient";
-import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ platform: string }> },
-) {
-  try {
-    const params = await context.params;
-    const platform = params.platform as PlatformType;
-    if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
-      return NextResponse.json(
-        { error: "invalid_platform", message: "Invalid platform specified" },
-        { status: 400 },
-      );
-    }
-    const semanticSearch = searchParams.get("semanticSearch");
-    const category = searchParams.get("category");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 200);
-    const minValue = searchParams.get("minValue")
-      ? parseFloat(searchParams.get("minValue")!)
-      : undefined;
-    const maxValue = searchParams.get("maxValue")
-      ? parseFloat(searchParams.get("maxValue")!)
-      : undefined;
-    const riskCategory = searchParams.get("riskCategory");
-    const startTime = Date.now();
-        query: semanticSearch,
-        platform,
-        limit,
-        minScore: 0.1,
-      });
-
-      assets = await assetStorage.getAssetsByIds(assetIds, platform);
-    } else {
-      assets = await assetStorage.getAssetsByPlatform({ platform, limit });
-    let filteredAssets = assets;
-    if (category) {
-      filteredAssets = filteredAssets.filter(
-        (asset) => asset.category === category,
-      );
-    }
-    if (minValue !== undefined) {
-      filteredAssets = filteredAssets.filter(
-        (asset) => asset.valuation.currentValue >= minValue,
-      );
-    }
-    if (maxValue !== undefined) {
-      filteredAssets = filteredAssets.filter(
-        (asset) => asset.valuation.currentValue <= maxValue,
-      );
-    }
-    if (riskCategory) {
-      filteredAssets = filteredAssets.filter(
-        (asset) =>
-          asset.expertAnalysis.riskProfile.riskCategory === riskCategory,
-      );
-    }
-          minValue,
-          maxValue,
-          riskCategory,
           platform,
         },
         searchTimeMs,
@@ -167,6 +97,13 @@ export async function GET(
     );
   }
 }
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
