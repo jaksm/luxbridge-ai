@@ -1,4 +1,4 @@
-import redis from "@/lib/redis";
+import redis, { ensureConnected } from "@/lib/redis";
 import {
   AuthSession,
   LuxBridgeUser,
@@ -12,6 +12,8 @@ export async function createAuthSession(
   luxUserId: string,
   privyToken: string,
 ): Promise<string> {
+  await ensureConnected();
+  
   const sessionId = `lux_session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_TTL * 1000);
@@ -41,6 +43,8 @@ export async function getAuthSession(
   sessionId: string,
 ): Promise<AuthSession | null> {
   try {
+    await ensureConnected();
+    
     const key = `session:${sessionId}`;
     const sessionData = await redis.get(key);
 
@@ -69,6 +73,7 @@ export async function deleteAuthSession(sessionId: string): Promise<void> {
       await removeSessionFromUser(session.luxUserId, sessionId);
     }
 
+    await ensureConnected();
     const key = `session:${sessionId}`;
     await redis.del(key);
   } catch (error) {
@@ -87,6 +92,7 @@ export async function extendSession(sessionId: string): Promise<void> {
     const expiresAt = new Date(now.getTime() + SESSION_TTL * 1000);
     session.expiresAt = expiresAt.toISOString();
 
+    await ensureConnected();
     const key = `session:${sessionId}`;
     await redis.setEx(key, SESSION_TTL, JSON.stringify(session));
   } catch (error) {
@@ -113,6 +119,7 @@ export async function updateSessionPlatformLink(
     );
 
     if (ttl > 0) {
+      await ensureConnected();
       await redis.setEx(key, ttl, JSON.stringify(session));
     }
   } catch (error) {
@@ -139,6 +146,7 @@ export async function removeSessionPlatformLink(
     );
 
     if (ttl > 0) {
+      await ensureConnected();
       await redis.setEx(key, ttl, JSON.stringify(session));
     }
   } catch (error) {
@@ -148,6 +156,7 @@ export async function removeSessionPlatformLink(
 
 export async function storeLuxBridgeUser(user: LuxBridgeUser): Promise<void> {
   try {
+    await ensureConnected();
     const key = `lux_user:${user.privyId}`;
     await redis.set(key, JSON.stringify(user));
   } catch (error) {
@@ -160,6 +169,7 @@ export async function getLuxBridgeUser(
   privyId: string,
 ): Promise<LuxBridgeUser | null> {
   try {
+    await ensureConnected();
     const key = `lux_user:${privyId}`;
     const userData = await redis.get(key);
 
@@ -193,6 +203,7 @@ async function addSessionToUser(
   sessionId: string,
 ): Promise<void> {
   try {
+    await ensureConnected();
     const key = `user_sessions:${luxUserId}`;
     const existingSessions = await redis.get(key);
 
@@ -214,6 +225,7 @@ async function removeSessionFromUser(
   sessionId: string,
 ): Promise<void> {
   try {
+    await ensureConnected();
     const key = `user_sessions:${luxUserId}`;
     const existingSessions = await redis.get(key);
 
@@ -236,6 +248,7 @@ export async function getUserActiveSessions(
   luxUserId: string,
 ): Promise<string[]> {
   try {
+    await ensureConnected();
     const key = `user_sessions:${luxUserId}`;
     const sessionsData = await redis.get(key);
 
