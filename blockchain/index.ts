@@ -608,15 +608,15 @@ export class LuxBridgeSDK {
     const parsed = DelegateTradingSchema.parse(params);
 
     const tx = await this.automation.delegateTrading(
-      parsed.aiAgent,
+      ethers.parseEther(parsed.maxTradeSize),
       ethers.parseEther(parsed.maxDailyVolume),
-      parsed.allowedTokens,
+      parsed.allowedAssets,
       {
         gasLimit: await this.estimateGasWithBuffer(
           this.automation.delegateTrading.populateTransaction(
-            parsed.aiAgent,
+            ethers.parseEther(parsed.maxTradeSize),
             ethers.parseEther(parsed.maxDailyVolume),
-            parsed.allowedTokens,
+            parsed.allowedAssets,
           ),
         ),
       },
@@ -638,19 +638,11 @@ export class LuxBridgeSDK {
     const parsed = ExecuteAutomatedTradeSchema.parse(params);
 
     const tx = await this.automation.executeAutomatedTrade(
-      parsed.user,
-      parsed.tokenIn,
-      parsed.tokenOut,
-      ethers.parseEther(parsed.amountIn),
-      ethers.parseEther(parsed.minAmountOut || "0"),
+      parsed.tradeId,
       {
         gasLimit: await this.estimateGasWithBuffer(
           this.automation.executeAutomatedTrade.populateTransaction(
-            parsed.user,
-            parsed.tokenIn,
-            parsed.tokenOut,
-            ethers.parseEther(parsed.amountIn),
-            ethers.parseEther(parsed.minAmountOut || "0"),
+            parsed.tradeId,
           ),
         ),
       },
@@ -665,20 +657,26 @@ export class LuxBridgeSDK {
     };
   }
 
-  async setTradingLimits(params: z.infer<typeof SetTradingLimitsSchema>) {
+  async queueAutomatedTrade(params: z.infer<typeof QueueAutomatedTradeSchema>) {
     this.requireSigner();
-    const parsed = SetTradingLimitsSchema.parse(params);
+    const parsed = QueueAutomatedTradeSchema.parse(params);
 
-    const tx = await this.automation.setTradingLimits(
-      parsed.aiAgent,
-      ethers.parseEther(parsed.maxDailyVolume),
-      ethers.parseEther(parsed.maxSingleTrade),
+    const tx = await this.automation.queueAutomatedTrade(
+      parsed.user,
+      parsed.sellAsset,
+      parsed.buyAsset,
+      ethers.parseEther(parsed.amount),
+      ethers.parseEther(parsed.minAmountOut || "0"),
+      parsed.deadline,
       {
         gasLimit: await this.estimateGasWithBuffer(
-          this.automation.setTradingLimits.populateTransaction(
-            parsed.aiAgent,
-            ethers.parseEther(parsed.maxDailyVolume),
-            ethers.parseEther(parsed.maxSingleTrade),
+          this.automation.queueAutomatedTrade.populateTransaction(
+            parsed.user,
+            parsed.sellAsset,
+            parsed.buyAsset,
+            ethers.parseEther(parsed.amount),
+            ethers.parseEther(parsed.minAmountOut || "0"),
+            parsed.deadline,
           ),
         ),
       },
@@ -1013,34 +1011,46 @@ export const GetTokenAddressSchema = z
 
 export const DelegateTradingSchema = z
   .object({
-    aiAgent: z
+    maxTradeSize: z
       .string()
       .describe(
-        "Ethereum address of the AI agent that will execute automated trades",
+        "Maximum USD value for a single trade (in ETH units)",
       ),
     maxDailyVolume: z
       .string()
       .describe(
-        "Maximum USD value of trades the AI can execute per day (in ETH units)",
+        "Maximum USD value of trades per day (in ETH units)",
       ),
-    allowedTokens: z
+    allowedAssets: z
       .array(z.string())
-      .describe("Array of token contract addresses the AI is allowed to trade"),
+      .describe("Array of asset identifiers the user allows to be traded"),
   })
   .describe(
-    "Parameters for delegating trading permissions to an AI agent with spending limits and token restrictions",
+    "Parameters for delegating trading permissions to the AI agent with spending limits and asset restrictions",
   );
 
 export const ExecuteAutomatedTradeSchema = z
   .object({
+    tradeId: z
+      .string()
+      .describe(
+        "The unique identifier of the queued trade to execute (32-byte hex string)",
+      ),
+  })
+  .describe(
+    "Parameters for AI agents to execute a previously queued automated trade",
+  );
+
+export const QueueAutomatedTradeSchema = z
+  .object({
     user: z
       .string()
       .describe(
-        "Ethereum address of the user on whose behalf the trade is executed",
+        "Ethereum address of the user on whose behalf the trade will be executed",
       ),
-    tokenIn: z.string().describe("Contract address of the token being sold"),
-    tokenOut: z.string().describe("Contract address of the token being bought"),
-    amountIn: z
+    sellAsset: z.string().describe("Asset identifier of the token being sold"),
+    buyAsset: z.string().describe("Asset identifier of the token being bought"),
+    amount: z
       .string()
       .describe("Amount of input token to trade (in ETH units)"),
     minAmountOut: z
@@ -1049,25 +1059,14 @@ export const ExecuteAutomatedTradeSchema = z
       .describe(
         "Minimum acceptable output amount (slippage protection, in ETH units)",
       ),
+    deadline: z
+      .number()
+      .describe(
+        "Unix timestamp after which the trade will expire and cannot be executed",
+      ),
   })
   .describe(
-    "Parameters for AI agents to execute automated trades on behalf of users within delegated limits",
-  );
-
-export const SetTradingLimitsSchema = z
-  .object({
-    aiAgent: z
-      .string()
-      .describe("Ethereum address of the AI agent to set limits for"),
-    maxDailyVolume: z
-      .string()
-      .describe("New maximum daily trading volume in USD (in ETH units)"),
-    maxSingleTrade: z
-      .string()
-      .describe("Maximum value for a single trade in USD (in ETH units)"),
-  })
-  .describe(
-    "Parameters for updating the trading limits of an AI agent to control risk exposure",
+    "Parameters for AI agents to queue an automated trade for later execution",
   );
 
 export default LuxBridgeSDK;
