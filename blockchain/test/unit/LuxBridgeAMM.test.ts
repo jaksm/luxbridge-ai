@@ -34,8 +34,11 @@ describe("LuxBridgeAMM", function () {
         "WINE-001",
         ethers.parseEther("1000000"),
         "wine",
+        "bordeaux",
         ethers.keccak256(ethers.toUtf8Bytes("wine-legal")),
         ethers.parseEther("50000"),
+        ethers.parseEther("50"),
+        "USD",
       );
 
     await factory
@@ -45,8 +48,11 @@ describe("LuxBridgeAMM", function () {
         "ART-001",
         ethers.parseEther("500000"),
         "art",
+        "classic",
         ethers.keccak256(ethers.toUtf8Bytes("art-legal")),
         ethers.parseEther("100000"),
+        ethers.parseEther("200"),
+        "USD",
       );
 
     const wineTokenAddress = await factory.getTokenAddress(

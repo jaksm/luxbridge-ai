@@ -79,8 +79,11 @@ describe("Cross-Platform Trade Integration", function () {
       "BORDEAUX-2019",
       ethers.parseEther("1000000"), // 1M tokens
       "wine",
+      "bordeaux",
       ethers.keccak256(ethers.toUtf8Bytes("wine-legal-doc")),
       ethers.parseEther("100000"), // $100k valuation
+      ethers.parseEther("100"), // $100 per share
+      "USD"
     );
 
     // Bob tokenizes art from Masterworks
@@ -89,8 +92,11 @@ describe("Cross-Platform Trade Integration", function () {
       "PICASSO-042",
       ethers.parseEther("500000"), // 500k tokens
       "art",
+      "classic",
       ethers.keccak256(ethers.toUtf8Bytes("art-legal-doc")),
       ethers.parseEther("200000"), // $200k valuation
+      ethers.parseEther("400"), // $400 per share
+      "USD"
     );
 
     const wineTokenAddress = await factory.getTokenAddress(
@@ -545,8 +551,11 @@ describe("Cross-Platform Trade Integration", function () {
           assetIds[0],
           supplies[0],
           types[0],
+          "general", // subcategory
           hashes[0],
           valuations[0],
+          ethers.parseEther("100"), // sharePrice
+          "USD", // currency
         );
       const receipt1 = await tx1.wait();
 

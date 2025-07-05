@@ -20,8 +20,11 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
         string assetId;
         uint256 totalSupply;
         string assetType;
+        string subcategory;
         bytes32 legalHash;
         uint256 valuation;
+        uint256 sharePrice;
+        string currency;
     }
 
     mapping(bytes32 => address) private assetToToken;
@@ -68,10 +71,13 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
         string calldata assetId,
         uint256 totalSupply,
         string calldata assetType,
+        string calldata subcategory,
         bytes32 legalHash,
-        uint256 valuation
+        uint256 valuation,
+        uint256 sharePrice,
+        string calldata currency
     ) public override nonReentrant returns (address tokenAddress) {
-        tokenAddress = _createToken(platform, assetId, totalSupply, assetType, legalHash, valuation);
+        tokenAddress = _createToken(platform, assetId, totalSupply, assetType, subcategory, legalHash, valuation, sharePrice, currency);
     }
     
     function _createToken(
@@ -79,8 +85,11 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
         string memory assetId,
         uint256 totalSupply,
         string memory assetType,
+        string memory subcategory,
         bytes32 legalHash,
-        uint256 valuation
+        uint256 valuation,
+        uint256 sharePrice,
+        string memory currency
     ) private returns (address tokenAddress) {
         uint32 platformId = platformNameToId[platform];
         require(platformId != 0, "Platform not registered");
@@ -98,9 +107,12 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
             platform,
             assetId,
             assetType,
+            subcategory,
             legalHash,
             totalSupply,
             valuation,
+            sharePrice,
+            currency,
             address(this)
         );
         
@@ -128,15 +140,21 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
         string[] calldata assetIds,
         uint256[] calldata totalSupplies,
         string[] calldata assetTypes,
+        string[] calldata subcategories,
         bytes32[] calldata legalHashes,
-        uint256[] calldata valuations
+        uint256[] calldata valuations,
+        uint256[] calldata sharePrices,
+        string[] calldata currencies
     ) external nonReentrant returns (address[] memory tokenAddresses) {
         require(
             platformNames.length == assetIds.length &&
             assetIds.length == totalSupplies.length &&
             totalSupplies.length == assetTypes.length &&
-            assetTypes.length == legalHashes.length &&
-            legalHashes.length == valuations.length,
+            assetTypes.length == subcategories.length &&
+            subcategories.length == legalHashes.length &&
+            legalHashes.length == valuations.length &&
+            valuations.length == sharePrices.length &&
+            sharePrices.length == currencies.length,
             "Array length mismatch"
         );
         
@@ -148,8 +166,11 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
                 assetIds[i],
                 totalSupplies[i],
                 assetTypes[i],
+                subcategories[i],
                 legalHashes[i],
-                valuations[i]
+                valuations[i],
+                sharePrices[i],
+                currencies[i]
             );
         }
     }
