@@ -27,8 +27,6 @@ async function main() {
   // Check if demo tokens were created
   try {
     const factory = await ethers.getContractAt("RWATokenFactory", contracts.factory);
-    const totalAssets = await factory.getTotalAssets();
-    console.log(`\n📊 Total assets created: ${totalAssets}`);
     
     // Check specific demo assets
     const demoAssets = [
@@ -37,16 +35,36 @@ async function main() {
       ["realt", "DETROIT-HOUSE-001"]
     ];
     
+    console.log(`\n📊 Checking demo assets...`);
+    let foundCount = 0;
+    
     for (const [platform, assetId] of demoAssets) {
       try {
         const tokenAddress = await factory.getTokenAddress(platform, assetId);
-        console.log(`✅ ${platform}/${assetId}: ${tokenAddress}`);
+        if (tokenAddress !== ethers.ZeroAddress) {
+          console.log(`✅ ${platform}/${assetId}: ${tokenAddress}`);
+          foundCount++;
+        } else {
+          console.log(`❌ ${platform}/${assetId}: Not tokenized`);
+        }
       } catch (error) {
         console.log(`❌ ${platform}/${assetId}: Not found`);
       }
     }
+    
+    console.log(`\nTotal assets found: ${foundCount}/${demoAssets.length}`);
+    
+    // Check platform info
+    try {
+      const platformInfo = await factory.getPlatformInfo("splint_invest");
+      console.log(`\n📊 Splint Invest platform info:`);
+      console.log(`   Total assets tokenized: ${platformInfo.totalAssetsTokenized}`);
+      console.log(`   Total value locked: ${ethers.formatEther(platformInfo.totalValueLocked)} ETH`);
+    } catch (error) {
+      console.log(`\n⚠️ Platform info not available`);
+    }
   } catch (error) {
-    console.log("⚠️ Could not check factory details");
+    console.log("⚠️ Could not check factory details:", error);
   }
 }
 
