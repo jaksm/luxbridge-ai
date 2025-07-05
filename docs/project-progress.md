@@ -169,7 +169,7 @@
 ## Notes/Tasks
 - [ ] Generate comprehensive mock dataset for all platforms
 - [ ] Make OAuth authorize pages more beautiful and polished
-- [ ] Create utility to load markdown files synchronously and replace {{variables}} (use simple node templating library)
+- [x] Create utility to load markdown files synchronously and replace {{variables}} (use simple node templating library)
 - [ ] Create final tool list with all MCP tools
 - [ ] Setup modelcontextprotocol debugger to work in development environment
 - [ ] Update tool descriptions using new markdown templating util (adds rich descriptions to help AI understand when to call each tool)
