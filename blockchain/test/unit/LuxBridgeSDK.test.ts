@@ -66,19 +66,19 @@ describe("LuxBridge SDK", function () {
     // Register platforms that will be used in tests
     await sdk.registerPlatform({
       name: "splint_invest",
-      apiEndpoint: "https://api.splint.com",
+      apiEndpoint: "https://mock-api.luxbridge.local/splint",
     });
     await sdk.registerPlatform({
       name: "masterworks",
-      apiEndpoint: "https://api.masterworks.com",
+      apiEndpoint: "https://mock-api.luxbridge.local/masterworks",
     });
     await sdk.registerPlatform({
       name: "realt",
-      apiEndpoint: "https://api.realt.com",
+      apiEndpoint: "https://mock-api.luxbridge.local/realt",
     });
     await sdk.registerPlatform({
       name: "test_platform",
-      apiEndpoint: "https://api.test.com",
+      apiEndpoint: "https://mock-api.luxbridge.local/test",
     });
   });
 
@@ -370,7 +370,7 @@ describe("LuxBridge SDK", function () {
       });
 
       expect(info.name).to.equal("test_platform");
-      expect(info.apiEndpoint).to.equal("https://api.test.com");
+      expect(info.apiEndpoint).to.equal("https://mock-api.luxbridge.local/test");
       expect(info.isActive).to.be.true;
     });
 
@@ -458,7 +458,63 @@ describe("LuxBridge SDK", function () {
   });
 
   describe("Automation", function () {
-    beforeEach(async function () {
+    before(async function () {
+      // Re-initialize contracts if they're not available (can happen when tests run in isolation)
+      if (!factory || !amm || !oracle || !automation) {
+        [owner, user, aiAgent] = await ethers.getSigners();
+
+        const RWATokenFactory = await ethers.getContractFactory("RWATokenFactory");
+        factory = await RWATokenFactory.deploy();
+
+        const LuxBridgeAMM = await ethers.getContractFactory("LuxBridgeAMM");
+        amm = await LuxBridgeAMM.deploy();
+
+        const LuxBridgePriceOracle = await ethers.getContractFactory(
+          "LuxBridgePriceOracle",
+        );
+        oracle = await LuxBridgePriceOracle.deploy(
+          owner.address, // router
+          ethers.keccak256(ethers.toUtf8Bytes("fun-ethereum-sepolia-1")), // donId
+          1, // subscriptionId
+          300000, // gasLimit
+        );
+
+        const LuxBridgeAutomation = await ethers.getContractFactory(
+          "LuxBridgeAutomation",
+        );
+        automation = await LuxBridgeAutomation.deploy(
+          await amm.getAddress(),
+          await factory.getAddress(),
+          aiAgent.address,
+        );
+
+        // Set up oracle functions source
+        await oracle.setFunctionsSource("return { result: 100000 };");
+
+        // Register platforms that will be used in tests
+        const sdk = new LuxBridgeSDK({
+          network: "localhost",
+          provider: ethers.provider,
+          privateKey:
+            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
+          contracts: {
+            factory: await factory.getAddress(),
+            amm: await amm.getAddress(),
+            oracle: await oracle.getAddress(),
+            automation: await automation.getAddress(),
+          },
+        });
+
+        await sdk.registerPlatform({
+          name: "splint_invest",
+          apiEndpoint: "https://mock-api.luxbridge.local/splint",
+        });
+        await sdk.registerPlatform({
+          name: "masterworks",
+          apiEndpoint: "https://mock-api.luxbridge.local/masterworks",
+        });
+      }
+
       const userSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
@@ -472,6 +528,71 @@ describe("LuxBridge SDK", function () {
         },
       });
 
+      // Create the tokens that will be used in automation tests (larger supplies for multiple tests)
+      await userSdk.tokenizeAsset({
+        platform: "splint_invest",
+        assetId: "WINE-001",
+        totalSupply: "1000000", // 1M tokens for multiple test runs
+        assetType: "wine",
+        subcategory: "bordeaux",
+        legalHash: ethers.keccak256(ethers.toUtf8Bytes("wine-legal")),
+        valuation: "500000",
+        sharePrice: "500",
+        currency: "USD",
+      });
+
+      await userSdk.tokenizeAsset({
+        platform: "masterworks",
+        assetId: "ART-001",
+        totalSupply: "500000", // 500K tokens for multiple test runs
+        assetType: "art",
+        subcategory: "classic",
+        legalHash: ethers.keccak256(ethers.toUtf8Bytes("art-legal")),
+        valuation: "250000",
+        sharePrice: "500",
+        currency: "USD",
+      });
+
+      // Get token addresses for AMM setup
+      const wineTokenAddress = await userSdk.getTokenAddress({
+        platform: "splint_invest",
+        assetId: "WINE-001",
+      });
+      const artTokenAddress = await userSdk.getTokenAddress({
+        platform: "masterworks",
+        assetId: "ART-001",
+      });
+
+      // Create AMM pool
+      await userSdk.createPool({
+        tokenA: wineTokenAddress.tokenAddress,
+        tokenB: artTokenAddress.tokenAddress,
+        fee: 30,
+      });
+
+      // Get token contracts for approvals
+      const wineToken = await userSdk.getTokenContract(wineTokenAddress.tokenAddress);
+      const artToken = await userSdk.getTokenContract(artTokenAddress.tokenAddress);
+      
+      // Approve AMM to spend tokens for liquidity (larger amounts)
+      await wineToken.approve(await amm.getAddress(), ethers.parseEther("100000"));
+      await artToken.approve(await amm.getAddress(), ethers.parseEther("50000"));
+
+      // Add liquidity to the pool (larger amounts for multiple tests)
+      await userSdk.addLiquidity({
+        tokenA: wineTokenAddress.tokenAddress,
+        tokenB: artTokenAddress.tokenAddress,
+        amountADesired: "100000", // 100K wine tokens
+        amountBDesired: "50000",  // 50K art tokens
+        amountAMin: "90000",
+        amountBMin: "45000",
+      });
+
+      // Approve automation contract to spend tokens for automated trading (large allowance)
+      await wineToken.approve(await automation.getAddress(), ethers.parseEther("500000"));
+      await artToken.approve(await automation.getAddress(), ethers.parseEther("250000"));
+
+      // Delegate trading permissions on the current contract deployment
       await userSdk.delegateTrading({
         maxTradeSize: "10000",
         maxDailyVolume: "50000",
@@ -503,6 +624,26 @@ describe("LuxBridge SDK", function () {
     });
 
     it("should queue automated trade", async function () {
+      // First ensure trading permissions are set for this test
+      const userSdk = new LuxBridgeSDK({
+        network: "localhost",
+        provider: ethers.provider,
+        privateKey:
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
+        contracts: {
+          factory: await factory.getAddress(),
+          amm: await amm.getAddress(),
+          oracle: await oracle.getAddress(),
+          automation: await automation.getAddress(),
+        },
+      });
+
+      await userSdk.delegateTrading({
+        maxTradeSize: "10000",
+        maxDailyVolume: "50000",
+        allowedAssets: ["WINE-001", "ART-001"],
+      });
+
       const aiSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
@@ -516,10 +657,11 @@ describe("LuxBridge SDK", function () {
         },
       });
 
+      const userAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // hardhat account 0 address
       const deadline = Math.floor(Date.now() / 1000) + 3600;
 
       const result = await aiSdk.queueAutomatedTrade({
-        user: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // hardhat account 0 address
+        user: userAddress,
         sellPlatform: "splint_invest",
         sellAsset: "WINE-001",
         buyPlatform: "masterworks",
@@ -533,6 +675,90 @@ describe("LuxBridge SDK", function () {
     });
 
     it("should execute automated trade", async function () {
+      // First ensure trading permissions are set for this test
+      const userSdk = new LuxBridgeSDK({
+        network: "localhost",
+        provider: ethers.provider,
+        privateKey:
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
+        contracts: {
+          factory: await factory.getAddress(),
+          amm: await amm.getAddress(),
+          oracle: await oracle.getAddress(),
+          automation: await automation.getAddress(),
+        },
+      });
+
+      // Create tokens needed for the test
+      await userSdk.tokenizeAsset({
+        platform: "splint_invest",
+        assetId: "WINE-001",
+        totalSupply: "1000000",
+        assetType: "wine",
+        subcategory: "bordeaux",
+        legalHash: ethers.keccak256(ethers.toUtf8Bytes("wine-legal")),
+        valuation: "500000",
+        sharePrice: "500",
+        currency: "USD",
+      });
+
+      await userSdk.tokenizeAsset({
+        platform: "masterworks",
+        assetId: "ART-001",
+        totalSupply: "500000",
+        assetType: "art",
+        subcategory: "classic",
+        legalHash: ethers.keccak256(ethers.toUtf8Bytes("art-legal")),
+        valuation: "250000",
+        sharePrice: "500",
+        currency: "USD",
+      });
+
+      // Get token addresses for AMM setup
+      const wineTokenAddress = await userSdk.getTokenAddress({
+        platform: "splint_invest",
+        assetId: "WINE-001",
+      });
+      const artTokenAddress = await userSdk.getTokenAddress({
+        platform: "masterworks",
+        assetId: "ART-001",
+      });
+
+      // Create AMM pool
+      await userSdk.createPool({
+        tokenA: wineTokenAddress.tokenAddress,
+        tokenB: artTokenAddress.tokenAddress,
+        fee: 30,
+      });
+
+      // Get token contracts for approvals
+      const wineToken = await userSdk.getTokenContract(wineTokenAddress.tokenAddress);
+      const artToken = await userSdk.getTokenContract(artTokenAddress.tokenAddress);
+      
+      // Approve AMM to spend tokens for liquidity (higher amounts to accommodate the exact liquidity)
+      await wineToken.approve(await amm.getAddress(), ethers.parseEther("150000"));
+      await artToken.approve(await amm.getAddress(), ethers.parseEther("100000"));
+
+      // Add liquidity to the pool
+      await userSdk.addLiquidity({
+        tokenA: wineTokenAddress.tokenAddress,
+        tokenB: artTokenAddress.tokenAddress,
+        amountADesired: "100000",
+        amountBDesired: "50000",
+        amountAMin: "90000",
+        amountBMin: "45000",
+      });
+
+      // Approve automation contract to spend tokens for automated trading
+      await wineToken.approve(await automation.getAddress(), ethers.parseEther("500000"));
+      await artToken.approve(await automation.getAddress(), ethers.parseEther("250000"));
+
+      await userSdk.delegateTrading({
+        maxTradeSize: "10000",
+        maxDailyVolume: "50000",
+        allowedAssets: ["WINE-001", "ART-001"],
+      });
+
       const aiSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
@@ -556,7 +782,7 @@ describe("LuxBridge SDK", function () {
         buyPlatform: "masterworks",
         buyAsset: "ART-001",
         amount: "1000",
-        minAmountOut: "950",
+        minAmountOut: "400", // More realistic expectation (pool ratio is 2:1 WINE:ART)
         deadline,
       });
 

@@ -19,7 +19,7 @@ async function fetchSplintPrice(assetId) {
   try {
     // Mock Splint Invest API call
     // const response = await Functions.makeHttpRequest({
-    //   url: `https://api.splintinvest.com/v1/assets/${assetId}/price`,
+    //   url: `https://mock-api.luxbridge.local/splint/v1/assets/${assetId}/price`,
     //   headers: { 'Authorization': `Bearer ${secrets.splintApiKey}` }
     // });
 
@@ -42,7 +42,7 @@ async function fetchMasterworksPrice(assetId) {
   try {
     // Mock Masterworks API call
     // const response = await Functions.makeHttpRequest({
-    //   url: `https://api.masterworks.com/v1/artworks/${assetId}/valuation`,
+    //   url: `https://mock-api.luxbridge.local/masterworks/v1/artworks/${assetId}/valuation`,
     //   headers: { 'Authorization': `Bearer ${secrets.masterworksApiKey}` }
     // });
 
@@ -65,7 +65,7 @@ async function fetchRealTPrice(assetId) {
   try {
     // Mock RealT API call
     // const response = await Functions.makeHttpRequest({
-    //   url: `https://api.realt.co/v1/properties/${assetId}/price`,
+    //   url: `https://mock-api.luxbridge.local/realt/v1/properties/${assetId}/price`,
     //   headers: { 'Authorization': `Bearer ${secrets.realTApiKey}` }
     // });
 

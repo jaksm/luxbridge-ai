@@ -25,14 +25,14 @@ async function main() {
 
   await factory.registerPlatform(
     "splint_invest",
-    "https://api.splintinvest.com",
+    "https://mock-api.luxbridge.local/splint",
   );
   console.log("✓ Registered Splint Invest platform");
 
-  await factory.registerPlatform("masterworks", "https://api.masterworks.com");
+  await factory.registerPlatform("masterworks", "https://mock-api.luxbridge.local/masterworks");
   console.log("✓ Registered Masterworks platform");
 
-  await factory.registerPlatform("realt", "https://api.realt.co");
+  await factory.registerPlatform("realt", "https://mock-api.luxbridge.local/realt");
   console.log("✓ Registered RealT platform");
 
   // Verify deployment

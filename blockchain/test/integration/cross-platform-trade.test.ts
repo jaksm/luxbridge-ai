@@ -48,13 +48,13 @@ describe("Cross-Platform Trade Integration", function () {
     // Register platforms
     await factory.registerPlatform(
       "splint_invest",
-      "https://api.splintinvest.com",
+      "https://mock-api.luxbridge.local/splint",
     );
     await factory.registerPlatform(
       "masterworks",
-      "https://api.masterworks.com",
+      "https://mock-api.luxbridge.local/masterworks",
     );
-    await factory.registerPlatform("realt", "https://api.realt.co");
+    await factory.registerPlatform("realt", "https://mock-api.luxbridge.local/realt");
 
     return {
       factory,

@@ -5,10 +5,16 @@ _Making $15.2B in fragmented RWA markets tradeable through AI-powered cross-plat
 
 ---
 
+## ⚠️ Important Disclaimer
+
+**This is a technology demonstration using mock platforms only.** No real platform integrations, assets, or trading occurs. All APIs use mock endpoints (`https://mock-api.luxbridge.local/*`) for development and demonstration purposes.
+
+---
+
 ## 🚀 The Vision
 
-LuxBridge AI solves the **$15.2 billion liquidity fragmentation problem** in Real-World Asset markets by creating the first universal aggregation layer that enables AI models to facilitate seamless trading across isolated platforms like Splint Invest, Masterworks, and RealT.
-**The Problem**: Your wine investment on Splint cannot interact with your art on Masterworks or real estate on RealT, creating portfolio silos and limiting liquidity.
+LuxBridge AI demonstrates solving the **$15.2 billion liquidity fragmentation problem** in Real-World Asset markets by creating a universal aggregation layer that enables AI models to facilitate seamless trading across mock RWA platforms (simulating concepts from platforms like Splint Invest, Masterworks, and RealT).
+**The Problem**: Demonstrates how wine investments on mock Splint cannot interact with art on mock Masterworks or real estate on mock RealT, creating portfolio silos and limiting liquidity.
 **Our Solution**: AI-powered synthetic tokenization that bridges platforms, enabling natural language portfolio management and cross-platform asset swaps.
 
 ```

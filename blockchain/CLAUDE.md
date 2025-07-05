@@ -4,7 +4,9 @@ This directory contains the smart contract infrastructure for LuxBridge AI's Rea
 
 ## Project Overview
 
-The blockchain layer enables universal liquidity aggregation for RWAs through sophisticated smart contracts, automated market makers, and AI-powered automation. The system creates synthetic tokens representing RWA holdings across multiple platforms (Splint Invest, Masterworks, RealT) and enables seamless trading between different asset classes.
+The blockchain layer enables universal liquidity aggregation for RWAs through sophisticated smart contracts, automated market makers, and AI-powered automation. The system creates synthetic tokens representing RWA holdings across multiple mock platforms (mock Splint Invest, mock Masterworks, mock RealT) and enables seamless trading between different asset classes.
+
+**Note**: All platform integrations use mock endpoints (`https://mock-api.luxbridge.local/*`) for development and testing.
 
 ## Smart Contract Architecture
 

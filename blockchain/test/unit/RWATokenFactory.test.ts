@@ -19,12 +19,12 @@ describe("RWATokenFactory", function () {
 
       await factory.registerPlatform(
         "splint_invest",
-        "https://api.splintinvest.com",
+        "https://mock-api.luxbridge.local/splint",
       );
 
       const platformInfo = await factory.getPlatformInfo("splint_invest");
       expect(platformInfo.name).to.equal("splint_invest");
-      expect(platformInfo.apiEndpoint).to.equal("https://api.splintinvest.com");
+      expect(platformInfo.apiEndpoint).to.equal("https://mock-api.luxbridge.local/splint");
       expect(platformInfo.isActive).to.be.true;
       expect(platformInfo.totalAssetsTokenized).to.equal(0);
     });
@@ -34,13 +34,13 @@ describe("RWATokenFactory", function () {
 
       await factory.registerPlatform(
         "splint_invest",
-        "https://api.splintinvest.com",
+        "https://mock-api.luxbridge.local/splint",
       );
 
       await expect(
         factory.registerPlatform(
           "splint_invest",
-          "https://api.splintinvest.com",
+          "https://mock-api.luxbridge.local/splint",
         ),
       ).to.be.revertedWith("Platform exists");
     });
@@ -51,7 +51,7 @@ describe("RWATokenFactory", function () {
       await expect(
         factory
           .connect(alice)
-          .registerPlatform("masterworks", "https://api.masterworks.com"),
+          .registerPlatform("masterworks", "https://mock-api.luxbridge.local/masterworks"),
       ).to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
     });
   });
@@ -63,11 +63,11 @@ describe("RWATokenFactory", function () {
 
       await factory.registerPlatform(
         "splint_invest",
-        "https://api.splintinvest.com",
+        "https://mock-api.luxbridge.local/splint",
       );
       await factory.registerPlatform(
         "masterworks",
-        "https://api.masterworks.com",
+        "https://mock-api.luxbridge.local/masterworks",
       );
 
       return { factory, owner, alice, bob };
@@ -242,7 +242,7 @@ describe("RWATokenFactory", function () {
 
       await factory.registerPlatform(
         "splint_invest",
-        "https://api.splintinvest.com",
+        "https://mock-api.luxbridge.local/splint",
       );
 
       await factory
@@ -312,7 +312,7 @@ describe("RWATokenFactory", function () {
 
       await factory.registerPlatform(
         "splint_invest",
-        "https://api.splintinvest.com",
+        "https://mock-api.luxbridge.local/splint",
       );
 
       await factory
@@ -392,7 +392,7 @@ describe("RWATokenFactory", function () {
 
       await factory.registerPlatform(
         "splint_invest",
-        "https://api.splintinvest.com",
+        "https://mock-api.luxbridge.local/splint",
       );
 
       await factory

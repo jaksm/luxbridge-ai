@@ -20,11 +20,11 @@ describe("LuxBridgeAMM", function () {
 
     await factory.registerPlatform(
       "splint_invest",
-      "https://api.splintinvest.com",
+      "https://mock-api.luxbridge.local/splint",
     );
     await factory.registerPlatform(
       "masterworks",
-      "https://api.masterworks.com",
+      "https://mock-api.luxbridge.local/masterworks",
     );
 
     await factory
