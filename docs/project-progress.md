@@ -106,15 +106,6 @@
 - [ ] Price feed updates triggering on-chain
 - [ ] Arbitrage detection working
 
-## Circle Integration
-
-- [x] CCTP integration patterns planned
-- [x] Paymaster usage designed
-- [ ] CCTP V2 SDK integrated
-- [ ] Multichain USDC transfers working
-- [ ] Gas abstraction with Paymaster functional
-- [ ] Fiat onramp integration working
-
 ## SDK & TypeScript
 
 - [x] SDK architecture complete
@@ -171,7 +162,7 @@
 - [ ] AI can queue and execute automated trades - Execute trades based on market conditions and user preferences
 - [ ] AI can detect price discrepancies and suggest trades - Real-time arbitrage opportunity alerts
 - [ ] AI can rebalance portfolios across platforms - Optimize allocation across asset classes and platforms
-- [ ] AI can convert between fiat and tokenized assets - USDC onramp/offramp for traditional currency
+- [ ] AI can convert between ETH and tokenized assets - ETH/stablecoin settlement for traditional value transfer
 - [ ] AI can explain legal and regulatory aspects of assets - Compliance information and legal document analysis
 - [ ] AI can provide market timing suggestions - Analyze market conditions for optimal trade timing
 - [ ] AI can aggregate liquidity across fragmented platforms - Combine isolated markets for better price discovery
