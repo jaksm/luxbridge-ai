@@ -4,17 +4,17 @@ import {
   AssetBurned,
   ValuationUpdated,
   CrossPlatformSwap,
-} from "../../generated/RWATokenFactory/RWATokenFactory";
+} from "../generated/RWATokenFactory/RWATokenFactory";
 import {
   PoolCreated,
   LiquidityAdded,
   LiquidityRemoved,
   Swap,
-} from "../../generated/LuxBridgeAMM/LuxBridgeAMM";
+} from "../generated/LuxBridgeAMM/LuxBridgeAMM";
 import {
   PriceUpdated,
   ArbitrageOpportunity,
-} from "../../generated/LuxBridgePriceOracle/LuxBridgePriceOracle";
+} from "../generated/LuxBridgePriceOracle/LuxBridgePriceOracle";
 import {
   Platform,
   Asset,
@@ -28,17 +28,17 @@ import {
   PriceUpdate,
   ArbitrageOpportunity as ArbitrageOpportunityEntity,
   DailyStats,
-} from "../../generated/schema";
+} from "../generated/schema";
 
 // RWATokenFactory Event Handlers
 
 export function handleAssetTokenized(event: AssetTokenized): void {
-  let platformId = event.params.platform;
+  let platformId = event.params.platform.toString();
   let platform = Platform.load(platformId);
 
   if (platform == null) {
     platform = new Platform(platformId);
-    platform.name = event.params.platform;
+    platform.name = event.params.platform.toString();
     platform.apiEndpoint = "";
     platform.isActive = true;
     platform.totalAssetsTokenized = BigInt.fromI32(0);
@@ -56,10 +56,10 @@ export function handleAssetTokenized(event: AssetTokenized): void {
   platform.updatedAt = event.block.timestamp;
   platform.save();
 
-  let assetId = event.params.platform + "-" + event.params.assetId;
+  let assetId = event.params.platform.toString() + "-" + event.params.assetId.toString();
   let asset = new Asset(assetId);
   asset.platform = platformId;
-  asset.platformAssetId = event.params.assetId;
+  asset.platformAssetId = event.params.assetId.toString();
   asset.assetType = "unknown";
   asset.tokenAddress = event.params.tokenAddress;
   asset.totalSupply = event.params.totalSupply;
@@ -87,7 +87,7 @@ export function handleAssetTokenized(event: AssetTokenized): void {
 }
 
 export function handleAssetBurned(event: AssetBurned): void {
-  let assetId = event.params.platform + "-" + event.params.assetId;
+  let assetId = event.params.platform.toString() + "-" + event.params.assetId.toString();
   let asset = Asset.load(assetId);
 
   if (asset != null) {
@@ -105,7 +105,7 @@ export function handleAssetBurned(event: AssetBurned): void {
 }
 
 export function handleValuationUpdated(event: ValuationUpdated): void {
-  let assetId = event.params.platform + "-" + event.params.assetId;
+  let assetId = event.params.platform.toString() + "-" + event.params.assetId.toString();
   let asset = Asset.load(assetId);
 
   if (asset != null) {
@@ -113,7 +113,7 @@ export function handleValuationUpdated(event: ValuationUpdated): void {
     asset.valuationTimestamp = event.params.timestamp;
     asset.save();
 
-    let platform = Platform.load(event.params.platform);
+    let platform = Platform.load(event.params.platform.toString());
     if (platform != null) {
       platform.totalValueLocked = platform.totalValueLocked
         .minus(event.params.oldValuation)
@@ -136,8 +136,8 @@ export function handleValuationUpdated(event: ValuationUpdated): void {
 }
 
 export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
-  let sellAssetId = event.params.sellPlatform + "-" + event.params.sellAssetId;
-  let buyAssetId = event.params.buyPlatform + "-" + event.params.buyAssetId;
+  let sellAssetId = event.params.sellPlatform.toString() + "-" + event.params.sellAssetId.toString();
+  let buyAssetId = event.params.buyPlatform.toString() + "-" + event.params.buyAssetId.toString();
 
   let sellAsset = Asset.load(sellAssetId);
   let buyAsset = Asset.load(buyAssetId);
@@ -149,7 +149,7 @@ export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
     trade.user = event.params.user;
     trade.sellAsset = sellAssetId;
     trade.buyAsset = buyAssetId;
-    trade.platform = event.params.sellPlatform;
+    trade.platform = event.params.sellPlatform.toString();
     trade.sellAmount = event.params.sellAmount;
     trade.buyAmount = event.params.buyAmount;
 
@@ -277,8 +277,8 @@ export function handlePriceUpdated(event: PriceUpdated): void {
   let priceUpdate = new PriceUpdate(
     event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
   );
-  priceUpdate.platform = event.params.platform;
-  priceUpdate.assetId = event.params.assetId;
+  priceUpdate.platform = event.params.platform.toString();
+  priceUpdate.assetId = event.params.assetId.toString();
   priceUpdate.price = event.params.price;
   priceUpdate.timestamp = event.params.timestamp;
   priceUpdate.blockNumber = event.block.number;
@@ -290,7 +290,7 @@ export function handleArbitrageOpportunity(event: ArbitrageOpportunity): void {
   let arbitrage = new ArbitrageOpportunityEntity(
     event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
   );
-  arbitrage.assetId = event.params.assetId;
+  arbitrage.assetId = event.params.assetId.toString();
   arbitrage.spread = event.params.spread;
   arbitrage.threshold = event.params.threshold;
   arbitrage.timestamp = event.block.timestamp;

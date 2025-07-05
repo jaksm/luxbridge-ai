@@ -23,7 +23,9 @@ contract LuxBridgeAutomation is Ownable, ReentrancyGuard {
 
     struct AutomatedTrade {
         address user;
+        string sellPlatform;
         string sellAsset;
+        string buyPlatform;
         string buyAsset;
         uint256 amount;
         uint256 minAmountOut;
@@ -55,7 +57,9 @@ contract LuxBridgeAutomation is Ownable, ReentrancyGuard {
     event AutomatedTradeQueued(
         bytes32 indexed tradeId,
         address indexed user,
+        string sellPlatform,
         string sellAsset,
+        string buyPlatform,
         string buyAsset,
         uint256 amount
     );
@@ -118,7 +122,9 @@ contract LuxBridgeAutomation is Ownable, ReentrancyGuard {
 
     function queueAutomatedTrade(
         address user,
+        string calldata sellPlatform,
         string calldata sellAsset,
+        string calldata buyPlatform,
         string calldata buyAsset,
         uint256 amount,
         uint256 minAmountOut,
@@ -137,7 +143,9 @@ contract LuxBridgeAutomation is Ownable, ReentrancyGuard {
 
         automatedTrades[tradeId] = AutomatedTrade({
             user: user,
+            sellPlatform: sellPlatform,
             sellAsset: sellAsset,
+            buyPlatform: buyPlatform,
             buyAsset: buyAsset,
             amount: amount,
             minAmountOut: minAmountOut,
@@ -146,7 +154,7 @@ contract LuxBridgeAutomation is Ownable, ReentrancyGuard {
             cancelled: false
         });
 
-        emit AutomatedTradeQueued(tradeId, user, sellAsset, buyAsset, amount);
+        emit AutomatedTradeQueued(tradeId, user, sellPlatform, sellAsset, buyPlatform, buyAsset, amount);
     }
 
     function executeAutomatedTrade(
@@ -158,8 +166,8 @@ contract LuxBridgeAutomation is Ownable, ReentrancyGuard {
         require(block.timestamp <= trade.deadline, "Trade expired");
         require(_canExecuteTrade(trade.user, trade.sellAsset, trade.buyAsset, trade.amount), "Trade not permitted");
 
-        address sellTokenAddress = factory.getTokenAddress("", trade.sellAsset);
-        address buyTokenAddress = factory.getTokenAddress("", trade.buyAsset);
+        address sellTokenAddress = factory.getTokenAddress(trade.sellPlatform, trade.sellAsset);
+        address buyTokenAddress = factory.getTokenAddress(trade.buyPlatform, trade.buyAsset);
         
         require(sellTokenAddress != address(0), "Sell token not found");
         require(buyTokenAddress != address(0), "Buy token not found");

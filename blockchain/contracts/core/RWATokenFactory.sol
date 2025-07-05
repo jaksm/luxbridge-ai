@@ -161,7 +161,7 @@ contract RWATokenFactory is IRWA20, Ownable, ReentrancyGuard {
         tokenAddresses = new address[](platformNames.length);
         
         for (uint256 i = 0; i < platformNames.length; i++) {
-            tokenAddresses[i] = tokenizeAsset(
+            tokenAddresses[i] = _createToken(
                 platformNames[i],
                 assetIds[i],
                 totalSupplies[i],

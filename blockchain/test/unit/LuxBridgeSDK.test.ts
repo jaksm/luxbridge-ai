@@ -206,9 +206,7 @@ describe("LuxBridge SDK", function () {
       expect(result.transactionHash).to.be.a("string");
     });
 
-    it.skip("should batch tokenize multiple assets", async function () {
-      // Skip this test due to reentrancy guard issue in contract
-      // The batchTokenize function calls tokenizeAsset which both have nonReentrant modifiers
+    it("should batch tokenize multiple assets", async function () {
       const assets = [
         {
           platform: "splint_invest",
@@ -400,8 +398,7 @@ describe("LuxBridge SDK", function () {
   });
 
   describe("Oracle & Pricing", function () {
-    it.skip("should request cross-platform prices", async function () {
-      // Skip this test as it requires proper Chainlink setup
+    it("should request cross-platform prices", async function () {
       const result = await sdk.requestCrossPlatformPrices({
         assetId: "BORDEAUX-2019",
         platforms: ["splint_invest", "masterworks"],
@@ -460,13 +457,13 @@ describe("LuxBridge SDK", function () {
     });
   });
 
-  describe.skip("Automation", function () {
+  describe("Automation", function () {
     beforeEach(async function () {
       const userSdk = new LuxBridgeSDK({
         network: "localhost",
         provider: ethers.provider,
         privateKey:
-          "0x59c6995e998f97436be9bb29aaf45c02b5e9c5bce6b5c6baa1cfcb14e34b98e5e0", // hardhat account 1
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
         contracts: {
           factory: await factory.getAddress(),
           amm: await amm.getAddress(),
@@ -487,7 +484,7 @@ describe("LuxBridge SDK", function () {
         network: "localhost",
         provider: ethers.provider,
         privateKey:
-          "0x59c6995e998f97436be9bb29aaf45c02b5e9c5bce6b5c6baa1cfcb14e34b98e5e0", // hardhat account 1
+          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // hardhat account 0
         contracts: {
           factory: await factory.getAddress(),
           amm: await amm.getAddress(),
@@ -522,8 +519,10 @@ describe("LuxBridge SDK", function () {
       const deadline = Math.floor(Date.now() / 1000) + 3600;
 
       const result = await aiSdk.queueAutomatedTrade({
-        user: user.address,
+        user: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // hardhat account 0 address
+        sellPlatform: "splint_invest",
         sellAsset: "WINE-001",
+        buyPlatform: "masterworks",
         buyAsset: "ART-001",
         amount: "1000",
         minAmountOut: "950",
@@ -547,8 +546,23 @@ describe("LuxBridge SDK", function () {
         },
       });
 
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
-      const tradeId = ethers.keccak256(ethers.toUtf8Bytes("test-trade"));
+      const deadline = Math.floor(Date.now() / 1000) + 86400; // 24 hours
+      
+      // First queue a trade
+      const queueResult = await aiSdk.queueAutomatedTrade({
+        user: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // hardhat account 0 address
+        sellPlatform: "splint_invest",
+        sellAsset: "WINE-001", 
+        buyPlatform: "masterworks",
+        buyAsset: "ART-001",
+        amount: "1000",
+        minAmountOut: "950",
+        deadline,
+      });
+
+      // Extract trade ID from transaction receipt
+      const receipt = await queueResult.receipt;
+      const tradeId = receipt?.logs[0]?.topics[1] || ethers.keccak256(ethers.toUtf8Bytes("fallback"));
 
       const result = await aiSdk.executeAutomatedTrade({
         tradeId,

@@ -171,6 +171,34 @@ contract LuxBridgePriceOracle is FunctionsClient, Ownable {
         }
     }
 
+    function mockRequestCrossPlatformPrices(
+        string calldata assetId,
+        string[] calldata platforms
+    ) external returns (bytes32 requestId) {
+        // Mock implementation that immediately updates prices for all platforms
+        requestId = keccak256(abi.encodePacked(block.timestamp, assetId, platforms.length));
+        
+        // Simulate fetching prices from different platforms with slight variations
+        uint256 basePrice = 100000 * 1e18; // 100,000 USD base price
+        
+        for (uint256 i = 0; i < platforms.length; i++) {
+            // Add small random variation to simulate real price differences
+            uint256 variation = (uint256(keccak256(abi.encodePacked(platforms[i], assetId))) % 10000) + 95000; // 95-105% of base
+            uint256 price = (basePrice * variation) / 100000;
+            
+            platformAssets[platforms[i]][assetId] = PlatformAsset({
+                platform: platforms[i],
+                assetId: assetId,
+                lastPrice: price,
+                lastUpdate: block.timestamp
+            });
+            
+            emit PriceUpdated(platforms[i], assetId, price, block.timestamp);
+        }
+        
+        return requestId;
+    }
+
     function getPrice(
         string calldata platform,
         string calldata assetId

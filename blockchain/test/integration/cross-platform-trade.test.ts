@@ -337,15 +337,15 @@ describe("Cross-Platform Trade Integration", function () {
       const currentTime = await time.latest();
       const deadline = currentTime + 86400; // 24 hours in the future
 
-      // Queue the trade and get the tradeId from the event
-      // Note: The automation contract has a bug where it doesn't store the platform info
-      // For now, we'll use a workaround by including platform in the asset ID
+      // Queue the trade with platform and asset separated
       const tx = await automation
         .connect(aiAgent)
         .queueAutomatedTrade(
           charlie.address,
-          "splint_invest:BORDEAUX-2019",
-          "masterworks:PICASSO-042",
+          "splint_invest",
+          "BORDEAUX-2019",
+          "masterworks",
+          "PICASSO-042",
           tradeAmount,
           minAmountOut,
           deadline,
@@ -389,7 +389,9 @@ describe("Cross-Platform Trade Integration", function () {
           .connect(alice)
           .queueAutomatedTrade(
             charlie.address,
+            "splint_invest",
             "BORDEAUX-2019",
+            "masterworks",
             "PICASSO-042",
             ethers.parseEther("1000"),
             ethers.parseEther("500"),
@@ -428,7 +430,9 @@ describe("Cross-Platform Trade Integration", function () {
           .connect(aiAgent)
           .queueAutomatedTrade(
             charlie.address,
+            "splint_invest",
             "BORDEAUX-2019",
+            "masterworks",
             "PICASSO-042",
             tradeAmount,
             0,
@@ -606,7 +610,9 @@ describe("Cross-Platform Trade Integration", function () {
         .connect(aiAgent)
         .queueAutomatedTrade.staticCall(
           charlie.address,
+          "splint_invest",
           "BORDEAUX-2019",
+          "masterworks",
           "PICASSO-042",
           ethers.parseEther("1000"),
           0,
@@ -617,7 +623,9 @@ describe("Cross-Platform Trade Integration", function () {
         .connect(aiAgent)
         .queueAutomatedTrade(
           charlie.address,
+          "splint_invest",
           "BORDEAUX-2019",
+          "masterworks",
           "PICASSO-042",
           ethers.parseEther("1000"),
           0,

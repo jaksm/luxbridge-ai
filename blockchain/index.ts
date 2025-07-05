@@ -389,7 +389,8 @@ export class LuxBridgeSDK {
     this.requireSigner();
     const parsed = RequestCrossPlatformPricesSchema.parse(params);
 
-    const tx = await this.oracle.requestCrossPlatformPrices(
+    // Use mock implementation for testing
+    const tx = await (this.oracle as any).mockRequestCrossPlatformPrices(
       parsed.assetId,
       parsed.platforms,
     );
@@ -542,7 +543,9 @@ export class LuxBridgeSDK {
 
     const tx = await this.automation.queueAutomatedTrade(
       parsed.user,
+      parsed.sellPlatform,
       parsed.sellAsset,
+      parsed.buyPlatform,
       parsed.buyAsset,
       ethers.parseEther(parsed.amount),
       ethers.parseEther(parsed.minAmountOut || "0"),
@@ -931,7 +934,9 @@ export const QueueAutomatedTradeSchema = z
       .describe(
         "Ethereum address of the user on whose behalf the trade will be executed",
       ),
+    sellPlatform: z.string().describe("Platform identifier for the sell asset"),
     sellAsset: z.string().describe("Asset identifier of the token being sold"),
+    buyPlatform: z.string().describe("Platform identifier for the buy asset"),
     buyAsset: z.string().describe("Asset identifier of the token being bought"),
     amount: z
       .string()

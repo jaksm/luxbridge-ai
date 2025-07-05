@@ -1,4 +1,4 @@
-type Platform @entity {
+type Platform @entity(immutable: false) {
   id: ID!
   name: String!
   apiEndpoint: String!
@@ -13,7 +13,7 @@ type Platform @entity {
   trades: [CrossPlatformTrade!]! @derivedFrom(field: "platform")
 }
 
-type Asset @entity {
+type Asset @entity(immutable: false) {
   id: ID!
   platform: Platform!
   platformAssetId: String!
@@ -35,7 +35,7 @@ type Asset @entity {
   liquidityPools: [LiquidityPool!]! @derivedFrom(field: "assets")
 }
 
-type TokenizationEvent @entity {
+type TokenizationEvent @entity(immutable: true) {
   id: ID!
   asset: Asset!
   tokenAddress: Bytes!
@@ -47,7 +47,7 @@ type TokenizationEvent @entity {
   transactionHash: Bytes!
 }
 
-type AssetBurnEvent @entity {
+type AssetBurnEvent @entity(immutable: true) {
   id: ID!
   asset: Asset!
   holder: Bytes!
@@ -57,7 +57,7 @@ type AssetBurnEvent @entity {
   transactionHash: Bytes!
 }
 
-type ValuationUpdateEvent @entity {
+type ValuationUpdateEvent @entity(immutable: true) {
   id: ID!
   asset: Asset!
   oldValuation: BigInt!
@@ -67,7 +67,7 @@ type ValuationUpdateEvent @entity {
   transactionHash: Bytes!
 }
 
-type LiquidityPool @entity {
+type LiquidityPool @entity(immutable: false) {
   id: ID!
   tokenA: Bytes!
   tokenB: Bytes!
@@ -84,7 +84,7 @@ type LiquidityPool @entity {
   swapEvents: [SwapEvent!]! @derivedFrom(field: "pool")
 }
 
-type LiquidityEvent @entity {
+type LiquidityEvent @entity(immutable: true) {
   id: ID!
   pool: LiquidityPool!
   provider: Bytes!
@@ -102,7 +102,7 @@ enum LiquidityEventType {
   REMOVE
 }
 
-type SwapEvent @entity {
+type SwapEvent @entity(immutable: true) {
   id: ID!
   pool: LiquidityPool!
   trader: Bytes!
@@ -115,7 +115,7 @@ type SwapEvent @entity {
   transactionHash: Bytes!
 }
 
-type CrossPlatformTrade @entity {
+type CrossPlatformTrade @entity(immutable: true) {
   id: ID!
   user: Bytes!
   sellAsset: Asset!
@@ -130,7 +130,7 @@ type CrossPlatformTrade @entity {
   transactionHash: Bytes!
 }
 
-type PriceUpdate @entity {
+type PriceUpdate @entity(immutable: true) {
   id: ID!
   platform: String!
   assetId: String!
@@ -140,7 +140,7 @@ type PriceUpdate @entity {
   transactionHash: Bytes!
 }
 
-type ArbitrageOpportunity @entity {
+type ArbitrageOpportunity @entity(immutable: true) {
   id: ID!
   assetId: String!
   spread: BigInt!
@@ -150,7 +150,7 @@ type ArbitrageOpportunity @entity {
   transactionHash: Bytes!
 }
 
-type DailyStats @entity {
+type DailyStats @entity(immutable: false) {
   id: ID!
   date: Int!
   totalVolume: BigInt!

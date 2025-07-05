@@ -53,3 +53,8 @@ blockchain/coverage.json
 blockchain/deployments/localhost
 blockchain/deployments/hardhat
 blockchain/gasReporterOutput.json
+
+# The Graph
+blockchain/subgraph/build
+blockchain/subgraph/generated
+blockchain/subgraph/node_modules

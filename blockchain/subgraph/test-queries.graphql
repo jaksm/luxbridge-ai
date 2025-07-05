@@ -1,0 +1,111 @@
+# Test queries for LuxBridge subgraph
+
+# Get all platforms with their assets
+query GetPlatforms {
+  platforms {
+    id
+    name
+    totalAssetsTokenized
+    totalValueLocked
+    assets {
+      id
+      assetType
+      totalSupply
+      lastValuation
+    }
+  }
+}
+
+# Get recent tokenization events
+query GetRecentTokenizations {
+  tokenizationEvents(first: 10, orderBy: timestamp, orderDirection: desc) {
+    id
+    asset {
+      id
+      platform {
+        name
+      }
+    }
+    totalSupply
+    valuation
+    timestamp
+    transactionHash
+  }
+}
+
+# Get liquidity pools and their activity
+query GetLiquidityPools {
+  liquidityPools {
+    id
+    tokenA
+    tokenB
+    reserveA
+    reserveB
+    totalLiquidity
+    isActive
+    swapEvents(first: 5, orderBy: timestamp, orderDirection: desc) {
+      id
+      trader
+      amountIn
+      amountOut
+      timestamp
+    }
+  }
+}
+
+# Get cross-platform trades
+query GetCrossPlatformTrades {
+  crossPlatformTrades(first: 10, orderBy: timestamp, orderDirection: desc) {
+    id
+    user
+    sellAsset {
+      id
+      platform {
+        name
+      }
+    }
+    buyAsset {
+      id
+      platform {
+        name
+      }
+    }
+    sellAmount
+    buyAmount
+    executionPrice
+    timestamp
+  }
+}
+
+# Get price updates and arbitrage opportunities
+query GetPriceData {
+  priceUpdates(first: 10, orderBy: timestamp, orderDirection: desc) {
+    id
+    platform
+    assetId
+    price
+    timestamp
+  }
+  
+  arbitrageOpportunities(first: 5, orderBy: timestamp, orderDirection: desc) {
+    id
+    assetId
+    spread
+    threshold
+    timestamp
+  }
+}
+
+# Get daily statistics
+query GetDailyStats {
+  dailyStats(first: 7, orderBy: date, orderDirection: desc) {
+    id
+    date
+    totalVolume
+    totalTrades
+    totalArbitrageOpportunities
+    averageSpread
+    activeAssets
+    activePlatforms
+  }
+}

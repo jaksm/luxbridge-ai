@@ -16,6 +16,9 @@
     "blockchain:test": "cd blockchain && hardhat test",
     "blockchain:node": "cd blockchain && hardhat node",
     "blockchain:deploy": "cd blockchain && hardhat run scripts/deploy/01-deploy-factory.ts --network localhost",
+    "subgraph:codegen": "cd blockchain/subgraph && graph codegen",
+    "subgraph:build": "cd blockchain/subgraph && graph build",
+    "subgraph:deploy": "cd blockchain/subgraph && graph deploy --node http://localhost:8020/ luxbridge/rwa-trading",
     "generate:asset-ids": "dotenv -e .env.local -- npx tsx scripts/generate-asset-ids.ts",
     "generate:platform-assets": "dotenv -e .env.local -- npx tsx scripts/generate-platform-assets.ts",
     "clear-sessions": "dotenv -e .env.local -- npx tsx scripts/clear-sessions.ts",
@@ -78,6 +81,8 @@
     "ts-node": ">=8.0.0",
     "typechain": "^8.3.0",
     "typescript": "^5",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@graphprotocol/graph-cli": "^0.97.1",
+    "@graphprotocol/graph-ts": "^0.35.1"
   }
 }
