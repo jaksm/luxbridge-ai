@@ -7,7 +7,8 @@ async function main() {
   console.log("🚀 Deploying Complete LuxBridge System...");
   console.log("=====================================");
 
-  const [deployer, aiAgent] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
+  const aiAgent = deployer; // Use deployer as AI agent for testnet
 
   // Deploy all contracts
   const factoryResult = await deployFactory();

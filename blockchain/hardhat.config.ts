@@ -1,6 +1,11 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-gas-reporter";
+import { config as dotenvConfig } from "dotenv";
+import { resolve } from "path";
+
+// Load environment variables from parent directory
+dotenvConfig({ path: resolve(__dirname, "../.env.local") });
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -28,9 +33,9 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8545",
     },
     zircuit: {
-      url: process.env.ZIRCUIT_RPC_URL || "https://zircuit1.p2pify.com",
+      url: process.env.ZIRCUIT_RPC_URL || "https://garfield-testnet.zircuit.com",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 48899,
+      chainId: 48898,
     },
     sepolia: {
       url:
