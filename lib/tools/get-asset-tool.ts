@@ -4,7 +4,7 @@ import { GetAssetSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/get-asset-tool-description.md",
+  "lib/tools/templates/get-asset-tool-description.md",
   {},
 );
 

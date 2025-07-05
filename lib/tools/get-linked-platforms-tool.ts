@@ -5,7 +5,7 @@ import { GetLinkedPlatformsSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/get-linked-platforms-tool-description.md",
+  "lib/tools/templates/get-linked-platforms-tool-description.md",
   {},
 );
 

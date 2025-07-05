@@ -8,7 +8,7 @@ import { AuthenticateLuxBridgeUserSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/authenticate-luxbridge-user-tool-description.md",
+  "lib/tools/templates/authenticate-luxbridge-user-tool-description.md",
   {},
 );
 

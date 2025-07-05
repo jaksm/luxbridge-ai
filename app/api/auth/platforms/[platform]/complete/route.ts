@@ -11,9 +11,10 @@ import { PlatformType } from "@/lib/types/platformAsset";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { platform: string } },
+  context: { params: Promise<{ platform: string }> },
 ) {
   try {
+    const { platform: platformParam } = await context.params;
     const body = await request.json();
     const { sessionId, email, password } = body;
 
@@ -28,10 +29,10 @@ export async function POST(
     }
 
     // Validate platform
-    const platform = params.platform.replace("-", "_") as PlatformType;
+    const platform = platformParam.replace("-", "_") as PlatformType;
     if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
       return NextResponse.json(
-        { success: false, message: `Unsupported platform: ${params.platform}` },
+        { success: false, message: `Unsupported platform: ${platformParam}` },
         { status: 400 },
       );
     }
@@ -86,10 +87,10 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      platform: params.platform,
+      platform: platformParam,
       platformName: authResult.user.name || email,
       linkedAt: platformLink.linkedAt,
-      message: `Successfully connected ${params.platform.replace("-", " ")} account`,
+      message: `Successfully connected ${platformParam.replace("-", " ")} account`,
     });
   } catch (error) {
     console.error("Platform auth completion error:", error);

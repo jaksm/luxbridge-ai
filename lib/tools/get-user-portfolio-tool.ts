@@ -5,7 +5,7 @@ import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/get-user-portfolio-tool-description.md",
+  "lib/tools/templates/get-user-portfolio-tool-description.md",
   {},
 );
 

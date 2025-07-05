@@ -5,7 +5,7 @@ import { GeneratePlatformAuthLinksSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/generate-platform-auth-links-tool-description.md",
+  "lib/tools/templates/generate-platform-auth-links-tool-description.md",
   {},
 );
 

@@ -6,7 +6,8 @@ export function loadMarkdownTemplate<T extends Record<string, any>>(
   filePath: string,
   variables: T,
 ): string {
-  const resolvedPath = path.resolve(filePath);
+  // Use process.cwd() to get the project root directory
+  const resolvedPath = path.resolve(process.cwd(), filePath);
 
   try {
     const content = fs.readFileSync(resolvedPath, "utf8");

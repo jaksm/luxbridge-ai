@@ -6,7 +6,7 @@ import { SearchAssetsCrossPlatformSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/search-assets-cross-platform-tool-description.md",
+  "lib/tools/templates/search-assets-cross-platform-tool-description.md",
   {},
 );
 

@@ -4,9 +4,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, ArrowLeft, ExternalLink } from "lucide-react";
+import { use } from "react";
 
 interface CompletePageProps {
-  params: { platform: string };
+  params: Promise<{ platform: string }>;
 }
 
 const PLATFORM_CONFIG = {
@@ -28,17 +29,18 @@ const PLATFORM_CONFIG = {
 } as const;
 
 export default function AuthCompletePage({ params }: CompletePageProps) {
+  const { platform } = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
   const status = searchParams.get("status");
   const sessionId = searchParams.get("session");
 
   const platformConfig =
-    PLATFORM_CONFIG[params.platform as keyof typeof PLATFORM_CONFIG];
+    PLATFORM_CONFIG[platform as keyof typeof PLATFORM_CONFIG];
   const isSuccess = status === "success";
 
   const handleGoBack = () => {
-    router.push(`/auth/${params.platform}?session=${sessionId}`);
+    router.push(`/auth/${platform}?session=${sessionId}`);
   };
 
   const handleCloseWindow = () => {
@@ -57,7 +59,7 @@ export default function AuthCompletePage({ params }: CompletePageProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p>The platform "{params.platform}" is not supported.</p>
+            <p>The platform "{platform}" is not supported.</p>
           </CardContent>
         </Card>
       </div>

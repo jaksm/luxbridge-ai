@@ -5,7 +5,7 @@ import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/semantic-search-tool-description.md",
+  "lib/tools/templates/semantic-search-tool-description.md",
   {},
 );
 

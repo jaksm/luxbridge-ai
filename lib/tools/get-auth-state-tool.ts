@@ -2,7 +2,7 @@ import { loadMarkdownTemplate } from "@/lib/markdown-template";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./templates/get-auth-state-tool-description.md",
+  "lib/tools/templates/get-auth-state-tool-description.md",
   {},
 );
 

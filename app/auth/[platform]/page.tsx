@@ -15,9 +15,10 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { use } from "react";
 
 interface AuthPageProps {
-  params: { platform: string };
+  params: Promise<{ platform: string }>;
 }
 
 const PLATFORM_CONFIG = {
@@ -44,6 +45,7 @@ const PLATFORM_CONFIG = {
 } as const;
 
 export default function PlatformAuthPage({ params }: AuthPageProps) {
+  const { platform } = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -54,7 +56,7 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
   const [error, setError] = useState("");
 
   const platformConfig =
-    PLATFORM_CONFIG[params.platform as keyof typeof PLATFORM_CONFIG];
+    PLATFORM_CONFIG[platform as keyof typeof PLATFORM_CONFIG];
 
   useEffect(() => {
     if (!sessionId) {
@@ -81,7 +83,7 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
 
     try {
       const response = await fetch(
-        `/api/auth/platforms/${params.platform}/complete`,
+        `/api/auth/platforms/${platform}/complete`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -101,7 +103,7 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
           description: `Your ${platformConfig?.name} account has been linked to LuxBridge.`,
         });
         router.push(
-          `/auth/${params.platform}/complete?status=success&session=${sessionId}`,
+          `/auth/${platform}/complete?status=success&session=${sessionId}`,
         );
       } else {
         setError(
@@ -126,7 +128,7 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p>The platform "{params.platform}" is not supported.</p>
+            <p>The platform "{platform}" is not supported.</p>
             <p className="text-sm text-muted-foreground mt-2">
               Supported platforms: splint-invest, masterworks, realt
             </p>

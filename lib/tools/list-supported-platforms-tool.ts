@@ -5,7 +5,7 @@ import { ListSupportedPlatformsSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
 
 const DESCRIPTION = loadMarkdownTemplate(
-  "./lib/tools/templates/list-supported-platforms-tool-description.md",
+  "lib/tools/templates/list-supported-platforms-tool-description.md",
   {},
 );
 
