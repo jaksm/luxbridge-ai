@@ -15,11 +15,14 @@
     "blockchain:compile": "cd blockchain && hardhat compile",
     "blockchain:test": "cd blockchain && hardhat test",
     "blockchain:node": "cd blockchain && hardhat node",
-    "blockchain:deploy": "cd blockchain && hardhat run scripts/deploy/01-deploy-factory.ts --network localhost"
+    "blockchain:deploy": "cd blockchain && hardhat run scripts/deploy/01-deploy-factory.ts --network localhost",
+    "generate:asset-ids": "dotenv -e .env.local -- npx tsx scripts/generate-asset-ids.ts",
+    "generate:platform-assets": "dotenv -e .env.local -- npx tsx scripts/generate-platform-assets.ts"
   },
   "dependencies": {
     "@chainlink/contracts": "^1.2.0",
     "@hookform/resolvers": "^5.1.1",
+    "@langchain/openai": "^0.5.18",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@openzeppelin/contracts": "^5.0.2",
     "@pinecone-database/pinecone": "^6.1.1",
@@ -33,6 +36,7 @@
     "@vercel/mcp-adapter": "0.8.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.0.1",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.29",
     "lucide-react": "^0.468.0",
@@ -43,6 +47,7 @@
     "react-hook-form": "^7.60.0",
     "redis": "^4.7.0",
     "tailwind-merge": "^2.5.5",
+    "tsx": "^4.20.3",
     "zod": "^3.25.74"
   },
   "devDependencies": {
