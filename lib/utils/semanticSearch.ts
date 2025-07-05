@@ -13,7 +13,8 @@ export class SemanticAssetSearch {
   }
 
   async enhanceQuery(query: string): Promise<string> {
-    const enhancedQuery = query.toLowerCase()
+    const enhancedQuery = query
+      .toLowerCase()
       .replace(/\b(invest|investment|investing)\b/g, "financial asset")
       .replace(/\b(wine|alcohol|beverage)\b/g, "wine collectible")
       .replace(/\b(art|artwork|painting)\b/g, "art collectible")
@@ -32,40 +33,6 @@ export class SemanticAssetSearch {
     const lower = query.toLowerCase();
     const result: any = {};
 
-    if (lower.includes("wine") || lower.includes("bordeaux") || lower.includes("vintage")) {
-      result.category = "wine";
-    } else if (lower.includes("art") || lower.includes("painting") || lower.includes("sculpture")) {
-      result.category = "art";
-    } else if (lower.includes("real estate") || lower.includes("property") || lower.includes("residential")) {
-      result.category = "real_estate";
-    }
-
-    if (lower.includes("conservative") || lower.includes("safe") || lower.includes("low risk")) {
-      result.riskCategory = "conservative";
-    } else if (lower.includes("aggressive") || lower.includes("high risk") || lower.includes("risky")) {
-      result.riskCategory = "aggressive";
-    } else if (lower.includes("moderate") || lower.includes("balanced")) {
-      result.riskCategory = "moderate";
-    }
-
-    if (lower.includes("expensive") || lower.includes("luxury") || lower.includes("premium")) {
-      result.valueRange = "high";
-    } else if (lower.includes("affordable") || lower.includes("budget") || lower.includes("cheap")) {
-      result.valueRange = "low";
-    }
-
-    return result;
-  }
-}
-  }
-  async enhanceQuery(query: string): Promise<string> {
-    const enhancedQuery = query
-      .toLowerCase()
-      .replace(/\b(invest|investment|investing)\b/g, "financial asset")
-      .replace(/\b(wine|alcohol|beverage)\b/g, "wine collectible")
-      .replace(/\b(art|artwork|painting)\b/g, "art collectible")
-    const lower = query.toLowerCase();
-    const result: any = {};
     if (
       lower.includes("wine") ||
       lower.includes("bordeaux") ||
@@ -85,6 +52,7 @@ export class SemanticAssetSearch {
     ) {
       result.category = "real_estate";
     }
+
     if (
       lower.includes("conservative") ||
       lower.includes("safe") ||
@@ -100,6 +68,7 @@ export class SemanticAssetSearch {
     } else if (lower.includes("moderate") || lower.includes("balanced")) {
       result.riskCategory = "moderate";
     }
+
     if (
       lower.includes("expensive") ||
       lower.includes("luxury") ||
@@ -113,6 +82,7 @@ export class SemanticAssetSearch {
     ) {
       result.valueRange = "low";
     }
+
     return result;
   }
 }
