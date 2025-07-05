@@ -30,7 +30,7 @@ async function clearAllSessions() {
       
       if (keys.length > 0) {
         console.log(`📦 Found ${keys.length} keys to delete`);
-        await redis.del(...keys);
+        await redis.del(keys);
         totalDeleted += keys.length;
         console.log(`✅ Deleted ${keys.length} keys`);
       } else {
