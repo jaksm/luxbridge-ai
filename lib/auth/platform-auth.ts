@@ -60,7 +60,7 @@ export async function storePlatformLink(
     : PLATFORM_LINK_TTL;
   
   if (ttl > 0) {
-    await redis.setex(key, Math.min(ttl, PLATFORM_LINK_TTL), JSON.stringify(platformLink));
+    await redis.setEx(key, Math.min(ttl, PLATFORM_LINK_TTL), JSON.stringify(platformLink));
   } else {
     await redis.set(key, JSON.stringify(platformLink));
   }

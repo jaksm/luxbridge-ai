@@ -26,7 +26,7 @@ export async function createAuthSession(
   };
 
   const key = `session:${sessionId}`;
-  await redis.setex(key, SESSION_TTL, JSON.stringify(session));
+  await redis.setEx(key, SESSION_TTL, JSON.stringify(session));
   
   await addSessionToUser(luxUserId, sessionId);
   
@@ -82,7 +82,7 @@ export async function extendSession(sessionId: string): Promise<void> {
     session.expiresAt = expiresAt.toISOString();
     
     const key = `session:${sessionId}`;
-    await redis.setex(key, SESSION_TTL, JSON.stringify(session));
+    await redis.setEx(key, SESSION_TTL, JSON.stringify(session));
   } catch (error) {
     console.error("Failed to extend session:", error);
   }
@@ -105,7 +105,7 @@ export async function updateSessionPlatformLink(
     const ttl = Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000);
     
     if (ttl > 0) {
-      await redis.setex(key, ttl, JSON.stringify(session));
+      await redis.setEx(key, ttl, JSON.stringify(session));
     }
   } catch (error) {
     console.error("Failed to update session platform link:", error);
@@ -129,7 +129,7 @@ export async function removeSessionPlatformLink(
     const ttl = Math.floor((new Date(session.expiresAt).getTime() - Date.now()) / 1000);
     
     if (ttl > 0) {
-      await redis.setex(key, ttl, JSON.stringify(session));
+      await redis.setEx(key, ttl, JSON.stringify(session));
     }
   } catch (error) {
     console.error("Failed to remove session platform link:", error);
@@ -186,7 +186,7 @@ async function addSessionToUser(luxUserId: string, sessionId: string): Promise<v
     
     sessions.push(sessionId);
     
-    await redis.setex(key, SESSION_TTL, JSON.stringify(sessions));
+    await redis.setEx(key, SESSION_TTL, JSON.stringify(sessions));
   } catch (error) {
     console.error("Failed to add session to user:", error);
   }
@@ -202,7 +202,7 @@ async function removeSessionFromUser(luxUserId: string, sessionId: string): Prom
       sessions = sessions.filter(id => id !== sessionId);
       
       if (sessions.length > 0) {
-        await redis.setex(key, SESSION_TTL, JSON.stringify(sessions));
+        await redis.setEx(key, SESSION_TTL, JSON.stringify(sessions));
       } else {
         await redis.del(key);
       }
@@ -233,7 +233,7 @@ export async function getUserActiveSessions(luxUserId: string): Promise<string[]
     
     if (activeSessions.length !== sessionIds.length) {
       if (activeSessions.length > 0) {
-        await redis.setex(key, SESSION_TTL, JSON.stringify(activeSessions));
+        await redis.setEx(key, SESSION_TTL, JSON.stringify(activeSessions));
       } else {
         await redis.del(key);
       }

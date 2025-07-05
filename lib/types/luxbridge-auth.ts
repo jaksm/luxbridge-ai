@@ -31,17 +31,6 @@ export interface AuthSession {
   expiresAt: string;
 }
 
-export interface PrivyTokenPayload {
-  sub: string;
-  aud: string;
-  exp: number;
-  iat: number;
-  iss: string;
-  sid: string;
-  email?: string;
-  name?: string;
-  walletAddress?: string;
-}
 
 export interface PlatformAuthResult {
   success: boolean;

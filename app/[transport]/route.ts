@@ -17,7 +17,7 @@ import {
 } from "@/lib/types/schemas";
 import { getUserById } from "@/lib/auth/authCommon";
 import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
-import { validatePrivyTokenMock } from "@/lib/auth/privy-validation";
+import { validatePrivyToken } from "@/lib/auth/privy-validation";
 import { createAuthSession, getAuthSession, storeLuxBridgeUser, updateLuxBridgeUserActivity } from "@/lib/auth/session-manager";
 import { SUPPORTED_PLATFORMS, getAllUserPlatformLinks, makeAuthenticatedPlatformCall } from "@/lib/auth/platform-auth";
 import { PlatformType } from "@/lib/types/platformAsset";
@@ -247,7 +247,7 @@ const handler = async (req: Request) => {
         AuthenticateLuxBridgeUserSchema.shape,
         async ({ privyToken }) => {
           try {
-            const luxUser = await validatePrivyTokenMock(privyToken);
+            const luxUser = await validatePrivyToken(privyToken);
             if (!luxUser) {
               return {
                 content: [
