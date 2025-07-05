@@ -1,57 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateToken, getUserById } from "@/lib/auth/authCommon";
+import { getUserById } from "@/lib/auth/authCommon";
 import { PlatformType } from "@/lib/types/platformAsset";
 import {
   constructUserPortfolio,
   calculatePortfolioMetrics,
 } from "@/lib/utils/portfolioCalculator";
+import {
+  createPlatformHandler,
+  AuthenticatedRequest,
+} from "@/lib/auth/platform-middleware";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ platform: string }> },
+async function handlePortfolioRequest(
+  request: AuthenticatedRequest,
+  platform: string,
 ) {
+  const platformType = platform as PlatformType;
+  const userId = request.user.userId;
+
   try {
-    const params = await context.params;
-    const platform = params.platform as PlatformType;
-    if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
-      return NextResponse.json(
-        { error: "invalid_platform", message: "Invalid platform specified" },
-        { status: 400 },
-      );
-    }
-
-    const authHeader = request.headers.get("authorization");
-    const tokenPayload = authenticateToken(authHeader || undefined);
-
-    if (!tokenPayload) {
-      return NextResponse.json(
-        { error: "unauthorized", message: "Invalid or missing token" },
-        { status: 401 },
-      );
-    }
-
-    if (tokenPayload.platform !== platform) {
-      return NextResponse.json(
-        {
-          error: "platform_mismatch",
-          message: "Token platform does not match requested platform",
-        },
-        { status: 403 },
-      );
-    }
-
-    const user = getUserById(tokenPayload.userId);
+    const user = getUserById(userId);
     if (!user) {
-      return NextResponse.json(
-        { error: "user_not_found", message: "User not found" },
-        { status: 404 },
-      );
+      throw new Error("User not found");
     }
 
-    const holdings = user.portfolios[platform];
+    const holdings = user.portfolios[platformType];
 
     if (holdings.length === 0) {
-      return NextResponse.json({
+      return {
         userId: user.userId,
         totalValue: 0,
         currency: "USD",
@@ -61,10 +36,13 @@ export async function GET(
           assetCategories: {},
         },
         lastUpdated: new Date().toISOString(),
-      });
+      };
     }
 
-    const constructedAssets = await constructUserPortfolio(holdings, platform);
+    const constructedAssets = await constructUserPortfolio(
+      holdings,
+      platformType,
+    );
     const metrics = calculatePortfolioMetrics(constructedAssets);
 
     const categories = constructedAssets.reduce(
@@ -75,7 +53,7 @@ export async function GET(
       {} as Record<string, number>,
     );
 
-    return NextResponse.json({
+    return {
       userId: user.userId,
       totalValue: metrics.totalValue,
       currency: "USD",
@@ -85,14 +63,13 @@ export async function GET(
         assetCategories: categories,
       },
       lastUpdated: new Date().toISOString(),
-    });
+    };
   } catch (error) {
-    return NextResponse.json(
-      { error: "internal_error", message: "An unexpected error occurred" },
-      { status: 500 },
-    );
+    throw new Error("Failed to retrieve portfolio");
   }
 }
+
+export const GET = createPlatformHandler(handlePortfolioRequest);
 
 export async function OPTIONS() {
   return new NextResponse(null, {
