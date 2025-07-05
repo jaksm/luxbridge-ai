@@ -58,7 +58,7 @@ LuxBridge AI solves the **$15.2 billion liquidity fragmentation problem** in Rea
 
 1. **Add MCP Integration**: Go to [claude.ai](https://claude.ai) and add LuxBridge AI MCP server:
    ```
-   https://luxbridge-m8blmdj4q-jaksamalisics-projects.vercel.app/mcp
+   https://luxbridge-ai.vercel.app/mcp
    ```
 2. **Authenticate**: Click the "Connect" button to authenticate with Privy and create your embedded wallet
 
