@@ -1,6 +1,7 @@
 # LuxBridge AI Implementation Checklist
 
 ## Smart Contracts
+
 - [x] IRWA20.sol interface complete
 - [x] RWA20Token.sol implementation complete
 - [x] RWATokenFactory.sol complete with gas optimization
@@ -18,6 +19,7 @@
 - [ ] Sample RWA tokens minted for demo
 
 ## MCP Server
+
 - [x] OAuth 2.1 flow architecture designed
 - [x] MCP tools interface defined
 - [x] Redis state management planned
@@ -35,6 +37,7 @@
 - [x] HTTP transport working
 
 ## Authentication & Privy Integration
+
 - [x] Privy provider configuration planned
 - [x] OAuth authorization page designed
 - [x] JWT handling architecture complete
@@ -49,6 +52,7 @@
 - [x] Dynamic wallet generation working for new users
 
 ## Frontend (Next.js 15)
+
 - [x] Project structure with app router defined
 - [x] Tailwind CSS configured
 - [x] Component structure planned
@@ -66,6 +70,7 @@
 - [ ] Build requires NEXT_PUBLIC_PRIVY_APP_ID and NEXT_PUBLIC_PRIVY_CLIENT_ID
 
 ## Platform Integrations
+
 - [x] Splint Invest API patterns defined
 - [x] Mock data structures complete
 - [x] Cross-platform data schema designed
@@ -80,6 +85,7 @@
 - [x] Cross-platform portfolio analytics and risk assessment
 
 ## The Graph Integration
+
 - [x] Knowledge graph schema designed
 - [x] GRC-20-ts usage planned
 - [x] Subgraph structure defined
@@ -90,6 +96,7 @@
 - [ ] RWA metadata published to knowledge graph
 
 ## Chainlink Integration
+
 - [x] Price oracle smart contract complete
 - [x] Functions source code written
 - [ ] Chainlink Functions subscription created
@@ -100,6 +107,7 @@
 - [ ] Arbitrage detection working
 
 ## Circle Integration
+
 - [x] CCTP integration patterns planned
 - [x] Paymaster usage designed
 - [ ] CCTP V2 SDK integrated
@@ -108,6 +116,7 @@
 - [ ] Fiat onramp integration working
 
 ## SDK & TypeScript
+
 - [x] SDK architecture complete
 - [x] Type definitions comprehensive
 - [x] Zod schemas defined
@@ -120,6 +129,7 @@
 - [ ] Network switching working
 
 ## Testing
+
 - [x] Test structure planned
 - [x] Mock data fixtures designed
 - [x] Unit tests for smart contracts passing (59 tests, 95%+ coverage)
@@ -132,6 +142,7 @@
 - [ ] Contract deployment tests passing
 
 ## Data & Storage
+
 - [x] Redis client configuration planned
 - [x] Pinecone vector search designed
 - [x] Asset storage schemas defined
@@ -144,6 +155,7 @@
 - [x] Platform-specific asset storage and filtering
 
 ## Use Cases Covered
+
 - [x] AI can authenticate user and get their identity - Returns user profile and authentication status
 - [x] AI can retrieve specific asset details from any platform - Get wine/art/real estate asset metadata and valuations
 - [x] AI can list all assets from a specific platform (Splint/Masterworks/RealT) - Browse available investments by platform
@@ -167,6 +179,7 @@
 - [ ] AI can monitor and alert on portfolio performance - Track gains/losses and performance metrics
 
 ## Notes/Tasks
+
 - [ ] Generate comprehensive mock dataset for all platforms
 - [ ] Make OAuth authorize pages more beautiful and polished
 - [x] Create utility to load markdown files synchronously and replace {{variables}} (use simple node templating library)
@@ -175,6 +188,7 @@
 - [ ] Update tool descriptions using new markdown templating util (adds rich descriptions to help AI understand when to call each tool)
 
 ## Demo Preparation
+
 - [ ] End-to-end user journey working
 - [ ] Demo script written
 - [ ] Demo video recorded
@@ -184,6 +198,7 @@
 - [ ] Demo environment stable
 
 ## Deployment & DevOps
+
 - [x] Hardhat configuration complete
 - [x] Network configurations defined
 - [x] Deployment scripts written
@@ -195,6 +210,7 @@
 - [ ] All services integrated and working
 
 ## Documentation
+
 - [x] Architecture documentation complete
 - [x] Smart contract documentation complete
 - [x] API documentation complete

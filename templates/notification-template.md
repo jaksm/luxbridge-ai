@@ -6,4 +6,4 @@
 
 ---
 
-*This is an automated notification from the LuxBridge AI platform.*
+_This is an automated notification from the LuxBridge AI platform._
