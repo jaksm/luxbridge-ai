@@ -18,7 +18,8 @@
     "blockchain:deploy": "cd blockchain && hardhat run scripts/deploy/01-deploy-factory.ts --network localhost",
     "generate:asset-ids": "dotenv -e .env.local -- npx tsx scripts/generate-asset-ids.ts",
     "generate:platform-assets": "dotenv -e .env.local -- npx tsx scripts/generate-platform-assets.ts",
-    "clear-sessions": "dotenv -e .env.local -- npx tsx scripts/clear-sessions.ts"
+    "clear-sessions": "dotenv -e .env.local -- npx tsx scripts/clear-sessions.ts",
+    "register-oauth-clients": "dotenv -e .env.local -- npx tsx scripts/register-oauth-clients.ts"
   },
   "dependencies": {
     "@chainlink/contracts": "^1.2.0",

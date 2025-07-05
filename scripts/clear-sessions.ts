@@ -3,7 +3,7 @@
 import { redis } from "@/lib/redis";
 
 async function clearAllSessions() {
-  console.log("🧹 Clearing all Redis sessions and OAuth data...");
+  console.log("🧹 Clearing Redis sessions and OAuth tokens (preserving client registrations)...");
 
   if (!redis.isReady) {
     console.log("🔌 Connecting to Redis...");
@@ -15,7 +15,7 @@ async function clearAllSessions() {
       "session:*",
       "oauth:token:*", 
       "oauth:authcode:*",
-      "oauth:client:*",
+      // NOTE: Removed "oauth:client:*" to preserve OAuth client registrations
       "user_sessions:*",
       "lux_user:*",
       "platform_link:*",
@@ -39,7 +39,8 @@ async function clearAllSessions() {
     }
 
     console.log(`\n🎉 Cleanup complete! Deleted ${totalDeleted} total keys`);
-    console.log("🔄 All sessions and OAuth tokens have been cleared");
+    console.log("🔄 Sessions and OAuth tokens cleared (client registrations preserved)");
+    console.log("💡 To re-register OAuth clients, run: npm run register-oauth-clients");
 
   } catch (error) {
     console.error("❌ Error during cleanup:", error);
