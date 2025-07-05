@@ -153,8 +153,11 @@ export class LuxBridgeSDK {
       parsed.assetId,
       ethers.parseEther(parsed.totalSupply),
       parsed.assetType,
+      parsed.subcategory,
       parsed.legalHash,
       ethers.parseEther(parsed.valuation),
+      ethers.parseEther(parsed.sharePrice),
+      parsed.currency,
     );
 
     const receipt = await tx.wait();
@@ -223,9 +226,13 @@ export class LuxBridgeSDK {
       assetId: metadata.assetId,
       totalSupply: ethers.formatEther(metadata.totalSupply),
       assetType: metadata.assetType,
+      subcategory: metadata.subcategory,
       legalHash: metadata.legalHash,
       lastValuation: ethers.formatEther(metadata.lastValuation),
       valuationTimestamp: Number(metadata.valuationTimestamp),
+      sharePrice: ethers.formatEther(metadata.sharePrice),
+      availableShares: ethers.formatEther(metadata.availableShares),
+      currency: metadata.currency,
     };
   }
 
@@ -238,8 +245,11 @@ export class LuxBridgeSDK {
       parsed.assets.map((a) => a.assetId),
       parsed.assets.map((a) => ethers.parseEther(a.totalSupply)),
       parsed.assets.map((a) => a.assetType),
+      parsed.assets.map((a) => a.subcategory),
       parsed.assets.map((a) => a.legalHash),
       parsed.assets.map((a) => ethers.parseEther(a.valuation)),
+      parsed.assets.map((a) => ethers.parseEther(a.sharePrice)),
+      parsed.assets.map((a) => a.currency),
     );
 
     const receipt = await tx.wait();
@@ -589,6 +599,11 @@ export const TokenizeAssetSchema = z
       .describe(
         "Category of the real-world asset (e.g., 'wine', 'art', 'real_estate', 'whiskey', 'collectibles')",
       ),
+    subcategory: z
+      .string()
+      .describe(
+        "Subcategory of the asset (e.g., 'bordeaux', 'contemporary', 'residential')",
+      ),
     legalHash: z
       .string()
       .describe(
@@ -598,6 +613,16 @@ export const TokenizeAssetSchema = z
       .string()
       .describe(
         "Current market valuation of the asset in USD (in ETH units, e.g., '100000' for $100k)",
+      ),
+    sharePrice: z
+      .string()
+      .describe(
+        "Price per share/token in USD (in ETH units, e.g., '100' for $100 per token)",
+      ),
+    currency: z
+      .string()
+      .describe(
+        "Currency code for the valuation (e.g., 'USD', 'EUR', 'GBP')",
       ),
   })
   .describe(
@@ -662,10 +687,15 @@ export const BatchTokenizeSchema = z
             .string()
             .describe("Total number of tokens to create (in ETH units)"),
           assetType: z.string().describe("Category of the real-world asset"),
+          subcategory: z.string().describe("Subcategory of the asset"),
           legalHash: z.string().describe("Keccak256 hash of legal documents"),
           valuation: z
             .string()
             .describe("Current market valuation in USD (in ETH units)"),
+          sharePrice: z
+            .string()
+            .describe("Price per share/token in USD (in ETH units)"),
+          currency: z.string().describe("Currency code for the valuation"),
         }),
       )
       .describe("Array of assets to tokenize in a single transaction"),

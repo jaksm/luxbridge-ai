@@ -111,8 +111,11 @@ describe("LuxBridge SDK", function () {
         assetId: "BORDEAUX-2019",
         totalSupply: "1000000",
         assetType: "wine",
+        subcategory: "bordeaux",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("legal-doc")),
         valuation: "100000",
+        sharePrice: "100",
+        currency: "USD",
       };
 
       const result = await sdk.tokenizeAsset(params);
@@ -127,8 +130,11 @@ describe("LuxBridge SDK", function () {
         assetId: "PICASSO-042",
         totalSupply: "500000",
         assetType: "art",
+        subcategory: "classic",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("art-legal")),
         valuation: "250000",
+        sharePrice: "500",
+        currency: "USD",
       });
 
       const metadata = await sdk.getAssetMetadata({
@@ -148,8 +154,11 @@ describe("LuxBridge SDK", function () {
         assetId: "DETROIT-001",
         totalSupply: "100000",
         assetType: "real_estate",
+        subcategory: "residential",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("property-legal")),
         valuation: "300000",
+        sharePrice: "3000",
+        currency: "USD",
       });
 
       // Set factory oracle to our owner account for the test
@@ -170,8 +179,11 @@ describe("LuxBridge SDK", function () {
         assetId: "WHISKEY-123",
         totalSupply: "50000",
         assetType: "whiskey",
+        subcategory: "single_malt",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("whiskey-legal")),
         valuation: "75000",
+        sharePrice: "1500",
+        currency: "USD",
       });
 
       // Get token contract and approve factory to burn
@@ -203,16 +215,22 @@ describe("LuxBridge SDK", function () {
           assetId: "BATCH-WINE-001",
           totalSupply: "100000",
           assetType: "wine",
+          subcategory: "bordeaux",
           legalHash: ethers.keccak256(ethers.toUtf8Bytes("wine1")),
           valuation: "50000",
+          sharePrice: "500",
+          currency: "USD",
         },
         {
           platform: "masterworks",
           assetId: "BATCH-ART-001",
           totalSupply: "200000",
           assetType: "art",
+          subcategory: "classic",
           legalHash: ethers.keccak256(ethers.toUtf8Bytes("art1")),
           valuation: "100000",
+          sharePrice: "500",
+          currency: "USD",
         },
       ];
 
@@ -232,8 +250,11 @@ describe("LuxBridge SDK", function () {
         assetId: "TOKEN-A",
         totalSupply: "1000000",
         assetType: "wine",
+        subcategory: "bordeaux",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("token-a")),
         valuation: "100000",
+        sharePrice: "100",
+        currency: "USD",
       });
 
       await sdk.tokenizeAsset({
@@ -241,8 +262,11 @@ describe("LuxBridge SDK", function () {
         assetId: "TOKEN-B",
         totalSupply: "1000000",
         assetType: "art",
+        subcategory: "classic",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("token-b")),
         valuation: "100000",
+        sharePrice: "100",
+        currency: "USD",
       });
 
       tokenA = await sdk
@@ -358,8 +382,11 @@ describe("LuxBridge SDK", function () {
         assetId: "TEST-001",
         totalSupply: "100000",
         assetType: "test",
+        subcategory: "general",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("test")),
         valuation: "50000",
+        sharePrice: "500",
+        currency: "USD",
       });
 
       const result = await sdk.getTokenAddress({
@@ -549,8 +576,11 @@ describe("LuxBridge SDK", function () {
           assetId: "test",
           totalSupply: "1000",
           assetType: "test",
+          subcategory: "general",
           legalHash: ethers.keccak256(ethers.toUtf8Bytes("test")),
           valuation: "1000",
+          sharePrice: "10",
+          currency: "USD",
         }),
       ).to.be.rejectedWith("Signer required for this operation");
     });
@@ -562,8 +592,11 @@ describe("LuxBridge SDK", function () {
           assetId: "test",
           totalSupply: "1000",
           assetType: "test",
+          subcategory: "general",
           legalHash: ethers.keccak256(ethers.toUtf8Bytes("test")),
           valuation: "1000",
+          sharePrice: "10",
+          currency: "USD",
         }),
       ).to.be.rejected;
     });
@@ -576,8 +609,11 @@ describe("LuxBridge SDK", function () {
         assetId: "TOKEN-TEST",
         totalSupply: "100000",
         assetType: "test",
+        subcategory: "general",
         legalHash: ethers.keccak256(ethers.toUtf8Bytes("test")),
         valuation: "50000",
+        sharePrice: "500",
+        currency: "USD",
       });
 
       const tokenAddress = await sdk

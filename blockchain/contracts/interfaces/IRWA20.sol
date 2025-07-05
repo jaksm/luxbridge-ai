@@ -7,9 +7,13 @@ interface IRWA20 {
         string assetId;
         uint256 totalSupply;
         string assetType;
+        string subcategory;
         bytes32 legalHash;
         uint256 lastValuation;
         uint256 valuationTimestamp;
+        uint256 sharePrice;
+        uint256 availableShares;
+        string currency;
     }
 
     struct PlatformInfo {
@@ -58,8 +62,11 @@ interface IRWA20 {
         string calldata assetId,
         uint256 totalSupply,
         string calldata assetType,
+        string calldata subcategory,
         bytes32 legalHash,
-        uint256 valuation
+        uint256 valuation,
+        uint256 sharePrice,
+        string calldata currency
     ) external returns (address tokenAddress);
 
     function burnTokens(

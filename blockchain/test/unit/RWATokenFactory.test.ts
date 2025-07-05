@@ -83,8 +83,11 @@ describe("RWATokenFactory", function () {
           "BORDEAUX-2019",
           ethers.parseEther("1000000"),
           "wine",
+          "bordeaux",
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
+          ethers.parseEther("50"),
+          "USD"
         );
 
       const tokenAddress = await factory.getTokenAddress(
@@ -125,8 +128,11 @@ describe("RWATokenFactory", function () {
             "ASSET-001",
             ethers.parseEther("1000"),
             "art",
+            "classic",
             ethers.keccak256(ethers.toUtf8Bytes("hash")),
             ethers.parseEther("1000"),
+            ethers.parseEther("100"),
+            "USD"
           ),
       ).to.be.revertedWith("Platform not registered");
     });
@@ -141,8 +147,11 @@ describe("RWATokenFactory", function () {
           "BORDEAUX-2019",
           ethers.parseEther("1000000"),
           "wine",
+          "bordeaux",
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
+          ethers.parseEther("50"),
+          "USD"
         );
 
       await expect(
@@ -153,8 +162,11 @@ describe("RWATokenFactory", function () {
             "BORDEAUX-2019",
             ethers.parseEther("500000"),
             "wine",
+            "bordeaux",
             ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash-2")),
             ethers.parseEther("25000"),
+            ethers.parseEther("100"),
+            "USD"
           ),
       ).to.be.revertedWith("Asset already tokenized");
     });
@@ -185,8 +197,11 @@ describe("RWATokenFactory", function () {
           assetIds[0],
           totalSupplies[0],
           assetTypes[0],
+          "bordeaux", // subcategory
           legalHashes[0],
           valuations[0],
+          ethers.parseEther("100"), // sharePrice
+          "USD", // currency
         );
 
       const tx2 = await factory
@@ -196,8 +211,11 @@ describe("RWATokenFactory", function () {
           assetIds[1],
           totalSupplies[1],
           assetTypes[1],
+          "classic", // subcategory for art
           legalHashes[1],
           valuations[1],
+          ethers.parseEther("200"), // sharePrice
+          "USD", // currency
         );
 
       await tx1.wait();
@@ -234,8 +252,11 @@ describe("RWATokenFactory", function () {
           "BORDEAUX-2019",
           ethers.parseEther("1000000"),
           "wine",
+          "bordeaux",
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
+          ethers.parseEther("50"),
+          "USD"
         );
 
       const tokenAddress = await factory.getTokenAddress(
@@ -301,8 +322,11 @@ describe("RWATokenFactory", function () {
           "BORDEAUX-2019",
           ethers.parseEther("1000000"),
           "wine",
+          "bordeaux",
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
+          ethers.parseEther("50"),
+          "USD"
         );
 
       const tokenAddress = await factory.getTokenAddress(
@@ -378,8 +402,11 @@ describe("RWATokenFactory", function () {
           "BORDEAUX-2019",
           ethers.parseEther("1000000"),
           "wine",
+          "bordeaux",
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
+          ethers.parseEther("50"),
+          "USD"
         );
 
       const proof = ethers.toUtf8Bytes("cryptographic-proof-data");
