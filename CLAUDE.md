@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Next.js MCP (Model Context Protocol) server implementation with comprehensive authentication system. Features **dual-layer authentication**: OAuth 2.1 with Privy for LuxBridge access + Redis-backed platform authentication for RWA platforms (Splint Invest, Masterworks, RealT). Uses `@vercel/mcp-adapter` to create secure MCP endpoints that require valid OAuth access tokens for all requests. Supports both SSE and Streamable HTTP transport protocols.
 
-**Authentication Architecture**: 
+**Authentication Architecture**:
+
 - **Primary Layer**: OAuth 2.1 + Privy for LuxBridge user authentication
-- **Platform Layer**: Redis-backed user registration/login for individual RWA platforms  
+- **Platform Layer**: Redis-backed user registration/login for individual RWA platforms
 - **Multi-Platform Bridge**: OAuth tokens now include sessionId to enable simultaneous connections to multiple platforms
 - **Security**: bcrypt password hashing, JWT tokens, comprehensive session management with platform link tracking
 
@@ -102,12 +103,14 @@ ETHERSCAN_API_KEY=...
 **Dual Authentication System**:
 
 **1. LuxBridge OAuth 2.1** (`lib/auth/token-verifier.ts`, `lib/redis-oauth.ts`):
+
 - Privy-based authentication for main LuxBridge access
 - PKCE-compliant OAuth 2.1 flow with Redis state management
 - JWT tokens for MCP server access
 - Discovery endpoints for OAuth server metadata
 
 **2. Platform Authentication** (`lib/auth/redis-users.ts`, `lib/auth/authCommon.ts`):
+
 - Redis-backed user registration and authentication for RWA platforms
 - bcrypt password hashing with 12 salt rounds
 - Individual platform credentials (Splint Invest, Masterworks, RealT)
@@ -156,6 +159,7 @@ ETHERSCAN_API_KEY=...
 - **Platform Links**: Embedded in session object for real-time platform connectivity
 
 **Redis User Structure**:
+
 ```json
 {
   "userId": "user_1234567890_abc123",
@@ -176,23 +180,27 @@ ETHERSCAN_API_KEY=...
 **Key Functions**:
 
 **OAuth Management**:
+
 - `storeClient()` / `getClient()` - Client management
 - `storeAuthCode()` / `getAuthCode()` - Authorization code lifecycle
 - `generateAccessToken()` / `storeAccessToken()` / `getAccessToken()` - Token management with sessionId support
 
 **User Management**:
+
 - `createUser()` / `getUserByEmail()` / `getUserById()` - User CRUD operations
 - `validateCredentials()` / `registerUser()` - Authentication operations
 - `addAssetToPortfolio()` / `removeAssetFromPortfolio()` - Portfolio management
 - `updatePortfolioAsset()` / `getUserPortfolio()` - Portfolio operations
 
 **Session Management** (`lib/auth/session-manager.ts`):
+
 - `createAuthSession()` / `getAuthSession()` / `deleteAuthSession()` - Session lifecycle
 - `getUserConnectedPlatforms()` - Multi-platform connectivity status
 - `updateSessionPlatformLink()` - Real-time platform link management
 - `getActiveUserSession()` - Current session retrieval
 
 **Platform Authentication** (`lib/auth/platform-auth.ts`):
+
 - `validatePlatformCredentials()` - Platform-specific authentication
 - `makeAuthenticatedPlatformCall()` - Cross-platform API calls with session context
 - `getAllUserPlatformLinks()` - Multi-platform connectivity overview
@@ -228,18 +236,21 @@ server.tool(
 ### LuxBridge OAuth 2.1 Flow
 
 **Authorization Request**:
+
 1. Client redirects to `/oauth/authorize` with OAuth parameters
 2. User authenticates via Privy (email-based)
 3. System generates authorization code and stores in Redis
 4. Redirects back to client with authorization code
 
 **Token Exchange**:
+
 1. Client POSTs to `/api/oauth/token` with authorization code
 2. Server validates code and PKCE challenge
 3. Generates access token and stores in Redis
 4. Returns access token to client
 
 **MCP Authentication**:
+
 1. Client includes `Authorization: Bearer {access_token}` header
 2. MCP server validates token against Redis
 3. Retrieves user info from stored access token data
@@ -247,6 +258,7 @@ server.tool(
 ### Platform Authentication Flow
 
 **User Registration** (New Users):
+
 1. User visits `/oauth/{platform}/register` (splint_invest, masterworks, realt)
 2. Fills registration form (email, password, name)
 3. System validates input and checks for existing users
@@ -255,6 +267,7 @@ server.tool(
 6. Returns access token for platform API usage
 
 **User Login** (Existing Users):
+
 1. User visits `/oauth/{platform}/authorize`
 2. Enters platform credentials (email, password)
 3. System validates against Redis user data
@@ -262,6 +275,7 @@ server.tool(
 5. Returns access token for platform API operations
 
 **Platform API Authentication**:
+
 1. Client includes `Authorization: Bearer {platform_jwt}` header
 2. Platform API validates JWT token
 3. Extracts user information and platform context

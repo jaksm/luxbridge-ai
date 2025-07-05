@@ -66,13 +66,14 @@ npm run test:ui    # Run tests with UI interface
 All mocks are configured in `__tests__/setup.ts`:
 
 - **Redis**: Mocked client with all operations
-- **Redis Authentication**: Complete mock for `lib/auth/redis-users` module  
+- **Redis Authentication**: Complete mock for `lib/auth/redis-users` module
 - **Pinecone**: Mocked vector search and upsert operations
 - **OpenAI**: Mocked embedding generation
 - **JWT**: Mocked token signing and verification
 - **Fetch**: Enhanced response mocking with clone support
 
 **Authentication System Mocks**:
+
 ```typescript
 // Redis authentication module mock
 vi.mock("@/lib/auth/redis-users", () => ({
@@ -136,6 +137,7 @@ await expect(functionUnderTest()).rejects.toThrow("Expected error");
 ### Redis User Authentication Tests
 
 **Mock Redis User Functions**:
+
 ```typescript
 import { vi } from "vitest";
 import * as redisUsers from "@/lib/auth/redis-users";
@@ -158,6 +160,7 @@ vi.mock("@/lib/auth/redis-users", () => ({
 ```
 
 **Test Redis Authentication Functions**:
+
 ```typescript
 describe("validateCredentials", () => {
   it("should validate correct credentials", async () => {
@@ -167,7 +170,7 @@ describe("validateCredentials", () => {
     });
 
     const result = await validateCredentials("test@example.com", "password123");
-    
+
     expect(result.success).toBe(true);
     expect(result.user?.password).toBe(""); // Password stripped for security
   });
@@ -179,7 +182,7 @@ describe("validateCredentials", () => {
     });
 
     const result = await validateCredentials("test@example.com", "wrongpass");
-    
+
     expect(result.success).toBe(false);
     expect(result.error).toBe("Invalid credentials");
   });
@@ -189,6 +192,7 @@ describe("validateCredentials", () => {
 ### Platform Authentication API Tests
 
 **Registration Endpoint Tests**:
+
 ```typescript
 describe("POST /api/[platform]/auth/register", () => {
   it("should register new user successfully", async () => {
@@ -232,6 +236,7 @@ describe("POST /api/[platform]/auth/register", () => {
 ```
 
 **Login Endpoint Tests**:
+
 ```typescript
 describe("POST /api/[platform]/auth/login", () => {
   it("should authenticate valid credentials", async () => {
@@ -274,14 +279,15 @@ describe("POST /api/[platform]/auth/login", () => {
 ### JWT Token Testing
 
 **Token Generation Tests**:
+
 ```typescript
 describe("generateJWT", () => {
   it("should generate valid JWT token", () => {
     const token = generateJWT("user123", "splint_invest");
-    
+
     expect(token).toBeDefined();
     expect(typeof token).toBe("string");
-    
+
     const payload = validateJWT(token);
     expect(payload?.userId).toBe("user123");
     expect(payload?.platform).toBe("splint_invest");
@@ -290,12 +296,13 @@ describe("generateJWT", () => {
 ```
 
 **Token Validation Tests**:
+
 ```typescript
 describe("validateJWT", () => {
   it("should validate correct token", () => {
     const token = generateJWT("user123", "splint_invest");
     const payload = validateJWT(token);
-    
+
     expect(payload).toBeDefined();
     expect(payload?.userId).toBe("user123");
     expect(payload?.platform).toBe("splint_invest");
@@ -311,18 +318,19 @@ describe("validateJWT", () => {
 ### Portfolio Management Tests
 
 **Portfolio Operations Tests**:
+
 ```typescript
 describe("addAssetToPortfolio", () => {
   it("should add asset to user portfolio", async () => {
     const updatedUser = { ...mockRedisUser };
     updatedUser.portfolios.splint_invest.push(mockAsset);
-    
+
     vi.mocked(redisUsers.addAssetToPortfolio).mockResolvedValue(updatedUser);
 
     const result = await addAssetToPortfolio(
       "user123",
       "splint_invest",
-      mockAsset
+      mockAsset,
     );
 
     expect(result).toBeDefined();
@@ -335,7 +343,7 @@ describe("addAssetToPortfolio", () => {
     const result = await addAssetToPortfolio(
       "nonexistent",
       "splint_invest",
-      mockAsset
+      mockAsset,
     );
 
     expect(result).toBeNull();
@@ -346,6 +354,7 @@ describe("addAssetToPortfolio", () => {
 ### OAuth State Management Tests
 
 **OAuth Flow Tests**:
+
 ```typescript
 describe("OAuth State Management", () => {
   it("should store and retrieve authorization codes", async () => {
@@ -409,4 +418,3 @@ Current coverage: **227 tests** across **17 test files**
 - MCP integration: 18 tests
 
 Target: Maintain 100% coverage for all critical business logic.
-

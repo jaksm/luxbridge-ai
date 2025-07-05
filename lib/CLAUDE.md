@@ -16,6 +16,7 @@ This directory contains core business logic and utilities for the LuxBridge AI M
 - **Session Management** (`session-manager.ts`): OAuth session and platform link handling
 
 **Redis Authentication Schema**:
+
 - **Users**: `user:{email}` → Full user profile with hashed passwords and portfolios
 - **User ID Index**: `user_id:{userId}` → Fast userId-to-email lookup
 - **Portfolio Management**: Embedded portfolio data with platform-specific asset holdings
@@ -45,6 +46,7 @@ This directory contains core business logic and utilities for the LuxBridge AI M
 The LuxBridge system implements **two distinct authentication layers**:
 
 **1. LuxBridge OAuth 2.1** (Primary Access):
+
 - **Purpose**: Main application access and MCP server authentication
 - **Provider**: Privy-based authentication with email verification
 - **Storage**: Redis-based OAuth state management (`lib/redis-oauth.ts`)
@@ -52,6 +54,7 @@ The LuxBridge system implements **two distinct authentication layers**:
 - **Flow**: PKCE-compliant OAuth 2.1 with authorization codes (10min TTL)
 
 **2. Platform Authentication** (RWA Platform Access):
+
 - **Purpose**: Individual platform credentials for Splint Invest, Masterworks, RealT
 - **Storage**: Redis-backed user profiles (`lib/auth/redis-users.ts`)
 - **Security**: bcrypt password hashing with 12 salt rounds
@@ -61,6 +64,7 @@ The LuxBridge system implements **two distinct authentication layers**:
 ### Redis Authentication Data Model
 
 **OAuth State Keys**:
+
 ```
 oauth:client:{clientId}      → OAuth client configuration
 oauth:auth_code:{code}       → Temporary authorization codes (10min TTL)
@@ -68,32 +72,36 @@ oauth:access_token:{token}   → Access tokens for MCP (24hr TTL)
 ```
 
 **User Authentication Keys**:
+
 ```
 user:{email}                 → Complete user profile with portfolios
 user_id:{userId}            → Fast userId → email lookup
 ```
 
 **User Data Structure**:
+
 ```typescript
 interface RedisUser {
-  userId: string;              // Generated unique identifier
-  email: string;               // Primary key and login identifier
-  passwordHash: string;        // bcrypt hash with 12 salt rounds
-  name: string;                // Display name
-  scenario: string;            // User type (e.g., "empty_portfolio")
-  portfolios: {                // Platform-specific asset holdings
+  userId: string; // Generated unique identifier
+  email: string; // Primary key and login identifier
+  passwordHash: string; // bcrypt hash with 12 salt rounds
+  name: string; // Display name
+  scenario: string; // User type (e.g., "empty_portfolio")
+  portfolios: {
+    // Platform-specific asset holdings
     splint_invest: UserPortfolioHolding[];
     masterworks: UserPortfolioHolding[];
     realt: UserPortfolioHolding[];
   };
-  createdAt: string;           // ISO timestamp
-  updatedAt: string;           // ISO timestamp
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
 }
 ```
 
 ### Authentication Functions
 
 **User Management** (`lib/auth/redis-users.ts`):
+
 ```typescript
 // User lifecycle
 createUser(params: CreateUserParams): Promise<RedisUser>
@@ -110,6 +118,7 @@ getUserPortfolio(userId: string, platform?: PlatformType): Promise<UserPortfolio
 ```
 
 **Unified Interface** (`lib/auth/authCommon.ts`):
+
 ```typescript
 // Backward-compatible authentication interface
 validateCredentials(email: string, password: string): Promise<AuthResult>
@@ -121,16 +130,19 @@ authenticateToken(authHeader?: string): TokenPayload | null
 ### Security Considerations
 
 **Password Security**:
+
 - bcrypt hashing with 12 salt rounds
 - Passwords never stored in plaintext
 - Password fields stripped from API responses
 
 **Token Security**:
+
 - JWT tokens with platform-specific claims
 - OAuth access tokens with TTL management
 - Automatic cleanup of expired tokens
 
 **Session Management**:
+
 - Redis-based session persistence
 - Cross-platform authentication state
 - Secure token validation
@@ -426,6 +438,7 @@ OPENAI_API_KEY=your_openai_api_key
 The LuxBridge system implements **two distinct authentication layers**:
 
 **1. LuxBridge OAuth 2.1** (Primary Access):
+
 - **Purpose**: Main application access and MCP server authentication
 - **Provider**: Privy-based authentication with email verification
 - **Storage**: Redis-based OAuth state management (`lib/redis-oauth.ts`)
@@ -433,6 +446,7 @@ The LuxBridge system implements **two distinct authentication layers**:
 - **Flow**: PKCE-compliant OAuth 2.1 with authorization codes (10min TTL)
 
 **2. Platform Authentication** (RWA Platform Access):
+
 - **Purpose**: Individual platform credentials for Splint Invest, Masterworks, RealT
 - **Storage**: Redis-backed user profiles (`lib/auth/redis-users.ts`)
 - **Security**: bcrypt password hashing with 12 salt rounds
@@ -442,6 +456,7 @@ The LuxBridge system implements **two distinct authentication layers**:
 ### Redis Authentication Data Model
 
 **OAuth State Keys**:
+
 ```
 oauth:client:{clientId}      → OAuth client configuration
 oauth:auth_code:{code}       → Temporary authorization codes (10min TTL)
@@ -449,32 +464,36 @@ oauth:access_token:{token}   → Access tokens for MCP (24hr TTL)
 ```
 
 **User Authentication Keys**:
+
 ```
 user:{email}                 → Complete user profile with portfolios
 user_id:{userId}            → Fast userId → email lookup
 ```
 
 **User Data Structure**:
+
 ```typescript
 interface RedisUser {
-  userId: string;              // Generated unique identifier
-  email: string;               // Primary key and login identifier
-  passwordHash: string;        // bcrypt hash with 12 salt rounds
-  name: string;                // Display name
-  scenario: string;            // User type (e.g., "empty_portfolio")
-  portfolios: {                // Platform-specific asset holdings
+  userId: string; // Generated unique identifier
+  email: string; // Primary key and login identifier
+  passwordHash: string; // bcrypt hash with 12 salt rounds
+  name: string; // Display name
+  scenario: string; // User type (e.g., "empty_portfolio")
+  portfolios: {
+    // Platform-specific asset holdings
     splint_invest: UserPortfolioHolding[];
     masterworks: UserPortfolioHolding[];
     realt: UserPortfolioHolding[];
   };
-  createdAt: string;           // ISO timestamp
-  updatedAt: string;           // ISO timestamp
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
 }
 ```
 
 ### Authentication Functions
 
 **User Management** (`lib/auth/redis-users.ts`):
+
 ```typescript
 // User lifecycle
 createUser(params: CreateUserParams): Promise<RedisUser>
@@ -491,6 +510,7 @@ getUserPortfolio(userId: string, platform?: PlatformType): Promise<UserPortfolio
 ```
 
 **Unified Interface** (`lib/auth/authCommon.ts`):
+
 ```typescript
 // Backward-compatible authentication interface
 validateCredentials(email: string, password: string): Promise<AuthResult>
@@ -502,16 +522,19 @@ authenticateToken(authHeader?: string): TokenPayload | null
 ### Security Considerations
 
 **Password Security**:
+
 - bcrypt hashing with 12 salt rounds
 - Passwords never stored in plaintext
 - Password fields stripped from API responses
 
 **Token Security**:
+
 - JWT tokens with platform-specific claims
 - OAuth access tokens with TTL management
 - Automatic cleanup of expired tokens
 
 **Session Management**:
+
 - Redis-based session persistence
 - Cross-platform authentication state
 - Secure token validation

@@ -9,7 +9,9 @@ vi.mock("@/lib/auth/session-manager");
 
 describe("Search Assets Tool", () => {
   const mockPlatformAuth = vi.mocked(await import("@/lib/auth/platform-auth"));
-  const mockSessionManager = vi.mocked(await import("@/lib/auth/session-manager"));
+  const mockSessionManager = vi.mocked(
+    await import("@/lib/auth/session-manager"),
+  );
 
   const mockAccessToken = {
     userId: "lux_user_123",
@@ -36,7 +38,7 @@ describe("Search Assets Tool", () => {
           platforms: expect.any(Object),
           maxResults: expect.any(Object),
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
@@ -55,11 +57,15 @@ describe("Search Assets Tool", () => {
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "wine investments" });
 
-      expect(result.content[0].text).toContain('Search Results for "wine investments"');
+      expect(result.content[0].text).toContain(
+        'Search Results for "wine investments"',
+      );
       expect(result.content[0].text).toContain('"totalResults": 0');
       expect(result.content[0].text).toContain('"platformsSearched": 0');
       expect(result.content[0].text).toContain("generate_platform_auth_links");
-      expect(result.content[0].text).toContain("Try different search terms once platforms are connected");
+      expect(result.content[0].text).toContain(
+        "Try different search terms once platforms are connected",
+      );
     });
 
     it("should handle when requested platforms are not connected", async () => {
@@ -74,9 +80,9 @@ describe("Search Assets Tool", () => {
       });
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
-      const result = await toolHandler({ 
-        query: "art investments", 
-        platforms: ["masterworks"] 
+      const result = await toolHandler({
+        query: "art investments",
+        platforms: ["masterworks"],
       });
 
       expect(result.content[0].text).toContain('"totalResults": 0');
@@ -114,15 +120,19 @@ describe("Search Assets Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockSearchResults);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockSearchResults,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "wine" });
 
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(
         "session_456",
         "splint_invest",
-        "/assets/search?query=wine&limit=10"
+        "/assets/search?query=wine&limit=10",
       );
 
       expect(result.content[0].text).toContain('"totalResults": 2');
@@ -130,7 +140,9 @@ describe("Search Assets Tool", () => {
       expect(result.content[0].text).toContain("WINE-001");
       expect(result.content[0].text).toContain("Bordeaux Wine 2020");
       expect(result.content[0].text).toContain('"platform": "splint_invest"');
-      expect(result.content[0].text).toContain('"platformName": "Splint Invest"');
+      expect(result.content[0].text).toContain(
+        '"platformName": "Splint Invest"',
+      );
     });
 
     it("should handle platform with no search results", async () => {
@@ -144,7 +156,9 @@ describe("Search Assets Tool", () => {
       });
 
       const mockSearchResults = { assets: [] };
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockSearchResults);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockSearchResults,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "nonexistent" });
@@ -164,14 +178,16 @@ describe("Search Assets Tool", () => {
       });
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockRejectedValue(
-        new Error("Platform API error")
+        new Error("Platform API error"),
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "wine" });
 
       expect(result.content[0].text).toContain('"status": "error"');
-      expect(result.content[0].text).toContain("Search failed: Error: Platform API error");
+      expect(result.content[0].text).toContain(
+        "Search failed: Error: Platform API error",
+      );
     });
   });
 
@@ -222,13 +238,15 @@ describe("Search Assets Tool", () => {
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockSearchResults[platform as PlatformType]);
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "investment" });
 
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledTimes(3);
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledTimes(3);
       expect(result.content[0].text).toContain('"totalResults": 3');
       expect(result.content[0].text).toContain('"platformsSearched": 3');
 
@@ -266,7 +284,7 @@ describe("Search Assets Tool", () => {
           } else {
             return Promise.reject(new Error("Masterworks API down"));
           }
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -323,7 +341,7 @@ describe("Search Assets Tool", () => {
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockSearchResults[platform as PlatformType]);
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -336,7 +354,7 @@ describe("Search Assets Tool", () => {
 
       // Top match should be highest performing asset (Picasso with 12% return)
       expect(result.content[0].text).toContain("Picasso Painting");
-      
+
       // Should include search suggestions based on query and results
       expect(result.content[0].text).toContain("vintage bordeaux");
     });
@@ -363,20 +381,26 @@ describe("Search Assets Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockSearchResults);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockSearchResults,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
-      const result = await toolHandler({ 
-        query: "art", 
-        platforms: ["masterworks"] 
+      const result = await toolHandler({
+        query: "art",
+        platforms: ["masterworks"],
       });
 
       // Should only call masterworks API
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledTimes(1);
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(
         "session_456",
         "masterworks",
-        "/assets/search?query=art&limit=10"
+        "/assets/search?query=art&limit=10",
       );
 
       expect(result.content[0].text).toContain('"platformsSearched": 1');
@@ -394,17 +418,21 @@ describe("Search Assets Tool", () => {
       });
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
-      const result = await toolHandler({ 
-        query: "investment", 
-        platforms: ["splint_invest", "masterworks", "realt"] // Request all, but only splint_invest connected
+      const result = await toolHandler({
+        query: "investment",
+        platforms: ["splint_invest", "masterworks", "realt"], // Request all, but only splint_invest connected
       });
 
       // Should only search splint_invest since it's the only one connected
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledTimes(1);
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(
         "session_456",
         "splint_invest",
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -423,10 +451,12 @@ describe("Search Assets Tool", () => {
       const [, , , toolHandler] = server.tool.mock.calls[0];
       await toolHandler({ query: "wine", maxResults: 5 });
 
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(
         "session_456",
         "splint_invest",
-        "/assets/search?query=wine&limit=5"
+        "/assets/search?query=wine&limit=5",
       );
     });
 
@@ -443,10 +473,12 @@ describe("Search Assets Tool", () => {
       const [, , , toolHandler] = server.tool.mock.calls[0];
       await toolHandler({ query: "wine & spirits" });
 
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(
         "session_456",
         "splint_invest",
-        "/assets/search?query=wine%20%26%20spirits&limit=10"
+        "/assets/search?query=wine%20%26%20spirits&limit=10",
       );
     });
 
@@ -463,10 +495,12 @@ describe("Search Assets Tool", () => {
       const [, , , toolHandler] = server.tool.mock.calls[0];
       await toolHandler({ query: "wine" });
 
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(
         "session_456",
         "splint_invest",
-        "/assets/search?query=wine&limit=10"
+        "/assets/search?query=wine&limit=10",
       );
     });
   });
@@ -478,7 +512,9 @@ describe("Search Assets Tool", () => {
         ...mockAccessToken,
         sessionId: undefined,
       };
-      registerSearchAssetsTool({ accessToken: accessTokenWithoutSession })(server);
+      registerSearchAssetsTool({ accessToken: accessTokenWithoutSession })(
+        server,
+      );
 
       mockSessionManager.getUserConnectedPlatforms.mockResolvedValue({
         splint_invest: createMockPlatformLink("splint_invest"),
@@ -491,7 +527,9 @@ describe("Search Assets Tool", () => {
 
       expect(result.content[0].text).toContain('"status": "error"');
       expect(result.content[0].text).toContain("No active session found");
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).not.toHaveBeenCalled();
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).not.toHaveBeenCalled();
     });
 
     it("should handle getUserConnectedPlatforms errors", async () => {
@@ -499,7 +537,7 @@ describe("Search Assets Tool", () => {
       registerSearchAssetsTool({ accessToken: mockAccessToken })(server);
 
       mockSessionManager.getUserConnectedPlatforms.mockRejectedValue(
-        new Error("Session manager error")
+        new Error("Session manager error"),
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -532,7 +570,9 @@ describe("Search Assets Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockSearchResults);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockSearchResults,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "wine investments" });
@@ -578,13 +618,15 @@ describe("Search Assets Tool", () => {
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockSearchResults[platform as PlatformType]);
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "luxury assets" });
 
-      expect(result.content[0].text).toContain("Vintage Wine or Contemporary Art");
+      expect(result.content[0].text).toContain(
+        "Vintage Wine or Contemporary Art",
+      );
       expect(result.content[0].text).toContain("Bordeaux or New York");
     });
   });
@@ -620,7 +662,9 @@ describe("Search Assets Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockSearchResults);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockSearchResults,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "wine" });
@@ -646,7 +690,9 @@ describe("Search Assets Tool", () => {
       });
 
       const mockSearchResults = { assets: [] };
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockSearchResults);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockSearchResults,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler({ query: "wine" });

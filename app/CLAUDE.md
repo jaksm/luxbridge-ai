@@ -15,15 +15,18 @@ This directory contains the Next.js 15 app router implementation for LuxBridge A
 ### OAuth Directory Structure
 
 **LuxBridge OAuth 2.1** (Primary Authentication):
+
 - `oauth/authorize/page.tsx` - Main OAuth authorization with Privy integration
 
 **Platform Authentication** (RWA Platform Access):
+
 - `oauth/[platform]/authorize/page.tsx` - Platform-specific login pages
 - `oauth/[platform]/register/page.tsx` - Platform-specific registration pages
 
 **Supported Platforms**:
+
 - `oauth/splint_invest/` - Splint Invest authentication flows
-- `oauth/masterworks/` - Masterworks authentication flows  
+- `oauth/masterworks/` - Masterworks authentication flows
 - `oauth/realt/` - RealT authentication flows
 
 ## Development Rules
@@ -151,12 +154,14 @@ export async function OPTIONS() {
 The app implements **two distinct authentication systems**:
 
 **1. LuxBridge OAuth 2.1 Flow** (`oauth/authorize/page.tsx`):
+
 - **Purpose**: Main application access and MCP server authorization
 - **Integration**: Privy-based email authentication with PKCE
 - **UI Pattern**: Privy login components with OAuth parameter handling
 - **State Management**: Redis-based OAuth state with authorization codes
 
 **2. Platform Authentication Flow** (`oauth/[platform]/authorize|register/page.tsx`):
+
 - **Purpose**: Individual RWA platform access (Splint Invest, Masterworks, RealT)
 - **Registration**: Full user registration with email, password, name
 - **Login**: Credential-based authentication with platform-specific JWT tokens
@@ -165,10 +170,12 @@ The app implements **two distinct authentication systems**:
 #### Platform Authentication Components
 
 **Shared Components** (`components/auth/`):
+
 - `PlatformRegisterForm` - Reusable registration form with platform branding
 - `PlatformAuthorizeForm` - Reusable login form with platform-specific styling
 
 **Registration Flow Pattern**:
+
 ```typescript
 // oauth/[platform]/register/page.tsx
 export default function PlatformRegisterPage() {
@@ -177,14 +184,16 @@ export default function PlatformRegisterPage() {
 ```
 
 **Authorization Flow Pattern**:
+
 ```typescript
-// oauth/[platform]/authorize/page.tsx  
+// oauth/[platform]/authorize/page.tsx
 export default function PlatformAuthorizePage() {
   return <PlatformAuthorizeForm platform="splint_invest" />;
 }
 ```
 
 **Form Features**:
+
 - Email validation and duplicate checking
 - Password strength requirements (6+ characters)
 - Confirm password matching
@@ -195,6 +204,7 @@ export default function PlatformAuthorizePage() {
 #### Platform Registration Form
 
 **Key Features**:
+
 ```typescript
 interface PlatformRegisterFormProps {
   platform: PlatformType; // "splint_invest" | "masterworks" | "realt"
@@ -217,8 +227,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 ```
 
 **Security Features**:
+
 - Client-side form validation with Zod schemas
-- Password visibility toggles  
+- Password visibility toggles
 - CSRF protection
 - Secure error handling
 - Input sanitization
@@ -226,6 +237,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 #### Platform Authorization Form
 
 **Key Features**:
+
 ```typescript
 interface PlatformAuthorizeFormProps {
   platform: PlatformType;
@@ -241,6 +253,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 ```
 
 **User Experience**:
+
 - Platform-specific branding and colors
 - Registration link integration
 - Loading states and progress indicators

@@ -11,7 +11,10 @@ import {
 } from "@/lib/auth/platform-auth";
 import { PlatformLink, PlatformAuthResult } from "@/lib/types/luxbridge-auth";
 import { PlatformType } from "@/lib/types/platformAsset";
-import { mockEnvironmentVariables, mockFetchResponse } from "@/__tests__/utils/testHelpers";
+import {
+  mockEnvironmentVariables,
+  mockFetchResponse,
+} from "@/__tests__/utils/testHelpers";
 
 vi.mock("@/lib/redis", () => ({
   default: {
@@ -26,7 +29,9 @@ vi.mock("@/lib/auth/session-manager");
 
 describe("Platform Authentication", () => {
   const mockRedis = vi.mocked(await import("@/lib/redis"));
-  const mockSessionManager = vi.mocked(await import("@/lib/auth/session-manager"));
+  const mockSessionManager = vi.mocked(
+    await import("@/lib/auth/session-manager"),
+  );
   const redis = mockRedis.default;
 
   // Mock global fetch
@@ -53,7 +58,11 @@ describe("Platform Authentication", () => {
 
       mockFetch.mockResolvedValue(mockFetchResponse(mockResponse, 200, true));
 
-      const result = await validatePlatformCredentials(platform, email, password);
+      const result = await validatePlatformCredentials(
+        platform,
+        email,
+        password,
+      );
 
       expect(result).toEqual({
         success: true,
@@ -72,7 +81,7 @@ describe("Platform Authentication", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
-        }
+        },
       );
     });
 
@@ -83,7 +92,11 @@ describe("Platform Authentication", () => {
 
       mockFetch.mockResolvedValue(mockFetchResponse({}, 401, false));
 
-      const result = await validatePlatformCredentials(platform, email, password);
+      const result = await validatePlatformCredentials(
+        platform,
+        email,
+        password,
+      );
 
       expect(result).toEqual({
         success: false,
@@ -98,7 +111,11 @@ describe("Platform Authentication", () => {
 
       mockFetch.mockResolvedValue(mockFetchResponse({}, 500, false));
 
-      const result = await validatePlatformCredentials(platform, email, password);
+      const result = await validatePlatformCredentials(
+        platform,
+        email,
+        password,
+      );
 
       expect(result).toEqual({
         success: false,
@@ -113,7 +130,11 @@ describe("Platform Authentication", () => {
 
       mockFetch.mockRejectedValue(new Error("Network error"));
 
-      const result = await validatePlatformCredentials(platform, email, password);
+      const result = await validatePlatformCredentials(
+        platform,
+        email,
+        password,
+      );
 
       expect(result).toEqual({
         success: false,
@@ -128,13 +149,15 @@ describe("Platform Authentication", () => {
       const email = "test@example.com";
       const password = "password123";
 
-      mockFetch.mockResolvedValue(mockFetchResponse({ userId: "test", name: "Test" }, 200, true));
+      mockFetch.mockResolvedValue(
+        mockFetchResponse({ userId: "test", name: "Test" }, 200, true),
+      );
 
       await validatePlatformCredentials(platform, email, password);
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://custom-api.com/api/splint_invest/auth/login",
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -162,7 +185,7 @@ describe("Platform Authentication", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:splint_invest",
         24 * 60 * 60, // Default 24 hour TTL
-        expect.stringContaining('"status":"active"')
+        expect.stringContaining('"status":"active"'),
       );
     });
 
@@ -184,7 +207,7 @@ describe("Platform Authentication", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:masterworks",
         expect.any(Number), // TTL should be based on token expiry
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -205,7 +228,7 @@ describe("Platform Authentication", () => {
       // Should use redis.set instead of setEx for expired tokens
       expect(redis.set).toHaveBeenCalledWith(
         "platform_link:lux_user_123:realt",
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -232,7 +255,9 @@ describe("Platform Authentication", () => {
       const result = await getPlatformLink(luxUserId, platform);
 
       expect(result).toEqual(mockPlatformLink);
-      expect(redis.get).toHaveBeenCalledWith("platform_link:lux_user_123:splint_invest");
+      expect(redis.get).toHaveBeenCalledWith(
+        "platform_link:lux_user_123:splint_invest",
+      );
     });
 
     it("should return null for non-existent platform link", async () => {
@@ -262,12 +287,16 @@ describe("Platform Authentication", () => {
         status: "active",
       };
 
-      vi.mocked(redis.get).mockResolvedValue(JSON.stringify(expiredPlatformLink));
+      vi.mocked(redis.get).mockResolvedValue(
+        JSON.stringify(expiredPlatformLink),
+      );
 
       const result = await getPlatformLink(luxUserId, platform);
 
       expect(result).toBeNull();
-      expect(redis.del).toHaveBeenCalledWith("platform_link:lux_user_123:realt");
+      expect(redis.del).toHaveBeenCalledWith(
+        "platform_link:lux_user_123:realt",
+      );
     });
 
     it("should handle Redis errors gracefully", async () => {
@@ -289,7 +318,9 @@ describe("Platform Authentication", () => {
 
       await deletePlatformLink(luxUserId, platform);
 
-      expect(redis.del).toHaveBeenCalledWith("platform_link:lux_user_123:splint_invest");
+      expect(redis.del).toHaveBeenCalledWith(
+        "platform_link:lux_user_123:splint_invest",
+      );
     });
 
     it("should handle deletion errors gracefully", async () => {
@@ -327,7 +358,7 @@ describe("Platform Authentication", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:splint_invest",
         expect.any(Number),
-        expect.stringContaining('"lastUsedAt"')
+        expect.stringContaining('"lastUsedAt"'),
       );
     });
 
@@ -374,9 +405,15 @@ describe("Platform Authentication", () => {
 
       mockSessionManager.getAuthSession.mockResolvedValue(mockSession);
       mockSessionManager.updateSessionPlatformLink.mockResolvedValue();
-      mockFetch.mockResolvedValue(mockFetchResponse(mockApiResponse, 200, true));
+      mockFetch.mockResolvedValue(
+        mockFetchResponse(mockApiResponse, 200, true),
+      );
 
-      const result = await makeAuthenticatedPlatformCall(sessionId, platform, endpoint);
+      const result = await makeAuthenticatedPlatformCall(
+        sessionId,
+        platform,
+        endpoint,
+      );
 
       expect(result).toEqual(mockApiResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -386,7 +423,7 @@ describe("Platform Authentication", () => {
             Authorization: "Bearer access_token_789",
             "Content-Type": "application/json",
           },
-        }
+        },
       );
     });
 
@@ -397,8 +434,9 @@ describe("Platform Authentication", () => {
 
       mockSessionManager.getAuthSession.mockResolvedValue(null);
 
-      await expect(makeAuthenticatedPlatformCall(sessionId, platform, endpoint))
-        .rejects.toThrow("Invalid session");
+      await expect(
+        makeAuthenticatedPlatformCall(sessionId, platform, endpoint),
+      ).rejects.toThrow("Invalid session");
     });
 
     it("should handle unlinked platform", async () => {
@@ -418,8 +456,9 @@ describe("Platform Authentication", () => {
 
       mockSessionManager.getAuthSession.mockResolvedValue(mockSession);
 
-      await expect(makeAuthenticatedPlatformCall(sessionId, platform, endpoint))
-        .rejects.toThrow("Platform masterworks not linked or inactive");
+      await expect(
+        makeAuthenticatedPlatformCall(sessionId, platform, endpoint),
+      ).rejects.toThrow("Platform masterworks not linked or inactive");
     });
 
     it("should handle inactive platform", async () => {
@@ -450,8 +489,9 @@ describe("Platform Authentication", () => {
 
       mockSessionManager.getAuthSession.mockResolvedValue(mockSession);
 
-      await expect(makeAuthenticatedPlatformCall(sessionId, platform, endpoint))
-        .rejects.toThrow("Platform splint_invest not linked or inactive");
+      await expect(
+        makeAuthenticatedPlatformCall(sessionId, platform, endpoint),
+      ).rejects.toThrow("Platform splint_invest not linked or inactive");
     });
 
     it("should handle 401 authentication errors", async () => {
@@ -483,14 +523,15 @@ describe("Platform Authentication", () => {
       mockSessionManager.getAuthSession.mockResolvedValue(mockSession);
       mockFetch.mockResolvedValue(mockFetchResponse({}, 401, false));
 
-      await expect(makeAuthenticatedPlatformCall(sessionId, platform, endpoint))
-        .rejects.toThrow("Platform splint_invest authentication expired");
+      await expect(
+        makeAuthenticatedPlatformCall(sessionId, platform, endpoint),
+      ).rejects.toThrow("Platform splint_invest authentication expired");
 
       // Should update platform link status to invalid
       expect(mockSessionManager.updateSessionPlatformLink).toHaveBeenCalledWith(
         sessionId,
         platform,
-        expect.objectContaining({ status: "invalid" })
+        expect.objectContaining({ status: "invalid" }),
       );
     });
 
@@ -523,8 +564,9 @@ describe("Platform Authentication", () => {
       mockSessionManager.getAuthSession.mockResolvedValue(mockSession);
       mockFetch.mockResolvedValue(mockFetchResponse({}, 500, false));
 
-      await expect(makeAuthenticatedPlatformCall(sessionId, platform, endpoint))
-        .rejects.toThrow("Platform API call failed: Internal Server Error");
+      await expect(
+        makeAuthenticatedPlatformCall(sessionId, platform, endpoint),
+      ).rejects.toThrow("Platform API call failed: Internal Server Error");
     });
 
     it("should update platform link activity after successful call", async () => {
@@ -554,7 +596,9 @@ describe("Platform Authentication", () => {
       };
 
       mockSessionManager.getAuthSession.mockResolvedValue(mockSession);
-      mockFetch.mockResolvedValue(mockFetchResponse({ data: "success" }, 200, true));
+      mockFetch.mockResolvedValue(
+        mockFetchResponse({ data: "success" }, 200, true),
+      );
 
       await makeAuthenticatedPlatformCall(sessionId, platform, endpoint);
 
@@ -562,7 +606,7 @@ describe("Platform Authentication", () => {
       expect(mockSessionManager.updateSessionPlatformLink).toHaveBeenCalledWith(
         sessionId,
         platform,
-        expect.objectContaining({ lastUsedAt: expect.any(String) })
+        expect.objectContaining({ lastUsedAt: expect.any(String) }),
       );
     });
   });
@@ -641,7 +685,9 @@ describe("Platform Authentication", () => {
         .mockResolvedValueOnce(null) // masterworks not linked
         .mockResolvedValueOnce(null); // realt not linked
 
-      mockFetch.mockResolvedValue(mockFetchResponse({ userId: "test" }, 200, true));
+      mockFetch.mockResolvedValue(
+        mockFetchResponse({ userId: "test" }, 200, true),
+      );
 
       await validateAllPlatformLinks(luxUserId);
 
@@ -652,7 +698,7 @@ describe("Platform Authentication", () => {
             Authorization: "Bearer access_token_789",
             "Content-Type": "application/json",
           },
-        }
+        },
       );
     });
 
@@ -683,7 +729,7 @@ describe("Platform Authentication", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:splint_invest",
         expect.any(Number),
-        expect.stringContaining('"status":"expired"')
+        expect.stringContaining('"status":"expired"'),
       );
     });
 
@@ -714,7 +760,7 @@ describe("Platform Authentication", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:splint_invest",
         expect.any(Number),
-        expect.stringContaining('"status":"invalid"')
+        expect.stringContaining('"status":"invalid"'),
       );
     });
 
@@ -738,14 +784,16 @@ describe("Platform Authentication", () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null);
 
-      mockFetch.mockResolvedValue(mockFetchResponse({ userId: "test" }, 200, true));
+      mockFetch.mockResolvedValue(
+        mockFetchResponse({ userId: "test" }, 200, true),
+      );
 
       await validateAllPlatformLinks(luxUserId);
 
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:splint_invest",
         expect.any(Number),
-        expect.stringContaining('"status":"active"')
+        expect.stringContaining('"status":"active"'),
       );
     });
 
@@ -776,7 +824,7 @@ describe("Platform Authentication", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         "platform_link:lux_user_123:splint_invest",
         expect.any(Number),
-        expect.stringContaining('"status":"invalid"')
+        expect.stringContaining('"status":"invalid"'),
       );
     });
   });

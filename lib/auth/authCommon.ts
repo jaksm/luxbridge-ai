@@ -26,10 +26,10 @@ export async function validateCredentials(
   if (!result.success || !result.user) {
     return { success: false, error: result.error || "Invalid credentials" };
   }
-  
-  return { 
-    success: true, 
-    user: convertRedisUserToUser(result.user)
+
+  return {
+    success: true,
+    user: convertRedisUserToUser(result.user),
   };
 }
 
@@ -44,14 +44,16 @@ export async function getUserById(userId: string): Promise<User | undefined> {
   return redisUser ? convertRedisUserToUser(redisUser) : undefined;
 }
 
-export async function registerUser(params: CreateUserParams): Promise<AuthResult> {
+export async function registerUser(
+  params: CreateUserParams,
+): Promise<AuthResult> {
   const result = await redisRegisterUser(params);
   if (!result.success || !result.user) {
     return { success: false, error: result.error || "Registration failed" };
   }
-  
-  return { 
-    success: true, 
-    user: convertRedisUserToUser(result.user)
+
+  return {
+    success: true,
+    user: convertRedisUserToUser(result.user),
   };
 }

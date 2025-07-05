@@ -123,6 +123,7 @@ if (tokenPayload.platform !== platform) {
 **Purpose**: Create new platform user accounts with Redis storage
 
 **Implementation**:
+
 ```typescript
 import { registerUser } from "@/lib/auth/authCommon";
 import { generateJWT } from "@/lib/auth/jwtUtils";
@@ -133,7 +134,10 @@ const RegisterSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
 
-export async function POST(request: NextRequest, context: { params: Promise<{ platform: string }> }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
   // Platform validation
   const { platform } = await context.params;
   if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
@@ -143,10 +147,13 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pl
   // Input validation with Zod
   const validation = RegisterSchema.safeParse(await request.json());
   if (!validation.success) {
-    return NextResponse.json({ 
-      error: "validation_error",
-      details: validation.error.issues 
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: "validation_error",
+        details: validation.error.issues,
+      },
+      { status: 400 },
+    );
   }
 
   // User registration
@@ -159,7 +166,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pl
 
   if (!result.success) {
     const status = result.error === "User already exists" ? 409 : 400;
-    return NextResponse.json({ error: "registration_failed", message: result.error }, { status });
+    return NextResponse.json(
+      { error: "registration_failed", message: result.error },
+      { status },
+    );
   }
 
   // Generate platform JWT
@@ -174,6 +184,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pl
 ```
 
 **Key Features**:
+
 - Zod schema validation for all inputs
 - Email uniqueness checking
 - bcrypt password hashing (12 salt rounds)
@@ -186,29 +197,39 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pl
 **Purpose**: Authenticate existing platform users
 
 **Implementation**:
+
 ```typescript
 import { validateCredentials } from "@/lib/auth/authCommon";
 import { generateJWT } from "@/lib/auth/jwtUtils";
 
-export async function POST(request: NextRequest, context: { params: Promise<{ platform: string }> }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
   // Platform and input validation
   const { platform } = await context.params;
   const { email, password } = await request.json();
 
   if (!email || !password) {
-    return NextResponse.json({
-      error: "missing_credentials",
-      message: "Email and password are required",
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error: "missing_credentials",
+        message: "Email and password are required",
+      },
+      { status: 400 },
+    );
   }
 
   // Redis-backed credential validation
   const result = await validateCredentials(email, password);
   if (!result.success) {
-    return NextResponse.json({
-      error: "invalid_credentials", 
-      message: "Invalid email or password"
-    }, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "invalid_credentials",
+        message: "Invalid email or password",
+      },
+      { status: 401 },
+    );
   }
 
   // Generate platform-specific JWT
@@ -223,6 +244,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pl
 ```
 
 **Key Features**:
+
 - Redis user lookup and validation
 - bcrypt password verification
 - Platform-specific JWT generation
@@ -233,10 +255,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pl
 **Purpose**: Retrieve authenticated user information
 
 **Implementation**:
+
 ```typescript
 import { authenticateToken, getUserById } from "@/lib/auth/authCommon";
 
-export async function GET(request: NextRequest, context: { params: Promise<{ platform: string }> }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
   // Platform validation
   const { platform } = await context.params;
 
@@ -249,10 +275,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pla
   }
 
   if (tokenPayload.platform !== platform) {
-    return NextResponse.json({
-      error: "platform_mismatch",
-      message: "Token platform does not match requested platform",
-    }, { status: 403 });
+    return NextResponse.json(
+      {
+        error: "platform_mismatch",
+        message: "Token platform does not match requested platform",
+      },
+      { status: 403 },
+    );
   }
 
   // Redis user lookup (async)
@@ -271,6 +300,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pla
 ```
 
 **Key Features**:
+
 - Bearer token extraction and validation
 - Platform token verification
 - Async Redis user lookup

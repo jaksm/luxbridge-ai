@@ -1,11 +1,15 @@
 import { PlatformAsset } from "../types/platformAsset";
-import { apiToContract, contractToApi, validateEssentialFields, type ContractApiMapping } from "../types/contractApiMapping";
+import {
+  apiToContract,
+  contractToApi,
+  validateEssentialFields,
+  type ContractApiMapping,
+} from "../types/contractApiMapping";
 
 /**
  * Asset Data Bridge - Handles synchronization between API rich data and blockchain essential data
  */
 export class AssetDataBridge {
-  
   /**
    * Prepare asset data for blockchain tokenization
    * Extracts essential fields and validates for contract storage
@@ -35,11 +39,12 @@ export class AssetDataBridge {
       totalSupply: essential.totalShares.toString(),
       assetType: essential.category,
       subcategory: essential.subcategory,
-      legalHash: "0x0000000000000000000000000000000000000000000000000000000000000000", // Mock legal hash
+      legalHash:
+        "0x0000000000000000000000000000000000000000000000000000000000000000", // Mock legal hash
       valuation: essential.currentValue.toString(),
       sharePrice: essential.sharePrice.toString(),
       currency: essential.currency,
-      
+
       // Extended fields for future use
       name: essential.name,
       description: essential.description,
@@ -70,7 +75,7 @@ export class AssetDataBridge {
       createdAt: string;
       updatedAt: string;
       lastSyncedAt: string;
-    }
+    },
   ): PlatformAsset {
     // Map contract data back to API format
     const essentialFields = {
@@ -83,7 +88,7 @@ export class AssetDataBridge {
       totalShares: parseInt(contractMetadata.totalSupply),
       availableShares: parseInt(contractMetadata.availableShares),
       currency: contractMetadata.currency,
-      
+
       // Extended fields (if available)
       riskScore: contractMetadata.riskScore || 50,
       riskCategory: contractMetadata.riskCategory || "moderate",
@@ -92,7 +97,8 @@ export class AssetDataBridge {
       realisticYield: contractMetadata.realisticYield || 700, // 7% default
       optimisticYield: contractMetadata.optimisticYield || 1000, // 10% default
       condition: contractMetadata.condition || "good",
-      description: contractMetadata.description || "Asset description not available",
+      description:
+        contractMetadata.description || "Asset description not available",
       valuationFrequency: contractMetadata.valuationFrequency || "quarterly",
     };
 
@@ -105,7 +111,7 @@ export class AssetDataBridge {
    */
   static calculateSyncUpdates(
     currentContractData: any,
-    latestApiData: PlatformAsset
+    latestApiData: PlatformAsset,
   ): {
     valuationUpdate?: {
       newValuation: string;
@@ -158,16 +164,23 @@ export class AssetDataBridge {
   /**
    * Generate mock off-chain data for testing
    */
-  static generateMockOffChainData(assetType: string): ContractApiMapping["offChainOnly"] {
+  static generateMockOffChainData(
+    assetType: string,
+  ): ContractApiMapping["offChainOnly"] {
     const mockData: Record<string, ContractApiMapping["offChainOnly"]> = {
       wine: {
         expertAnalysis: {
           investmentHorizon: {
             rationale: "Fine wine appreciates over time with proper storage",
-            liquidityExpectation: "Moderate liquidity through specialized wine exchanges",
+            liquidityExpectation:
+              "Moderate liquidity through specialized wine exchanges",
           },
           riskProfile: {
-            riskFactors: ["Weather conditions", "Market demand", "Storage costs"],
+            riskFactors: [
+              "Weather conditions",
+              "Market demand",
+              "Storage costs",
+            ],
             mitigationStrategies: "Professional storage and insurance coverage",
           },
           yieldProjections: {
@@ -176,10 +189,17 @@ export class AssetDataBridge {
           },
           expertProfile: {
             verifyingExpert: "Wine Investment Specialist",
-            expertSpecialization: ["Fine Wine", "Bordeaux", "Investment Analytics"],
+            expertSpecialization: [
+              "Fine Wine",
+              "Bordeaux",
+              "Investment Analytics",
+            ],
             trackRecord: "15 years in wine investment",
             performanceHistory: "Average 12% annual returns",
-            certifications: ["Court of Master Sommeliers", "Wine Investment Certification"],
+            certifications: [
+              "Court of Master Sommeliers",
+              "Wine Investment Certification",
+            ],
             yearsExperience: 15,
           },
         },
@@ -195,12 +215,18 @@ export class AssetDataBridge {
       art: {
         expertAnalysis: {
           investmentHorizon: {
-            rationale: "Contemporary art shows strong appreciation in current market",
+            rationale:
+              "Contemporary art shows strong appreciation in current market",
             liquidityExpectation: "High liquidity through major auction houses",
           },
           riskProfile: {
-            riskFactors: ["Market volatility", "Authentication risks", "Condition degradation"],
-            mitigationStrategies: "Insurance, authentication, climate-controlled storage",
+            riskFactors: [
+              "Market volatility",
+              "Authentication risks",
+              "Condition degradation",
+            ],
+            mitigationStrategies:
+              "Insurance, authentication, climate-controlled storage",
           },
           yieldProjections: {
             yieldAssumptions: "Based on contemporary art market analysis",
@@ -208,15 +234,23 @@ export class AssetDataBridge {
           },
           expertProfile: {
             verifyingExpert: "Contemporary Art Specialist",
-            expertSpecialization: ["Contemporary Art", "Market Analysis", "Authentication"],
+            expertSpecialization: [
+              "Contemporary Art",
+              "Market Analysis",
+              "Authentication",
+            ],
             trackRecord: "20 years in art investment",
             performanceHistory: "Average 15% annual returns",
-            certifications: ["Art Appraisal Certification", "Market Analysis Certification"],
+            certifications: [
+              "Art Appraisal Certification",
+              "Market Analysis Certification",
+            ],
             yearsExperience: 20,
           },
         },
         physicalAttributes: {
-          characteristics: "Museum-quality piece with strong market recognition",
+          characteristics:
+            "Museum-quality piece with strong market recognition",
           provenance: "Documented ownership history from artist",
         },
         metadata: {
@@ -231,8 +265,13 @@ export class AssetDataBridge {
             liquidityExpectation: "Moderate liquidity through tokenized shares",
           },
           riskProfile: {
-            riskFactors: ["Market cycles", "Location factors", "Maintenance costs"],
-            mitigationStrategies: "Professional property management and maintenance",
+            riskFactors: [
+              "Market cycles",
+              "Location factors",
+              "Maintenance costs",
+            ],
+            mitigationStrategies:
+              "Professional property management and maintenance",
           },
           yieldProjections: {
             yieldAssumptions: "Based on rental income and market appreciation",
@@ -240,10 +279,17 @@ export class AssetDataBridge {
           },
           expertProfile: {
             verifyingExpert: "Real Estate Investment Specialist",
-            expertSpecialization: ["Real Estate", "Property Management", "Market Analysis"],
+            expertSpecialization: [
+              "Real Estate",
+              "Property Management",
+              "Market Analysis",
+            ],
             trackRecord: "25 years in real estate investment",
             performanceHistory: "Average 8% annual returns plus rental income",
-            certifications: ["Real Estate License", "Property Management Certification"],
+            certifications: [
+              "Real Estate License",
+              "Property Management Certification",
+            ],
             yearsExperience: 25,
           },
         },

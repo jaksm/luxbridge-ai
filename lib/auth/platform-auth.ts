@@ -8,7 +8,7 @@ const PLATFORM_LINK_TTL = 24 * 60 * 60; // 24 hours in seconds
 export async function validatePlatformCredentials(
   platform: PlatformType,
   email: string,
-  password: string
+  password: string,
 ): Promise<PlatformAuthResult> {
   try {
     const response = await fetch(
@@ -17,7 +17,7 @@ export async function validatePlatformCredentials(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -51,7 +51,7 @@ export async function validatePlatformCredentials(
 }
 
 export async function storePlatformLink(
-  linkData: Omit<PlatformLink, "linkedAt" | "lastUsedAt" | "status">
+  linkData: Omit<PlatformLink, "linkedAt" | "lastUsedAt" | "status">,
 ): Promise<PlatformLink> {
   const platformLink: PlatformLink = {
     ...linkData,
@@ -69,7 +69,7 @@ export async function storePlatformLink(
     await redis.setEx(
       key,
       Math.min(ttl, PLATFORM_LINK_TTL),
-      JSON.stringify(platformLink)
+      JSON.stringify(platformLink),
     );
   } else {
     await redis.set(key, JSON.stringify(platformLink));
@@ -80,7 +80,7 @@ export async function storePlatformLink(
 
 export async function getPlatformLink(
   luxUserId: string,
-  platform: PlatformType
+  platform: PlatformType,
 ): Promise<PlatformLink | null> {
   try {
     const key = `platform_link:${luxUserId}:${platform}`;
@@ -106,7 +106,7 @@ export async function getPlatformLink(
 
 export async function deletePlatformLink(
   luxUserId: string,
-  platform: PlatformType
+  platform: PlatformType,
 ): Promise<void> {
   try {
     const key = `platform_link:${luxUserId}:${platform}`;
@@ -118,7 +118,7 @@ export async function deletePlatformLink(
 
 export async function updatePlatformLinkActivity(
   luxUserId: string,
-  platform: PlatformType
+  platform: PlatformType,
 ): Promise<void> {
   try {
     const platformLink = await getPlatformLink(luxUserId, platform);
@@ -135,7 +135,7 @@ export async function makeAuthenticatedPlatformCall(
   sessionId: string,
   platform: PlatformType,
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<any> {
   const session = await getAuthSession(sessionId);
   if (!session) {
@@ -156,7 +156,7 @@ export async function makeAuthenticatedPlatformCall(
         Authorization: `Bearer ${platformLink.accessToken}`,
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   if (!response.ok) {
@@ -177,7 +177,7 @@ export async function makeAuthenticatedPlatformCall(
 }
 
 export async function getAllUserPlatformLinks(
-  luxUserId: string
+  luxUserId: string,
 ): Promise<PlatformLink[]> {
   const platforms: PlatformType[] = ["splint_invest", "masterworks", "realt"];
   const links: PlatformLink[] = [];
@@ -193,7 +193,7 @@ export async function getAllUserPlatformLinks(
 }
 
 export async function validateAllPlatformLinks(
-  luxUserId: string
+  luxUserId: string,
 ): Promise<void> {
   const platforms: PlatformType[] = ["splint_invest", "masterworks", "realt"];
 
@@ -208,7 +208,7 @@ export async function validateAllPlatformLinks(
               Authorization: `Bearer ${link.accessToken}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (!response.ok) {

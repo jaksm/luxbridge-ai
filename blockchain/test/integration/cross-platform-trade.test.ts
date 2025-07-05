@@ -54,7 +54,10 @@ describe("Cross-Platform Trade Integration", function () {
       "masterworks",
       "https://mock-api.luxbridge.local/masterworks",
     );
-    await factory.registerPlatform("realt", "https://mock-api.luxbridge.local/realt");
+    await factory.registerPlatform(
+      "realt",
+      "https://mock-api.luxbridge.local/realt",
+    );
 
     return {
       factory,
@@ -83,7 +86,7 @@ describe("Cross-Platform Trade Integration", function () {
       ethers.keccak256(ethers.toUtf8Bytes("wine-legal-doc")),
       ethers.parseEther("100000"), // $100k valuation
       ethers.parseEther("100"), // $100 per share
-      "USD"
+      "USD",
     );
 
     // Bob tokenizes art from Masterworks
@@ -96,7 +99,7 @@ describe("Cross-Platform Trade Integration", function () {
       ethers.keccak256(ethers.toUtf8Bytes("art-legal-doc")),
       ethers.parseEther("200000"), // $200k valuation
       ethers.parseEther("400"), // $400 per share
-      "USD"
+      "USD",
     );
 
     const wineTokenAddress = await factory.getTokenAddress(
@@ -548,19 +551,17 @@ describe("Cross-Platform Trade Integration", function () {
       ];
 
       // Individual operations (for comparison)
-      const tx1 = await factory
-        .connect(alice)
-        .tokenizeAsset(
-          platforms[0],
-          assetIds[0],
-          supplies[0],
-          types[0],
-          "general", // subcategory
-          hashes[0],
-          valuations[0],
-          ethers.parseEther("100"), // sharePrice
-          "USD", // currency
-        );
+      const tx1 = await factory.connect(alice).tokenizeAsset(
+        platforms[0],
+        assetIds[0],
+        supplies[0],
+        types[0],
+        "general", // subcategory
+        hashes[0],
+        valuations[0],
+        ethers.parseEther("100"), // sharePrice
+        "USD", // currency
+      );
       const receipt1 = await tx1.wait();
 
       // This would be the batch operation test if the function wasn't having reentrancy issues

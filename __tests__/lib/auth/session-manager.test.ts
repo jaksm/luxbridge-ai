@@ -14,7 +14,11 @@ import {
   updateLuxBridgeUserActivity,
   cleanupExpiredSessions,
 } from "@/lib/auth/session-manager";
-import { AuthSession, PlatformLink, LuxBridgeUser } from "@/lib/types/luxbridge-auth";
+import {
+  AuthSession,
+  PlatformLink,
+  LuxBridgeUser,
+} from "@/lib/types/luxbridge-auth";
 import { PlatformType } from "@/lib/types/platformAsset";
 import { mockEnvironmentVariables } from "@/__tests__/utils/testHelpers";
 
@@ -38,7 +42,7 @@ describe("Session Manager", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockEnvironmentVariables();
-    
+
     mockRedis = vi.mocked(await import("@/lib/redis"));
     redis = mockRedis.default;
   });
@@ -55,7 +59,7 @@ describe("Session Manager", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         `session:${sessionId}`,
         24 * 60 * 60, // 24 hours
-        expect.stringContaining(luxUserId)
+        expect.stringContaining(luxUserId),
       );
     });
 
@@ -81,7 +85,9 @@ describe("Session Manager", () => {
       const privyToken = "privy_token_456";
 
       // Mock existing sessions
-      vi.mocked(redis.get).mockResolvedValue(JSON.stringify(["existing_session"]));
+      vi.mocked(redis.get).mockResolvedValue(
+        JSON.stringify(["existing_session"]),
+      );
 
       await createAuthSession(luxUserId, privyToken);
 
@@ -89,7 +95,7 @@ describe("Session Manager", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         `user_sessions:${luxUserId}`,
         24 * 60 * 60,
-        expect.stringContaining("existing_session")
+        expect.stringContaining("existing_session"),
       );
     });
   });
@@ -184,7 +190,9 @@ describe("Session Manager", () => {
       await deleteAuthSession(sessionId);
 
       expect(redis.del).toHaveBeenCalledWith(`session:${sessionId}`);
-      expect(redis.get).toHaveBeenCalledWith(`user_sessions:${mockSession.luxUserId}`);
+      expect(redis.get).toHaveBeenCalledWith(
+        `user_sessions:${mockSession.luxUserId}`,
+      );
     });
 
     it("should handle non-existent session gracefully", async () => {
@@ -221,7 +229,7 @@ describe("Session Manager", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         `session:${sessionId}`,
         24 * 60 * 60,
-        expect.stringContaining(sessionId)
+        expect.stringContaining(sessionId),
       );
     });
 
@@ -273,7 +281,7 @@ describe("Session Manager", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         `session:${sessionId}`,
         expect.any(Number),
-        expect.stringContaining('"splint_invest"')
+        expect.stringContaining('"splint_invest"'),
       );
     });
 
@@ -295,8 +303,9 @@ describe("Session Manager", () => {
 
       vi.mocked(redis.get).mockResolvedValue(null);
 
-      await expect(updateSessionPlatformLink(sessionId, platform, platformLink))
-        .rejects.toThrow("Session not found");
+      await expect(
+        updateSessionPlatformLink(sessionId, platform, platformLink),
+      ).rejects.toThrow("Session not found");
     });
   });
 
@@ -335,7 +344,7 @@ describe("Session Manager", () => {
       expect(redis.setEx).toHaveBeenCalledWith(
         `session:${sessionId}`,
         expect.any(Number),
-        expect.stringContaining('"splint_invest":null')
+        expect.stringContaining('"splint_invest":null'),
       );
     });
 
@@ -371,7 +380,9 @@ describe("Session Manager", () => {
       vi.mocked(redis.get)
         .mockResolvedValueOnce(JSON.stringify(sessionIds)) // user_sessions lookup
         .mockResolvedValueOnce(JSON.stringify(mockSession)) // session_1 lookup
-        .mockResolvedValueOnce(JSON.stringify({ ...mockSession, sessionId: "session_2" })) // session_2 lookup
+        .mockResolvedValueOnce(
+          JSON.stringify({ ...mockSession, sessionId: "session_2" }),
+        ) // session_2 lookup
         .mockResolvedValueOnce(null); // session_3 lookup (expired/deleted)
 
       const result = await getUserActiveSessions(luxUserId);
@@ -545,7 +556,7 @@ describe("Session Manager", () => {
 
         expect(redis.set).toHaveBeenCalledWith(
           `lux_user:${user.privyId}`,
-          JSON.stringify(user)
+          JSON.stringify(user),
         );
       });
 
@@ -611,7 +622,7 @@ describe("Session Manager", () => {
 
         expect(redis.set).toHaveBeenCalledWith(
           `lux_user:${privyId}`,
-          expect.stringContaining('"lastActiveAt"')
+          expect.stringContaining('"lastActiveAt"'),
         );
       });
 

@@ -58,180 +58,203 @@ interface CombinedPortfolioResponse {
 export const registerGetPortfolioTool: RegisterTool =
   ({ accessToken }) =>
   (server) => {
-    server.tool(
-      "get_portfolio",
-      DESCRIPTION,
-      {},
-      async () => {
-        try {
-          // Get user's connected platforms
-          const connectedPlatforms = await getUserConnectedPlatforms(
-            accessToken.userId,
-            accessToken.sessionId,
-          );
+    server.tool("get_portfolio", DESCRIPTION, {}, async () => {
+      try {
+        // Get user's connected platforms
+        const connectedPlatforms = await getUserConnectedPlatforms(
+          accessToken.userId,
+          accessToken.sessionId,
+        );
 
-          const activePlatforms = Object.entries(connectedPlatforms)
-            .filter(([_, link]) => link !== null && link.status === "active")
-            .map(([platform, _]) => platform as PlatformType);
+        const activePlatforms = Object.entries(connectedPlatforms)
+          .filter(([_, link]) => link !== null && link.status === "active")
+          .map(([platform, _]) => platform as PlatformType);
 
-          // If no platforms connected, return empty portfolio
-          if (activePlatforms.length === 0) {
-            const emptyResponse: CombinedPortfolioResponse = {
-              summary: {
-                totalValue: 0,
-                totalGain: 0,
-                gainPercentage: 0,
-                platforms: 0,
-                totalHoldings: 0,
-              },
-              platforms: {},
-              message: "No platforms connected. Use generate_platform_auth_links to connect your investment accounts.",
-            };
-
-            return {
-              content: [
-                {
-                  type: "text" as const,
-                  text: `📊 Portfolio Summary:\n\n${JSON.stringify(emptyResponse, null, 2)}`,
-                },
-              ],
-            };
-          }
-
-          // Fetch portfolios from all active platforms
-          const platformPortfolios: Record<string, PlatformPortfolio> = {};
-          let totalValue = 0;
-          let totalGain = 0;
-          let totalHoldings = 0;
-
-          for (const platform of activePlatforms) {
-            try {
-              if (!accessToken.sessionId) {
-                platformPortfolios[platform] = {
-                  holdings: [],
-                  metrics: { totalValue: 0, totalGain: 0, gainPercentage: 0, holdingsCount: 0 },
-                  status: "error",
-                  error: "No active session found",
-                };
-                continue;
-              }
-
-              const portfolio = await makeAuthenticatedPlatformCall(
-                accessToken.sessionId,
-                platform,
-                "/portfolio",
-              );
-
-              // Calculate platform metrics
-              const holdings = portfolio.holdings || [];
-              const platformValue = holdings.reduce((sum: number, holding: any) => 
-                sum + (holding.currentValue || 0), 0);
-              const platformGain = holdings.reduce((sum: number, holding: any) => 
-                sum + (holding.unrealizedGain || 0), 0);
-              const platformGainPercentage = platformValue > 0 
-                ? (platformGain / (platformValue - platformGain)) * 100 
-                : 0;
-
-              platformPortfolios[platform] = {
-                holdings,
-                metrics: {
-                  totalValue: platformValue,
-                  totalGain: platformGain,
-                  gainPercentage: platformGainPercentage,
-                  holdingsCount: holdings.length,
-                },
-                status: "active",
-              };
-
-              totalValue += platformValue;
-              totalGain += platformGain;
-              totalHoldings += holdings.length;
-
-            } catch (error) {
-              platformPortfolios[platform] = {
-                holdings: [],
-                metrics: { totalValue: 0, totalGain: 0, gainPercentage: 0, holdingsCount: 0 },
-                status: "error",
-                error: `Failed to fetch portfolio: ${error}`,
-              };
-            }
-          }
-
-          // Calculate combined metrics
-          const combinedGainPercentage = totalValue > 0 
-            ? (totalGain / (totalValue - totalGain)) * 100 
-            : 0;
-
-          // Generate insights for multi-platform portfolios
-          let combined: CombinedPortfolioResponse["combined"];
-          if (activePlatforms.length > 1) {
-            const platformPerformances = Object.entries(platformPortfolios)
-              .filter(([_, portfolio]) => portfolio.status === "active")
-              .map(([platform, portfolio]) => ({
-                platform,
-                gainPercentage: portfolio.metrics.gainPercentage,
-                totalValue: portfolio.metrics.totalValue,
-              }));
-
-            const bestPlatform = platformPerformances.reduce((best, current) => 
-              current.gainPercentage > best.gainPercentage ? current : best, 
-              platformPerformances[0]);
-
-            const topValuePlatform = platformPerformances.reduce((top, current) => 
-              current.totalValue > top.totalValue ? current : top, 
-              platformPerformances[0]);
-
-            combined = {
-              topPlatform: topValuePlatform?.platform,
-              diversificationScore: Math.min(platformPerformances.length * 25, 100),
-            };
-
-            // Find best and worst performing assets across all platforms
-            const allHoldings = Object.values(platformPortfolios)
-              .filter(portfolio => portfolio.status === "active")
-              .flatMap(portfolio => portfolio.holdings);
-
-            if (allHoldings.length > 0) {
-              const bestHolding = allHoldings.reduce((best, current) => 
-                (current.gainPercentage || 0) > (best.gainPercentage || 0) ? current : best);
-              const worstHolding = allHoldings.reduce((worst, current) => 
-                (current.gainPercentage || 0) < (worst.gainPercentage || 0) ? current : worst);
-
-              combined.bestPerformer = bestHolding.name || bestHolding.assetId;
-              combined.worstPerformer = worstHolding.name || worstHolding.assetId;
-            }
-          }
-
-          const response: CombinedPortfolioResponse = {
+        // If no platforms connected, return empty portfolio
+        if (activePlatforms.length === 0) {
+          const emptyResponse: CombinedPortfolioResponse = {
             summary: {
-              totalValue,
-              totalGain,
-              gainPercentage: combinedGainPercentage,
-              platforms: activePlatforms.length,
-              totalHoldings,
+              totalValue: 0,
+              totalGain: 0,
+              gainPercentage: 0,
+              platforms: 0,
+              totalHoldings: 0,
             },
-            platforms: platformPortfolios,
-            combined,
+            platforms: {},
+            message:
+              "No platforms connected. Use generate_platform_auth_links to connect your investment accounts.",
           };
 
           return {
             content: [
               {
                 type: "text" as const,
-                text: `📊 Complete Portfolio:\n\n${JSON.stringify(response, null, 2)}`,
-              },
-            ],
-          };
-        } catch (error) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `❌ Error retrieving portfolio: ${error}`,
+                text: `📊 Portfolio Summary:\n\n${JSON.stringify(emptyResponse, null, 2)}`,
               },
             ],
           };
         }
-      },
-    );
+
+        // Fetch portfolios from all active platforms
+        const platformPortfolios: Record<string, PlatformPortfolio> = {};
+        let totalValue = 0;
+        let totalGain = 0;
+        let totalHoldings = 0;
+
+        for (const platform of activePlatforms) {
+          try {
+            if (!accessToken.sessionId) {
+              platformPortfolios[platform] = {
+                holdings: [],
+                metrics: {
+                  totalValue: 0,
+                  totalGain: 0,
+                  gainPercentage: 0,
+                  holdingsCount: 0,
+                },
+                status: "error",
+                error: "No active session found",
+              };
+              continue;
+            }
+
+            const portfolio = await makeAuthenticatedPlatformCall(
+              accessToken.sessionId,
+              platform,
+              "/portfolio",
+            );
+
+            // Calculate platform metrics
+            const holdings = portfolio.holdings || [];
+            const platformValue = holdings.reduce(
+              (sum: number, holding: any) => sum + (holding.currentValue || 0),
+              0,
+            );
+            const platformGain = holdings.reduce(
+              (sum: number, holding: any) =>
+                sum + (holding.unrealizedGain || 0),
+              0,
+            );
+            const platformGainPercentage =
+              platformValue > 0
+                ? (platformGain / (platformValue - platformGain)) * 100
+                : 0;
+
+            platformPortfolios[platform] = {
+              holdings,
+              metrics: {
+                totalValue: platformValue,
+                totalGain: platformGain,
+                gainPercentage: platformGainPercentage,
+                holdingsCount: holdings.length,
+              },
+              status: "active",
+            };
+
+            totalValue += platformValue;
+            totalGain += platformGain;
+            totalHoldings += holdings.length;
+          } catch (error) {
+            platformPortfolios[platform] = {
+              holdings: [],
+              metrics: {
+                totalValue: 0,
+                totalGain: 0,
+                gainPercentage: 0,
+                holdingsCount: 0,
+              },
+              status: "error",
+              error: `Failed to fetch portfolio: ${error}`,
+            };
+          }
+        }
+
+        // Calculate combined metrics
+        const combinedGainPercentage =
+          totalValue > 0 ? (totalGain / (totalValue - totalGain)) * 100 : 0;
+
+        // Generate insights for multi-platform portfolios
+        let combined: CombinedPortfolioResponse["combined"];
+        if (activePlatforms.length > 1) {
+          const platformPerformances = Object.entries(platformPortfolios)
+            .filter(([_, portfolio]) => portfolio.status === "active")
+            .map(([platform, portfolio]) => ({
+              platform,
+              gainPercentage: portfolio.metrics.gainPercentage,
+              totalValue: portfolio.metrics.totalValue,
+            }));
+
+          const bestPlatform = platformPerformances.reduce(
+            (best, current) =>
+              current.gainPercentage > best.gainPercentage ? current : best,
+            platformPerformances[0],
+          );
+
+          const topValuePlatform = platformPerformances.reduce(
+            (top, current) =>
+              current.totalValue > top.totalValue ? current : top,
+            platformPerformances[0],
+          );
+
+          combined = {
+            topPlatform: topValuePlatform?.platform,
+            diversificationScore: Math.min(
+              platformPerformances.length * 25,
+              100,
+            ),
+          };
+
+          // Find best and worst performing assets across all platforms
+          const allHoldings = Object.values(platformPortfolios)
+            .filter((portfolio) => portfolio.status === "active")
+            .flatMap((portfolio) => portfolio.holdings);
+
+          if (allHoldings.length > 0) {
+            const bestHolding = allHoldings.reduce((best, current) =>
+              (current.gainPercentage || 0) > (best.gainPercentage || 0)
+                ? current
+                : best,
+            );
+            const worstHolding = allHoldings.reduce((worst, current) =>
+              (current.gainPercentage || 0) < (worst.gainPercentage || 0)
+                ? current
+                : worst,
+            );
+
+            combined.bestPerformer = bestHolding.name || bestHolding.assetId;
+            combined.worstPerformer = worstHolding.name || worstHolding.assetId;
+          }
+        }
+
+        const response: CombinedPortfolioResponse = {
+          summary: {
+            totalValue,
+            totalGain,
+            gainPercentage: combinedGainPercentage,
+            platforms: activePlatforms.length,
+            totalHoldings,
+          },
+          platforms: platformPortfolios,
+          combined,
+        };
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `📊 Complete Portfolio:\n\n${JSON.stringify(response, null, 2)}`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `❌ Error retrieving portfolio: ${error}`,
+            },
+          ],
+        };
+      }
+    });
   };

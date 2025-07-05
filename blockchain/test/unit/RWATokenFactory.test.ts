@@ -24,7 +24,9 @@ describe("RWATokenFactory", function () {
 
       const platformInfo = await factory.getPlatformInfo("splint_invest");
       expect(platformInfo.name).to.equal("splint_invest");
-      expect(platformInfo.apiEndpoint).to.equal("https://mock-api.luxbridge.local/splint");
+      expect(platformInfo.apiEndpoint).to.equal(
+        "https://mock-api.luxbridge.local/splint",
+      );
       expect(platformInfo.isActive).to.be.true;
       expect(platformInfo.totalAssetsTokenized).to.equal(0);
     });
@@ -51,7 +53,10 @@ describe("RWATokenFactory", function () {
       await expect(
         factory
           .connect(alice)
-          .registerPlatform("masterworks", "https://mock-api.luxbridge.local/masterworks"),
+          .registerPlatform(
+            "masterworks",
+            "https://mock-api.luxbridge.local/masterworks",
+          ),
       ).to.be.revertedWithCustomError(factory, "OwnableUnauthorizedAccount");
     });
   });
@@ -87,7 +92,7 @@ describe("RWATokenFactory", function () {
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
           ethers.parseEther("50"),
-          "USD"
+          "USD",
         );
 
       const tokenAddress = await factory.getTokenAddress(
@@ -132,7 +137,7 @@ describe("RWATokenFactory", function () {
             ethers.keccak256(ethers.toUtf8Bytes("hash")),
             ethers.parseEther("1000"),
             ethers.parseEther("100"),
-            "USD"
+            "USD",
           ),
       ).to.be.revertedWith("Platform not registered");
     });
@@ -151,7 +156,7 @@ describe("RWATokenFactory", function () {
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
           ethers.parseEther("50"),
-          "USD"
+          "USD",
         );
 
       await expect(
@@ -166,7 +171,7 @@ describe("RWATokenFactory", function () {
             ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash-2")),
             ethers.parseEther("25000"),
             ethers.parseEther("100"),
-            "USD"
+            "USD",
           ),
       ).to.be.revertedWith("Asset already tokenized");
     });
@@ -190,33 +195,29 @@ describe("RWATokenFactory", function () {
         ethers.parseEther("20000"),
       ];
 
-      const tx1 = await factory
-        .connect(alice)
-        .tokenizeAsset(
-          platforms[0],
-          assetIds[0],
-          totalSupplies[0],
-          assetTypes[0],
-          "bordeaux", // subcategory
-          legalHashes[0],
-          valuations[0],
-          ethers.parseEther("100"), // sharePrice
-          "USD", // currency
-        );
+      const tx1 = await factory.connect(alice).tokenizeAsset(
+        platforms[0],
+        assetIds[0],
+        totalSupplies[0],
+        assetTypes[0],
+        "bordeaux", // subcategory
+        legalHashes[0],
+        valuations[0],
+        ethers.parseEther("100"), // sharePrice
+        "USD", // currency
+      );
 
-      const tx2 = await factory
-        .connect(alice)
-        .tokenizeAsset(
-          platforms[1],
-          assetIds[1],
-          totalSupplies[1],
-          assetTypes[1],
-          "classic", // subcategory for art
-          legalHashes[1],
-          valuations[1],
-          ethers.parseEther("200"), // sharePrice
-          "USD", // currency
-        );
+      const tx2 = await factory.connect(alice).tokenizeAsset(
+        platforms[1],
+        assetIds[1],
+        totalSupplies[1],
+        assetTypes[1],
+        "classic", // subcategory for art
+        legalHashes[1],
+        valuations[1],
+        ethers.parseEther("200"), // sharePrice
+        "USD", // currency
+      );
 
       await tx1.wait();
       await tx2.wait();
@@ -256,7 +257,7 @@ describe("RWATokenFactory", function () {
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
           ethers.parseEther("50"),
-          "USD"
+          "USD",
         );
 
       const tokenAddress = await factory.getTokenAddress(
@@ -326,7 +327,7 @@ describe("RWATokenFactory", function () {
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
           ethers.parseEther("50"),
-          "USD"
+          "USD",
         );
 
       const tokenAddress = await factory.getTokenAddress(
@@ -406,7 +407,7 @@ describe("RWATokenFactory", function () {
           ethers.keccak256(ethers.toUtf8Bytes("legal-doc-hash")),
           ethers.parseEther("50000"),
           ethers.parseEther("50"),
-          "USD"
+          "USD",
         );
 
       const proof = ethers.toUtf8Bytes("cryptographic-proof-data");

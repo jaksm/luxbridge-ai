@@ -3,11 +3,13 @@
 You are generating realistic blue-chip contemporary and modern art assets for Masterworks, a platform that acquires museum-quality artworks and sells shares to investors.
 
 ## Platform Context
+
 Masterworks focuses exclusively on paintings by artists with strong secondary market performance and established auction records. The platform targets works that have historically outperformed traditional asset classes, with a focus on contemporary and post-war art.
 
 ## Artist Categories and Market Performance
 
 ### Blue-Chip Modern Masters (1900-1950)
+
 - **Artists**: Picasso, Monet, Matisse, Kandinsky, Klee, Chagall
 - **Valuation Range**: $2,000,000 - $50,000,000
 - **Investment Horizon**: 5-10 years
@@ -15,6 +17,7 @@ Masterworks focuses exclusively on paintings by artists with strong secondary ma
 - **Risk Factors**: Authentication challenges, condition issues, market cycles
 
 ### Post-War Contemporary (1950-1980)
+
 - **Artists**: Warhol, Lichtenstein, Johns, Rauschenberg, Twombly, Rothko
 - **Valuation Range**: $1,000,000 - $25,000,000
 - **Investment Horizon**: 3-8 years
@@ -22,6 +25,7 @@ Masterworks focuses exclusively on paintings by artists with strong secondary ma
 - **Risk Factors**: Edition sizes, condition sensitivity, market speculation
 
 ### Contemporary Blue-Chip (1980-Present)
+
 - **Artists**: Basquiat, Kaws, Hockney, Richter, Kusama, Kiefer
 - **Valuation Range**: $500,000 - $15,000,000
 - **Investment Horizon**: 3-7 years
@@ -29,6 +33,7 @@ Masterworks focuses exclusively on paintings by artists with strong secondary ma
 - **Risk Factors**: Market volatility, living artist risk, trend dependency
 
 ## Acquisition Criteria
+
 - **Auction Performance**: Works by artists with consistent $1M+ auction results
 - **Provenance**: Museum-quality provenance with clear ownership history
 - **Condition**: Excellent condition with minimal restoration
@@ -36,18 +41,21 @@ Masterworks focuses exclusively on paintings by artists with strong secondary ma
 - **Market Liquidity**: Artists with active secondary markets
 
 ## Valuation Methodology
+
 - **Comparable Sales**: Recent auction results for similar works
 - **Art Market Data**: Artnet, Artsy, and auction house records
 - **Expert Appraisals**: Certified fine art appraisers with specialty focus
 - **Insurance Values**: Professional insurance appraisals for coverage
 
 ## Share Structure
+
 - **Shares per Work**: 2,000-20,000 shares depending on artwork value
 - **Minimum Investment**: $20 per share (minimum $500 total)
 - **Currency**: USD (all international acquisitions converted)
 - **Liquidity**: Secondary market trading available after 90 days
 
 ## Expert Analysis Requirements
+
 - **Art Market Specialists**: PhD in Art History or equivalent experience
 - **Auction House Experience**: Former specialists from major auction houses
 - **Museum Curators**: Current or former museum professionals
@@ -55,6 +63,7 @@ Masterworks focuses exclusively on paintings by artists with strong secondary ma
 - **Specializations**: Period-specific expertise (Modern, Post-War, Contemporary)
 
 ## Physical Characteristics
+
 - **Medium**: Oil on canvas, acrylic, mixed media, works on paper
 - **Size**: Varies widely, typically 20x24 inches minimum
 - **Condition**: Professional conservation reports required
@@ -62,7 +71,9 @@ Masterworks focuses exclusively on paintings by artists with strong secondary ma
 - **Insurance**: Comprehensive fine art coverage
 
 ## Investment Thesis
+
 Each asset should demonstrate:
+
 - **Historical Performance**: Strong auction track record
 - **Cultural Significance**: Art historical importance
 - **Market Demand**: Active collector and institutional interest

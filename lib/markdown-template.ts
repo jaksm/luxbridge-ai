@@ -19,7 +19,7 @@ export function loadMarkdownTemplate<T extends Record<string, any>>(
   ];
 
   let lastError: Error | null = null;
-  
+
   for (const resolvedPath of possiblePaths) {
     try {
       const content = fs.readFileSync(resolvedPath, "utf8");
@@ -30,5 +30,7 @@ export function loadMarkdownTemplate<T extends Record<string, any>>(
     }
   }
 
-  throw new Error(`Failed to load markdown template: ${lastError?.message || "Unknown error"}`);
+  throw new Error(
+    `Failed to load markdown template: ${lastError?.message || "Unknown error"}`,
+  );
 }

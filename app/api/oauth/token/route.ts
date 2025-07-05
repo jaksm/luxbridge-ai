@@ -5,7 +5,10 @@ import {
   getClient,
   storeAccessToken,
 } from "@/lib/redis-oauth";
-import { createAuthSession, storeLuxBridgeUser } from "@/lib/auth/session-manager";
+import {
+  createAuthSession,
+  storeLuxBridgeUser,
+} from "@/lib/auth/session-manager";
 import { LuxBridgeUser } from "@/lib/types/luxbridge-auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -246,7 +249,7 @@ export async function POST(request: NextRequest) {
         createdAt: new Date().toISOString(),
         lastActiveAt: new Date().toISOString(),
       };
-      
+
       await storeLuxBridgeUser(luxUser);
       sessionId = await createAuthSession(luxUser.userId, "");
     }

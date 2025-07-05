@@ -13,7 +13,7 @@ export async function createAuthSession(
   privyToken: string,
 ): Promise<string> {
   await ensureConnected();
-  
+
   const sessionId = `lux_session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + SESSION_TTL * 1000);
@@ -44,7 +44,7 @@ export async function getAuthSession(
 ): Promise<AuthSession | null> {
   try {
     await ensureConnected();
-    
+
     const key = `session:${sessionId}`;
     const sessionData = await redis.get(key);
 
@@ -346,7 +346,9 @@ export async function getUserConnectedPlatforms(
   }
 }
 
-export async function getActiveUserSession(userId: string): Promise<AuthSession | null> {
+export async function getActiveUserSession(
+  userId: string,
+): Promise<AuthSession | null> {
   try {
     const activeSessions = await getUserActiveSessions(userId);
     if (activeSessions.length === 0) {

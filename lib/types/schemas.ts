@@ -84,7 +84,6 @@ export const AssetQuerySchema = z.object({
     .describe("Risk category filter"),
 });
 
-
 export const ListSupportedPlatformsSchema = z
   .object({})
   .describe(
@@ -140,7 +139,9 @@ export const SearchAssetsSchema = z
     platforms: z
       .array(z.enum(["splint_invest", "masterworks", "realt"]))
       .optional()
-      .describe("Specific platforms to search (searches all connected if not specified)"),
+      .describe(
+        "Specific platforms to search (searches all connected if not specified)",
+      ),
     maxResults: z
       .number()
       .min(1)

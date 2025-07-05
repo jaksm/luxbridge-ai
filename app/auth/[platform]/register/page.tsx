@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { use } from "react";
 
-interface AuthPageProps {
+interface RegisterPageProps {
   params: Promise<{ platform: string }>;
 }
 
@@ -25,35 +25,43 @@ const PLATFORM_CONFIG = {
   "splint-invest": {
     name: "Splint Invest",
     description:
-      "Connect your Splint Invest account to access wine and luxury asset investments",
+      "Create your Splint Invest account to access wine and luxury asset investments",
     color: "from-purple-600 to-purple-800",
     category: "Alternative Assets",
   },
   masterworks: {
     name: "Masterworks",
     description:
-      "Link your Masterworks account to include art investments in your portfolio",
+      "Create your Masterworks account to include art investments in your portfolio",
     color: "from-blue-600 to-blue-800",
     category: "Art & Collectibles",
   },
   realt: {
     name: "RealT",
-    description: "Connect RealT to access your tokenized real estate holdings",
+    description:
+      "Create your RealT account to access tokenized real estate holdings",
     color: "from-green-600 to-green-800",
     category: "Real Estate",
   },
 } as const;
 
-export default function PlatformAuthPage({ params }: AuthPageProps) {
+export default function PlatformRegisterPage({ params }: RegisterPageProps) {
   const { platform } = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
   const sessionId = searchParams.get("session");
 
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    name: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const platformConfig =
     PLATFORM_CONFIG[platform as keyof typeof PLATFORM_CONFIG];
@@ -66,15 +74,45 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
     }
   }, [sessionId]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (error) setError("");
+  };
+
+  const validateForm = () => {
+    if (
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.name
+    ) {
+      setError("All fields are required.");
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!sessionId) {
       setError("Invalid session. Please restart the linking process.");
       return;
     }
 
-    if (!credentials.email || !credentials.password) {
-      setError("Please enter both email and password.");
+    if (!validateForm()) {
       return;
     }
 
@@ -82,31 +120,34 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
     setError("");
 
     try {
-      const response = await fetch(`/api/auth/platforms/${platform}/complete`, {
+      const response = await fetch(`/api/${platform}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId,
-          email: credentials.email,
-          password: credentials.password,
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
         }),
       });
 
       const result = await response.json();
 
-      if (result.success) {
+      if (response.ok) {
         toast({
-          title: "Connection Successful",
-          description: `Your ${platformConfig?.name} account has been linked to LuxBridge.`,
+          title: "Registration Successful",
+          description: `Your ${platformConfig?.name} account has been created. You can now sign in.`,
         });
-        router.push(
-          `/auth/${platform}/complete?status=success&session=${sessionId}`,
-        );
+
+        // Redirect back to auth page with session preserved
+        router.push(`/auth/${platform}?session=${sessionId}`);
       } else {
-        setError(
-          result.message ||
-            "Authentication failed. Please check your credentials.",
-        );
+        if (response.status === 409) {
+          setError(
+            "An account with this email already exists. Please sign in instead.",
+          );
+        } else {
+          setError(result.message || "Registration failed. Please try again.");
+        }
       }
     } catch (err) {
       setError("Network error. Please check your connection and try again.");
@@ -164,7 +205,7 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold">
-              Connect {platformConfig.name}
+              Create {platformConfig.name} Account
             </CardTitle>
             <CardDescription className="mt-2 text-base">
               {platformConfig.description}
@@ -180,16 +221,30 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{platformConfig.name} Email</Label>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Enter your full name"
+                required
+                value={formData.name}
+                onChange={handleInputChange}
+                disabled={loading}
+                className="transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="Enter your email address"
                 required
-                value={credentials.email}
-                onChange={(e) =>
-                  setCredentials((prev) => ({ ...prev, email: e.target.value }))
-                }
+                value={formData.email}
+                onChange={handleInputChange}
                 disabled={loading}
                 className="transition-colors"
               />
@@ -197,21 +252,64 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                required
-                value={credentials.password}
-                onChange={(e) =>
-                  setCredentials((prev) => ({
-                    ...prev,
-                    password: e.target.value,
-                  }))
-                }
-                disabled={loading}
-                className="transition-colors"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password (min 6 characters)"
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  className="transition-colors pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  className="transition-colors pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={loading}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             {error && (
@@ -223,31 +321,37 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || !credentials.email || !credentials.password}
+              disabled={
+                loading ||
+                !formData.email ||
+                !formData.password ||
+                !formData.confirmPassword ||
+                !formData.name
+              }
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Connecting to {platformConfig.name}...
+                  Creating Account...
                 </>
               ) : (
-                `Connect ${platformConfig.name} Account`
+                `Create ${platformConfig.name} Account`
               )}
             </Button>
           </form>
 
           <div className="mt-4 text-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <Button
                 variant="link"
                 className="p-0 h-auto text-sm"
                 onClick={() =>
-                  router.push(`/auth/${platform}/register?session=${sessionId}`)
+                  router.push(`/auth/${platform}?session=${sessionId}`)
                 }
                 disabled={loading}
               >
-                Register here
+                Sign in here
               </Button>
             </p>
           </div>

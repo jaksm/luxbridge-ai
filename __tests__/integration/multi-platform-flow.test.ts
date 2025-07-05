@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { mockEnvironmentVariables, mockFetchResponse } from "@/__tests__/utils/testHelpers";
+import {
+  mockEnvironmentVariables,
+  mockFetchResponse,
+} from "@/__tests__/utils/testHelpers";
 import { PlatformType } from "@/lib/types/platformAsset";
 
 // Mock all dependencies
@@ -24,13 +27,17 @@ describe("Multi-Platform Integration Flow", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockEnvironmentVariables();
-    
+
     mockRedis = vi.mocked(await import("@/lib/redis"));
     mockSessionManager = vi.mocked(await import("@/lib/auth/session-manager"));
     mockPlatformAuth = vi.mocked(await import("@/lib/auth/platform-auth"));
     mockRedisUsers = vi.mocked(await import("@/lib/auth/redis-users"));
-    mockGetPortfolioTool = vi.mocked(await import("@/lib/tools/get-portfolio-tool"));
-    mockSearchAssetsTool = vi.mocked(await import("@/lib/tools/search-assets-tool"));
+    mockGetPortfolioTool = vi.mocked(
+      await import("@/lib/tools/get-portfolio-tool"),
+    );
+    mockSearchAssetsTool = vi.mocked(
+      await import("@/lib/tools/search-assets-tool"),
+    );
   });
 
   describe("End-to-End Multi-Platform Authentication Flow", () => {
@@ -42,7 +49,10 @@ describe("Multi-Platform Integration Flow", () => {
 
       mockSessionManager.createAuthSession.mockResolvedValue(sessionId);
 
-      const createdSessionId = await mockSessionManager.createAuthSession(luxUserId, privyToken);
+      const createdSessionId = await mockSessionManager.createAuthSession(
+        luxUserId,
+        privyToken,
+      );
       expect(createdSessionId).toBe(sessionId);
 
       // Step 2: User connects to first platform (Splint Invest)
@@ -90,13 +100,16 @@ describe("Multi-Platform Integration Flow", () => {
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,
       };
 
-      mockPlatformAuth.validatePlatformCredentials.mockResolvedValue(splintAuthResult);
-
-      const platformValidation = await mockPlatformAuth.validatePlatformCredentials(
-        "splint_invest",
-        splintCredentials.email,
-        splintCredentials.password
+      mockPlatformAuth.validatePlatformCredentials.mockResolvedValue(
+        splintAuthResult,
       );
+
+      const platformValidation =
+        await mockPlatformAuth.validatePlatformCredentials(
+          "splint_invest",
+          splintCredentials.email,
+          splintCredentials.password,
+        );
 
       expect(platformValidation.success).toBe(true);
 
@@ -118,12 +131,16 @@ describe("Multi-Platform Integration Flow", () => {
       mockSessionManager.updateSessionPlatformLink.mockResolvedValue();
 
       await mockPlatformAuth.storePlatformLink(splintPlatformLink);
-      await mockSessionManager.updateSessionPlatformLink(sessionId, "splint_invest", splintPlatformLink);
+      await mockSessionManager.updateSessionPlatformLink(
+        sessionId,
+        "splint_invest",
+        splintPlatformLink,
+      );
 
       expect(mockSessionManager.updateSessionPlatformLink).toHaveBeenCalledWith(
         sessionId,
         "splint_invest",
-        splintPlatformLink
+        splintPlatformLink,
       );
 
       // Step 5: User connects to second platform (Masterworks)
@@ -138,12 +155,14 @@ describe("Multi-Platform Integration Flow", () => {
         expiresAt: Date.now() + 24 * 60 * 60 * 1000,
       };
 
-      mockPlatformAuth.validatePlatformCredentials.mockResolvedValue(masterworksAuthResult);
+      mockPlatformAuth.validatePlatformCredentials.mockResolvedValue(
+        masterworksAuthResult,
+      );
 
       const mwValidation = await mockPlatformAuth.validatePlatformCredentials(
         "masterworks",
         splintCredentials.email,
-        splintCredentials.password
+        splintCredentials.password,
       );
 
       expect(mwValidation.success).toBe(true);
@@ -163,7 +182,11 @@ describe("Multi-Platform Integration Flow", () => {
       };
 
       mockPlatformAuth.storePlatformLink.mockResolvedValue(mwPlatformLink);
-      await mockSessionManager.updateSessionPlatformLink(sessionId, "masterworks", mwPlatformLink);
+      await mockSessionManager.updateSessionPlatformLink(
+        sessionId,
+        "masterworks",
+        mwPlatformLink,
+      );
 
       // Step 7: Verify user now has multi-platform access
       mockSessionManager.getUserConnectedPlatforms.mockResolvedValue({
@@ -172,38 +195,56 @@ describe("Multi-Platform Integration Flow", () => {
         realt: null,
       });
 
-      const connectedPlatforms = await mockSessionManager.getUserConnectedPlatforms(luxUserId, sessionId);
-      
+      const connectedPlatforms =
+        await mockSessionManager.getUserConnectedPlatforms(
+          luxUserId,
+          sessionId,
+        );
+
       expect(connectedPlatforms.splint_invest).toEqual(splintPlatformLink);
       expect(connectedPlatforms.masterworks).toEqual(mwPlatformLink);
       expect(connectedPlatforms.realt).toBeNull();
 
       // Step 8: Test multi-platform portfolio retrieval
       const mockPortfolioData = {
-        splint_invest: { holdings: [{ assetId: "WINE-001", currentValue: 1000, unrealizedGain: 100 }] },
-        masterworks: { holdings: [{ assetId: "ART-001", currentValue: 2000, unrealizedGain: 200 }] },
+        splint_invest: {
+          holdings: [
+            { assetId: "WINE-001", currentValue: 1000, unrealizedGain: 100 },
+          ],
+        },
+        masterworks: {
+          holdings: [
+            { assetId: "ART-001", currentValue: 2000, unrealizedGain: 200 },
+          ],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockPortfolioData[platform as PlatformType]);
-        }
+        },
       );
 
-      await mockPlatformAuth.makeAuthenticatedPlatformCall(sessionId, "splint_invest", "/portfolio");
-      await mockPlatformAuth.makeAuthenticatedPlatformCall(sessionId, "masterworks", "/portfolio");
-
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledTimes(2);
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      await mockPlatformAuth.makeAuthenticatedPlatformCall(
         sessionId,
         "splint_invest",
-        "/portfolio"
+        "/portfolio",
       );
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
+      await mockPlatformAuth.makeAuthenticatedPlatformCall(
         sessionId,
         "masterworks",
-        "/portfolio"
+        "/portfolio",
       );
+
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(sessionId, "splint_invest", "/portfolio");
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith(sessionId, "masterworks", "/portfolio");
     });
 
     it("should handle platform disconnection gracefully", async () => {
@@ -244,13 +285,17 @@ describe("Multi-Platform Integration Flow", () => {
 
       // Step 3: API call should fail and mark platform as invalid
       await expect(
-        mockPlatformAuth.makeAuthenticatedPlatformCall(sessionId, platform, "/portfolio")
+        mockPlatformAuth.makeAuthenticatedPlatformCall(
+          sessionId,
+          platform,
+          "/portfolio",
+        ),
       ).rejects.toThrow("Platform splint_invest authentication expired");
 
       expect(mockSessionManager.updateSessionPlatformLink).toHaveBeenCalledWith(
         sessionId,
         platform,
-        expect.objectContaining({ status: "invalid" })
+        expect.objectContaining({ status: "invalid" }),
       );
 
       // Step 4: Subsequent portfolio calls should skip invalid platform
@@ -260,8 +305,12 @@ describe("Multi-Platform Integration Flow", () => {
         realt: null,
       });
 
-      const connectedPlatforms = await mockSessionManager.getUserConnectedPlatforms(luxUserId, sessionId);
-      
+      const connectedPlatforms =
+        await mockSessionManager.getUserConnectedPlatforms(
+          luxUserId,
+          sessionId,
+        );
+
       // Only active platforms should be considered for operations
       const activePlatforms = Object.entries(connectedPlatforms)
         .filter(([_, link]) => link !== null && link.status === "active")
@@ -338,7 +387,7 @@ describe("Multi-Platform Integration Flow", () => {
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockPortfolios[platform as PlatformType]);
-        }
+        },
       );
 
       // Test that get_portfolio tool registration would work
@@ -346,18 +395,27 @@ describe("Multi-Platform Integration Flow", () => {
         tool: vi.fn(),
       };
 
-      mockGetPortfolioTool.registerGetPortfolioTool.mockReturnValue((server) => {
-        server.tool("get_portfolio", expect.any(String), {}, expect.any(Function));
-      });
+      mockGetPortfolioTool.registerGetPortfolioTool.mockReturnValue(
+        (server) => {
+          server.tool(
+            "get_portfolio",
+            expect.any(String),
+            {},
+            expect.any(Function),
+          );
+        },
+      );
 
-      const registerTool = mockGetPortfolioTool.registerGetPortfolioTool({ accessToken: mockAccessToken });
+      const registerTool = mockGetPortfolioTool.registerGetPortfolioTool({
+        accessToken: mockAccessToken,
+      });
       registerTool(mockServer);
 
       expect(mockServer.tool).toHaveBeenCalledWith(
         "get_portfolio",
         expect.any(String),
         {},
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -428,7 +486,7 @@ describe("Multi-Platform Integration Flow", () => {
             return Promise.resolve(mockSearchResults[platform as PlatformType]);
           }
           return Promise.reject(new Error("Unexpected endpoint"));
-        }
+        },
       );
 
       // Test that search_assets tool registration would work
@@ -436,18 +494,27 @@ describe("Multi-Platform Integration Flow", () => {
         tool: vi.fn(),
       };
 
-      mockSearchAssetsTool.registerSearchAssetsTool.mockReturnValue((server) => {
-        server.tool("search_assets", expect.any(String), expect.any(Object), expect.any(Function));
-      });
+      mockSearchAssetsTool.registerSearchAssetsTool.mockReturnValue(
+        (server) => {
+          server.tool(
+            "search_assets",
+            expect.any(String),
+            expect.any(Object),
+            expect.any(Function),
+          );
+        },
+      );
 
-      const registerTool = mockSearchAssetsTool.registerSearchAssetsTool({ accessToken: mockAccessToken });
+      const registerTool = mockSearchAssetsTool.registerSearchAssetsTool({
+        accessToken: mockAccessToken,
+      });
       registerTool(mockServer);
 
       expect(mockServer.tool).toHaveBeenCalledWith(
         "search_assets",
         expect.any(String),
         expect.any(Object),
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
@@ -497,32 +564,44 @@ describe("Multi-Platform Integration Flow", () => {
         (sessionId, platform, endpoint) => {
           if (platform === "splint_invest") {
             return Promise.resolve({
-              holdings: [{ assetId: "WINE-001", currentValue: 1000, unrealizedGain: 100 }],
+              holdings: [
+                {
+                  assetId: "WINE-001",
+                  currentValue: 1000,
+                  unrealizedGain: 100,
+                },
+              ],
             });
           } else {
-            return Promise.reject(new Error("Masterworks API temporarily unavailable"));
+            return Promise.reject(
+              new Error("Masterworks API temporarily unavailable"),
+            );
           }
-        }
+        },
       );
 
       // Test that successful platform still works
       const splintResult = await mockPlatformAuth.makeAuthenticatedPlatformCall(
         sessionId,
         "splint_invest",
-        "/portfolio"
+        "/portfolio",
       );
       expect(splintResult.holdings).toHaveLength(1);
 
       // Test that failed platform throws expected error
       await expect(
-        mockPlatformAuth.makeAuthenticatedPlatformCall(sessionId, "masterworks", "/portfolio")
+        mockPlatformAuth.makeAuthenticatedPlatformCall(
+          sessionId,
+          "masterworks",
+          "/portfolio",
+        ),
       ).rejects.toThrow("Masterworks API temporarily unavailable");
 
       // Verify session update is still called for successful operations
       expect(mockSessionManager.updateSessionPlatformLink).toHaveBeenCalledWith(
         sessionId,
         "splint_invest",
-        expect.objectContaining({ lastUsedAt: expect.any(String) })
+        expect.objectContaining({ lastUsedAt: expect.any(String) }),
       );
     });
 
@@ -535,11 +614,17 @@ describe("Multi-Platform Integration Flow", () => {
 
       // Any platform call should fail with session error
       await expect(
-        mockPlatformAuth.makeAuthenticatedPlatformCall(expiredSessionId, "splint_invest", "/portfolio")
+        mockPlatformAuth.makeAuthenticatedPlatformCall(
+          expiredSessionId,
+          "splint_invest",
+          "/portfolio",
+        ),
       ).rejects.toThrow("Invalid session");
 
       // Should not attempt to update platform links
-      expect(mockSessionManager.updateSessionPlatformLink).not.toHaveBeenCalled();
+      expect(
+        mockSessionManager.updateSessionPlatformLink,
+      ).not.toHaveBeenCalled();
     });
 
     it("should handle Redis connection failures gracefully", async () => {
@@ -547,12 +632,12 @@ describe("Multi-Platform Integration Flow", () => {
 
       // Mock Redis connection failure
       mockSessionManager.getUserConnectedPlatforms.mockRejectedValue(
-        new Error("Redis connection failed")
+        new Error("Redis connection failed"),
       );
 
       // Operations should fail but not crash
       await expect(
-        mockSessionManager.getUserConnectedPlatforms(luxUserId)
+        mockSessionManager.getUserConnectedPlatforms(luxUserId),
       ).rejects.toThrow("Redis connection failed");
 
       // Other operations should still be possible if Redis recovers
@@ -562,7 +647,8 @@ describe("Multi-Platform Integration Flow", () => {
         realt: null,
       });
 
-      const result = await mockSessionManager.getUserConnectedPlatforms(luxUserId);
+      const result =
+        await mockSessionManager.getUserConnectedPlatforms(luxUserId);
       expect(result).toEqual({
         splint_invest: null,
         masterworks: null,
@@ -585,7 +671,9 @@ describe("Multi-Platform Integration Flow", () => {
       mockPlatformAuth.validateAllPlatformLinks.mockResolvedValue();
       await mockPlatformAuth.validateAllPlatformLinks(luxUserId);
 
-      expect(mockPlatformAuth.validateAllPlatformLinks).toHaveBeenCalledWith(luxUserId);
+      expect(mockPlatformAuth.validateAllPlatformLinks).toHaveBeenCalledWith(
+        luxUserId,
+      );
     });
 
     it("should handle concurrent session operations safely", async () => {
@@ -611,8 +699,13 @@ describe("Multi-Platform Integration Flow", () => {
       await Promise.all(operations);
 
       expect(mockSessionManager.extendSession).toHaveBeenCalledWith(sessionId);
-      expect(mockSessionManager.getUserConnectedPlatforms).toHaveBeenCalledWith(luxUserId, sessionId);
-      expect(mockSessionManager.getActiveUserSession).toHaveBeenCalledWith(luxUserId);
+      expect(mockSessionManager.getUserConnectedPlatforms).toHaveBeenCalledWith(
+        luxUserId,
+        sessionId,
+      );
+      expect(mockSessionManager.getActiveUserSession).toHaveBeenCalledWith(
+        luxUserId,
+      );
     });
   });
 
@@ -667,14 +760,21 @@ describe("Multi-Platform Integration Flow", () => {
         platformLinks.masterworks,
       ]);
 
-      const connectedPlatforms = await mockSessionManager.getUserConnectedPlatforms(luxUserId, sessionId);
-      const allPlatformLinks = await mockPlatformAuth.getAllUserPlatformLinks(luxUserId);
+      const connectedPlatforms =
+        await mockSessionManager.getUserConnectedPlatforms(
+          luxUserId,
+          sessionId,
+        );
+      const allPlatformLinks =
+        await mockPlatformAuth.getAllUserPlatformLinks(luxUserId);
 
       // Data should be consistent across different access methods
       expect(connectedPlatforms.splint_invest?.email).toBe(platformUser.email);
       expect(connectedPlatforms.masterworks?.email).toBe(platformUser.email);
       expect(allPlatformLinks).toHaveLength(2);
-      expect(allPlatformLinks.every(link => link.email === platformUser.email)).toBe(true);
+      expect(
+        allPlatformLinks.every((link) => link.email === platformUser.email),
+      ).toBe(true);
     });
   });
 });

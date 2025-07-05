@@ -68,7 +68,7 @@ export const registerSearchAssetsTool: RegisterTool =
           let platformsToSearch: PlatformType[];
           if (platforms && platforms.length > 0) {
             // Filter requested platforms to only those that are connected
-            platformsToSearch = platforms.filter(platform => {
+            platformsToSearch = platforms.filter((platform) => {
               const link = connectedPlatforms[platform];
               return link !== null && link.status === "active";
             });
@@ -148,9 +148,8 @@ export const registerSearchAssetsTool: RegisterTool =
                 platform,
                 platformName: getPlatformDisplayName(platform),
               }));
-              
-              allAssets.push(...platformAssets);
 
+              allAssets.push(...platformAssets);
             } catch (error) {
               searchResults[platform] = {
                 assets: [],
@@ -168,8 +167,10 @@ export const registerSearchAssetsTool: RegisterTool =
             const topMatches = allAssets
               .sort((a, b) => {
                 // Sort by performance metrics if available
-                const aPerf = a.performance?.annualizedReturn || a.expectedReturn || 0;
-                const bPerf = b.performance?.annualizedReturn || b.expectedReturn || 0;
+                const aPerf =
+                  a.performance?.annualizedReturn || a.expectedReturn || 0;
+                const bPerf =
+                  b.performance?.annualizedReturn || b.expectedReturn || 0;
                 return bPerf - aPerf;
               })
               .slice(0, 5);
@@ -228,28 +229,38 @@ function generateSearchSuggestions(query: string, assets: any[]): string[] {
   // Analyze asset categories and suggest related searches
   const categories = new Set();
   const regions = new Set();
-  
-  assets.forEach(asset => {
+
+  assets.forEach((asset) => {
     if (asset.category) categories.add(asset.category);
     if (asset.region) regions.add(asset.region);
   });
 
   // Generate contextual suggestions
   if (categories.size > 0) {
-    suggestions.push(`Try searching for: ${Array.from(categories).slice(0, 2).join(" or ")}`);
+    suggestions.push(
+      `Try searching for: ${Array.from(categories).slice(0, 2).join(" or ")}`,
+    );
   }
-  
+
   if (regions.size > 0) {
-    suggestions.push(`Explore regional assets: ${Array.from(regions).slice(0, 2).join(" or ")}`);
+    suggestions.push(
+      `Explore regional assets: ${Array.from(regions).slice(0, 2).join(" or ")}`,
+    );
   }
 
   // Generic suggestions based on query
   if (query.toLowerCase().includes("wine")) {
-    suggestions.push("Try: 'vintage bordeaux', 'french wine', 'investment grade wine'");
+    suggestions.push(
+      "Try: 'vintage bordeaux', 'french wine', 'investment grade wine'",
+    );
   } else if (query.toLowerCase().includes("art")) {
-    suggestions.push("Try: 'contemporary art', 'blue chip artists', 'emerging artists'");
+    suggestions.push(
+      "Try: 'contemporary art', 'blue chip artists', 'emerging artists'",
+    );
   } else if (query.toLowerCase().includes("real estate")) {
-    suggestions.push("Try: 'rental properties', 'commercial real estate', 'REITs'");
+    suggestions.push(
+      "Try: 'rental properties', 'commercial real estate', 'REITs'",
+    );
   }
 
   return suggestions.slice(0, 3);

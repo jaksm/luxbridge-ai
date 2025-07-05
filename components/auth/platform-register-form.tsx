@@ -45,7 +45,12 @@ export function PlatformRegisterForm({ platform }: PlatformRegisterFormProps) {
   };
 
   const validateForm = () => {
-    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.name) {
+    if (
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.name
+    ) {
       setError("All fields are required");
       return false;
     }
@@ -71,7 +76,7 @@ export function PlatformRegisterForm({ platform }: PlatformRegisterFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -97,7 +102,9 @@ export function PlatformRegisterForm({ platform }: PlatformRegisterFormProps) {
         }, 2000);
       } else {
         if (response.status === 409) {
-          setError("An account with this email already exists. Please sign in instead.");
+          setError(
+            "An account with this email already exists. Please sign in instead.",
+          );
         } else if (data.details && Array.isArray(data.details)) {
           setError(data.details.map((d: any) => d.message).join(", "));
         } else {
@@ -118,9 +125,12 @@ export function PlatformRegisterForm({ platform }: PlatformRegisterFormProps) {
           <CardContent className="pt-6 text-center space-y-6">
             <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
             <div className="space-y-2">
-              <CardTitle className="text-xl text-green-800">Registration Successful!</CardTitle>
+              <CardTitle className="text-xl text-green-800">
+                Registration Successful!
+              </CardTitle>
               <CardDescription>
-                Your {platformInfo?.name} account has been created. Redirecting to authorization...
+                Your {platformInfo?.name} account has been created. Redirecting
+                to authorization...
               </CardDescription>
             </div>
           </CardContent>
@@ -135,7 +145,9 @@ export function PlatformRegisterForm({ platform }: PlatformRegisterFormProps) {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl">Create Account</CardTitle>
           <CardDescription>Register for {platformInfo?.name}</CardDescription>
-          <div className={`mt-4 p-3 rounded-lg bg-gradient-to-r ${platformInfo?.color}`}>
+          <div
+            className={`mt-4 p-3 rounded-lg bg-gradient-to-r ${platformInfo?.color}`}
+          >
             <p className="text-sm text-white font-medium">
               {platformInfo?.description}
             </p>
@@ -265,7 +277,9 @@ export function PlatformRegisterForm({ platform }: PlatformRegisterFormProps) {
 
           <Card className="mt-6 bg-muted/50">
             <CardContent className="pt-4">
-              <CardTitle className="text-sm mb-2">Platform Registration:</CardTitle>
+              <CardTitle className="text-sm mb-2">
+                Platform Registration:
+              </CardTitle>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
                 <li>Create your platform account</li>
                 <li>Start with an empty portfolio</li>

@@ -22,7 +22,9 @@ interface PlatformAuthorizeFormProps {
   platform: PlatformType;
 }
 
-export function PlatformAuthorizeForm({ platform }: PlatformAuthorizeFormProps) {
+export function PlatformAuthorizeForm({
+  platform,
+}: PlatformAuthorizeFormProps) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
@@ -43,7 +45,7 @@ export function PlatformAuthorizeForm({ platform }: PlatformAuthorizeFormProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password) {
       setError("Email and password are required");
       return;
@@ -90,10 +92,10 @@ export function PlatformAuthorizeForm({ platform }: PlatformAuthorizeFormProps) 
           <CardContent className="pt-6 text-center space-y-6">
             <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
             <div className="space-y-2">
-              <CardTitle className="text-xl text-green-800">Authentication Successful!</CardTitle>
-              <CardDescription>
-                Redirecting to authorization...
-              </CardDescription>
+              <CardTitle className="text-xl text-green-800">
+                Authentication Successful!
+              </CardTitle>
+              <CardDescription>Redirecting to authorization...</CardDescription>
             </div>
           </CardContent>
         </Card>
@@ -106,8 +108,12 @@ export function PlatformAuthorizeForm({ platform }: PlatformAuthorizeFormProps) 
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl">Sign In</CardTitle>
-          <CardDescription>Access your {platformInfo?.name} account</CardDescription>
-          <div className={`mt-4 p-3 rounded-lg bg-gradient-to-r ${platformInfo?.color}`}>
+          <CardDescription>
+            Access your {platformInfo?.name} account
+          </CardDescription>
+          <div
+            className={`mt-4 p-3 rounded-lg bg-gradient-to-r ${platformInfo?.color}`}
+          >
             <p className="text-sm text-white font-medium">
               {platformInfo?.description}
             </p>
@@ -193,7 +199,9 @@ export function PlatformAuthorizeForm({ platform }: PlatformAuthorizeFormProps) 
 
           <Card className="mt-6 bg-muted/50">
             <CardContent className="pt-4">
-              <CardTitle className="text-sm mb-2">Platform Authentication:</CardTitle>
+              <CardTitle className="text-sm mb-2">
+                Platform Authentication:
+              </CardTitle>
               <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
                 <li>Sign in with your platform credentials</li>
                 <li>Authorize LuxBridge access</li>

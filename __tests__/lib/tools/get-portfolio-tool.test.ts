@@ -9,7 +9,9 @@ vi.mock("@/lib/auth/session-manager");
 
 describe("Get Portfolio Tool", () => {
   const mockPlatformAuth = vi.mocked(await import("@/lib/auth/platform-auth"));
-  const mockSessionManager = vi.mocked(await import("@/lib/auth/session-manager"));
+  const mockSessionManager = vi.mocked(
+    await import("@/lib/auth/session-manager"),
+  );
 
   const mockAccessToken = {
     userId: "lux_user_123",
@@ -32,7 +34,7 @@ describe("Get Portfolio Tool", () => {
         "get_portfolio",
         expect.stringContaining("Get your complete investment portfolio"),
         {},
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
@@ -131,20 +133,20 @@ describe("Get Portfolio Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockPortfolio);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockPortfolio,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler();
 
       expect(mockSessionManager.getUserConnectedPlatforms).toHaveBeenCalledWith(
         "lux_user_123",
-        "session_456"
-      );
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
         "session_456",
-        "splint_invest",
-        "/portfolio"
       );
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith("session_456", "splint_invest", "/portfolio");
 
       expect(result.content[0].text).toContain('"totalValue": 1500');
       expect(result.content[0].text).toContain('"totalGain": 25');
@@ -177,7 +179,7 @@ describe("Get Portfolio Tool", () => {
 
       // Mock API error
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockRejectedValue(
-        new Error("Platform API error")
+        new Error("Platform API error"),
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -254,29 +256,25 @@ describe("Get Portfolio Tool", () => {
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockPortfolios[platform as PlatformType]);
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler();
 
       // Verify all platforms were called
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledTimes(3);
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
-        "session_456",
-        "splint_invest",
-        "/portfolio"
-      );
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
-        "session_456",
-        "masterworks",
-        "/portfolio"
-      );
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).toHaveBeenCalledWith(
-        "session_456",
-        "realt",
-        "/portfolio"
-      );
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledTimes(3);
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith("session_456", "splint_invest", "/portfolio");
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith("session_456", "masterworks", "/portfolio");
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).toHaveBeenCalledWith("session_456", "realt", "/portfolio");
 
       // Verify aggregated totals
       expect(result.content[0].text).toContain('"totalValue": 4500'); // 1000 + 2000 + 1500
@@ -320,7 +318,7 @@ describe("Get Portfolio Tool", () => {
           } else {
             return Promise.reject(new Error("Masterworks API down"));
           }
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -377,7 +375,7 @@ describe("Get Portfolio Tool", () => {
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
         (sessionId, platform, endpoint) => {
           return Promise.resolve(mockPortfolios[platform as PlatformType]);
-        }
+        },
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -397,7 +395,9 @@ describe("Get Portfolio Tool", () => {
         ...mockAccessToken,
         sessionId: undefined,
       };
-      registerGetPortfolioTool({ accessToken: accessTokenWithoutSession })(server);
+      registerGetPortfolioTool({ accessToken: accessTokenWithoutSession })(
+        server,
+      );
 
       mockSessionManager.getUserConnectedPlatforms.mockResolvedValue({
         splint_invest: createMockPlatformLink("splint_invest"),
@@ -410,7 +410,9 @@ describe("Get Portfolio Tool", () => {
 
       expect(result.content[0].text).toContain('"status": "error"');
       expect(result.content[0].text).toContain("No active session found");
-      expect(mockPlatformAuth.makeAuthenticatedPlatformCall).not.toHaveBeenCalled();
+      expect(
+        mockPlatformAuth.makeAuthenticatedPlatformCall,
+      ).not.toHaveBeenCalled();
     });
 
     it("should handle getUserConnectedPlatforms errors", async () => {
@@ -418,7 +420,7 @@ describe("Get Portfolio Tool", () => {
       registerGetPortfolioTool({ accessToken: mockAccessToken })(server);
 
       mockSessionManager.getUserConnectedPlatforms.mockRejectedValue(
-        new Error("Session manager error")
+        new Error("Session manager error"),
       );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
@@ -454,7 +456,9 @@ describe("Get Portfolio Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockPortfolio);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockPortfolio,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler();
@@ -486,7 +490,9 @@ describe("Get Portfolio Tool", () => {
         ],
       };
 
-      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(mockPortfolio);
+      mockPlatformAuth.makeAuthenticatedPlatformCall.mockResolvedValue(
+        mockPortfolio,
+      );
 
       const [, , , toolHandler] = server.tool.mock.calls[0];
       const result = await toolHandler();

@@ -7,18 +7,21 @@ This directory contains the complete authentication infrastructure for LuxBridge
 ### Dual Authentication Model
 
 **Layer 1: LuxBridge OAuth 2.1** (Primary Access)
+
 - **Purpose**: Main application access and MCP server authentication
 - **Provider**: Privy-based authentication with email verification
 - **Storage**: Redis-based OAuth state management with sessionId bridging
 - **Scope**: System-wide access, MCP tool execution, cross-platform operations
 
 **Layer 2: Platform Authentication** (RWA Platform Access)
+
 - **Purpose**: Individual platform credentials for RWA platforms
 - **Storage**: Redis-backed user profiles with bcrypt password hashing
 - **Scope**: Platform-specific API access, portfolio management, asset operations
 - **Platforms**: Splint Invest, Masterworks, RealT
 
 **Multi-Platform Bridge** (Session Management)
+
 - **Purpose**: Enable simultaneous connections to multiple RWA platforms
 - **Implementation**: OAuth tokens include sessionId that links to platform authentication sessions
 - **Features**: Real-time platform connectivity, cross-platform data aggregation, unified portfolio views
@@ -44,6 +47,7 @@ lib/auth/
 **Purpose**: Provides backward-compatible authentication interface that delegates to Redis-backed system
 
 **Key Functions**:
+
 ```typescript
 // User authentication
 validateCredentials(email: string, password: string): Promise<AuthResult>
@@ -55,6 +59,7 @@ authenticateToken(authHeader?: string): TokenPayload | null
 ```
 
 **Migration Pattern**:
+
 - Maintains existing function signatures for backward compatibility
 - Converts between legacy `User` type and new `RedisUser` type
 - Strips password fields from responses for security
@@ -64,24 +69,27 @@ authenticateToken(authHeader?: string): TokenPayload | null
 **Purpose**: Complete user lifecycle management with Redis persistence
 
 **User Data Model**:
+
 ```typescript
 interface RedisUser {
-  userId: string;              // Generated unique identifier
-  email: string;               // Primary key and login identifier
-  passwordHash: string;        // bcrypt hash with 12 salt rounds
-  name: string;                // Display name
-  scenario: string;            // User type (e.g., "empty_portfolio")
-  portfolios: {                // Platform-specific asset holdings
+  userId: string; // Generated unique identifier
+  email: string; // Primary key and login identifier
+  passwordHash: string; // bcrypt hash with 12 salt rounds
+  name: string; // Display name
+  scenario: string; // User type (e.g., "empty_portfolio")
+  portfolios: {
+    // Platform-specific asset holdings
     splint_invest: UserPortfolioHolding[];
     masterworks: UserPortfolioHolding[];
     realt: UserPortfolioHolding[];
   };
-  createdAt: string;           // ISO timestamp
-  updatedAt: string;           // ISO timestamp
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
 }
 ```
 
 **Core Operations**:
+
 ```typescript
 // User lifecycle
 createUser(params: CreateUserParams): Promise<RedisUser>
@@ -103,6 +111,7 @@ registerUser(params: CreateUserParams): Promise<RedisUserAuthResult>
 ```
 
 **Security Features**:
+
 - **Password Hashing**: bcrypt with 12 salt rounds
 - **Email Validation**: Duplicate checking and format validation
 - **Data Integrity**: Atomic Redis operations with error handling
@@ -113,6 +122,7 @@ registerUser(params: CreateUserParams): Promise<RedisUserAuthResult>
 **Purpose**: OAuth session lifecycle with multi-platform connectivity bridge
 
 **Key Functions**:
+
 ```typescript
 // Session lifecycle
 createAuthSession(luxUserId: string, privyToken: string): Promise<string>
@@ -131,6 +141,7 @@ getLuxBridgeUser(privyId: string): Promise<LuxBridgeUser | null>
 ```
 
 **Session Data Model**:
+
 ```typescript
 interface AuthSession {
   sessionId: string;
@@ -147,6 +158,7 @@ interface AuthSession {
 **Purpose**: Cross-platform session management and platform linking
 
 **Key Functions**:
+
 ```typescript
 // Platform authentication
 validatePlatformCredentials(platform: PlatformType, email: string, password: string): Promise<PlatformAuthResult>
@@ -161,6 +173,7 @@ validateAllPlatformLinks(luxUserId: string): Promise<void>
 ```
 
 **Platform Configuration**:
+
 ```typescript
 export const SUPPORTED_PLATFORMS = [
   {
@@ -172,7 +185,7 @@ export const SUPPORTED_PLATFORMS = [
   },
   {
     platform: "masterworks" as PlatformType,
-    name: "Masterworks", 
+    name: "Masterworks",
     description: "Contemporary art investments",
     color: "from-blue-600 to-blue-800",
     category: "Art & Collectibles",
@@ -180,7 +193,7 @@ export const SUPPORTED_PLATFORMS = [
   {
     platform: "realt" as PlatformType,
     name: "RealT",
-    description: "Tokenized real estate investments", 
+    description: "Tokenized real estate investments",
     color: "from-green-600 to-green-800",
     category: "Real Estate",
   },
@@ -192,6 +205,7 @@ export const SUPPORTED_PLATFORMS = [
 **Purpose**: JWT token generation, validation, and Bearer token extraction
 
 **Key Functions**:
+
 ```typescript
 // Token operations
 generateJWT(userId: string, platform: PlatformType): string
@@ -208,6 +222,7 @@ interface TokenPayload {
 ```
 
 **Token Configuration**:
+
 - **Algorithm**: HS256 (HMAC SHA-256)
 - **Expiration**: 24 hours (86400 seconds)
 - **Claims**: userId, platform, standard JWT claims (iat, exp)
@@ -218,6 +233,7 @@ interface TokenPayload {
 **Purpose**: Privy-based token verification for LuxBridge OAuth 2.1
 
 **Key Functions**:
+
 ```typescript
 // Privy integration
 tokenVerifier(bearerToken?: string): Promise<any>
@@ -225,6 +241,7 @@ privyVerifier(bearerToken?: string): Promise<PrivyAuthResult>
 ```
 
 **Integration Features**:
+
 - Privy JWT token validation
 - User data extraction from Privy tokens
 - Fallback to mock verification for development
@@ -235,6 +252,7 @@ privyVerifier(bearerToken?: string): Promise<PrivyAuthResult>
 ### Authentication Keys
 
 **OAuth State Management**:
+
 ```
 oauth:client:{clientId}      → OAuth client configuration
 oauth:auth_code:{code}       → Temporary authorization codes (10min TTL)
@@ -242,12 +260,14 @@ oauth:access_token:{token}   → Access tokens for MCP (24hr TTL)
 ```
 
 **User Authentication**:
+
 ```
 user:{email}                 → Complete user profile with portfolios
 user_id:{userId}            → Fast userId → email lookup
 ```
 
 **Platform Linking**:
+
 ```
 platform_link:{luxUserId}:{platform} → Platform authentication links (24hr TTL)
 ```
@@ -255,6 +275,7 @@ platform_link:{luxUserId}:{platform} → Platform authentication links (24hr TTL
 ### Data Persistence Patterns
 
 **User Creation**:
+
 ```typescript
 // 1. Create user record
 await redis.hSet(`user:${email}`, userHashData);
@@ -264,6 +285,7 @@ await redis.set(`user_id:${userId}`, email);
 ```
 
 **Portfolio Management**:
+
 ```typescript
 // 1. Retrieve user
 const user = await getUserById(userId);
@@ -283,6 +305,7 @@ await redis.hSet(`user:${user.email}`, {
 ### Password Security
 
 **Hashing Strategy**:
+
 ```typescript
 import bcrypt from "bcryptjs";
 
@@ -294,6 +317,7 @@ const isValid = await bcrypt.compare(password, user.passwordHash);
 ```
 
 **Security Features**:
+
 - **Salt Rounds**: 12 rounds for strong protection against rainbow table attacks
 - **Never Store Plaintext**: Passwords immediately hashed upon registration
 - **Secure Comparison**: Constant-time comparison to prevent timing attacks
@@ -302,19 +326,19 @@ const isValid = await bcrypt.compare(password, user.passwordHash);
 ### Token Security
 
 **JWT Configuration**:
+
 ```typescript
 // Token generation
-const token = jwt.sign(
-  { userId, platform }, 
-  process.env.JWT_SECRET!,
-  { expiresIn: "24h" }
-);
+const token = jwt.sign({ userId, platform }, process.env.JWT_SECRET!, {
+  expiresIn: "24h",
+});
 
 // Token validation
 const payload = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
 ```
 
 **Security Features**:
+
 - **Strong Secret**: Environment-based JWT secret
 - **Expiration**: 24-hour token lifetime
 - **Platform Binding**: Tokens tied to specific platforms
@@ -323,11 +347,13 @@ const payload = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
 ### Redis Security
 
 **Connection Security**:
+
 - TLS encryption for Redis connections
 - Authentication via Redis URL
 - Connection pooling for performance
 
 **Data Protection**:
+
 - TTL management for temporary data
 - Atomic operations for data consistency
 - Error handling for connection failures
@@ -337,6 +363,7 @@ const payload = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
 ### Adding New Authentication Methods
 
 **1. Extend User Types**:
+
 ```typescript
 // lib/types/redis-user.ts
 interface RedisUser {
@@ -350,22 +377,24 @@ interface RedisUser {
 ```
 
 **2. Add Authentication Function**:
+
 ```typescript
 // lib/auth/redis-users.ts
 export async function authenticateWithProvider(
   provider: string,
-  credentials: any
+  credentials: any,
 ): Promise<RedisUserAuthResult> {
   // Implementation
 }
 ```
 
 **3. Update Common Interface**:
+
 ```typescript
 // lib/auth/authCommon.ts
 export async function validateProviderCredentials(
   provider: string,
-  credentials: any
+  credentials: any,
 ): Promise<AuthResult> {
   // Delegate to Redis implementation
 }
@@ -374,12 +403,18 @@ export async function validateProviderCredentials(
 ### Adding New Platforms
 
 **1. Update Platform Types**:
+
 ```typescript
 // lib/types/platformAsset.ts
-export type PlatformType = "splint_invest" | "masterworks" | "realt" | "new_platform";
+export type PlatformType =
+  | "splint_invest"
+  | "masterworks"
+  | "realt"
+  | "new_platform";
 ```
 
 **2. Add Platform Configuration**:
+
 ```typescript
 // lib/auth/platform-auth.ts
 export const SUPPORTED_PLATFORMS = [
@@ -395,6 +430,7 @@ export const SUPPORTED_PLATFORMS = [
 ```
 
 **3. Update User Schema**:
+
 ```typescript
 // lib/types/redis-user.ts
 interface RedisUser {
@@ -412,6 +448,7 @@ interface RedisUser {
 ### Unit Testing
 
 **Mock Redis Operations**:
+
 ```typescript
 // __tests__/setup.ts
 vi.mock("@/lib/auth/redis-users", () => ({
@@ -423,6 +460,7 @@ vi.mock("@/lib/auth/redis-users", () => ({
 ```
 
 **Test Authentication Functions**:
+
 ```typescript
 describe("validateCredentials", () => {
   it("should validate correct credentials", async () => {
@@ -432,7 +470,7 @@ describe("validateCredentials", () => {
     });
 
     const result = await validateCredentials("test@example.com", "password123");
-    
+
     expect(result.success).toBe(true);
     expect(result.user?.password).toBe(""); // Password stripped for security
   });
@@ -442,6 +480,7 @@ describe("validateCredentials", () => {
 ### Integration Testing
 
 **API Endpoint Testing**:
+
 ```typescript
 describe("POST /api/platform/auth/register", () => {
   it("should register new user successfully", async () => {
@@ -450,10 +489,10 @@ describe("POST /api/platform/auth/register", () => {
       password: "password123",
       name: "Test User",
     });
-    
+
     const response = await POST(request, mockContext);
     const data = await expectJSONResponse(response, 200);
-    
+
     expect(data.accessToken).toBeDefined();
     expect(data.userId).toBeDefined();
   });
@@ -465,6 +504,7 @@ describe("POST /api/platform/auth/register", () => {
 ### Redis Optimization
 
 **Connection Management**:
+
 ```typescript
 // Ensure connection before operations
 async function ensureConnected() {
@@ -475,6 +515,7 @@ async function ensureConnected() {
 ```
 
 **Indexing Strategy**:
+
 - **Email Index**: Primary key for user lookup
 - **UserId Index**: Secondary index for fast userId → email resolution
 - **Platform Linking**: Separate keys for cross-platform authentication
@@ -482,6 +523,7 @@ async function ensureConnected() {
 ### Caching Strategy
 
 **User Data Caching**:
+
 - Redis serves as both primary storage and cache
 - TTL management for temporary tokens
 - Connection pooling for high-throughput scenarios
@@ -491,6 +533,7 @@ async function ensureConnected() {
 ### Authentication Errors
 
 **Common Error Types**:
+
 ```typescript
 // User not found
 { success: false, error: "Invalid credentials" }
@@ -503,6 +546,7 @@ async function ensureConnected() {
 ```
 
 **Error Response Patterns**:
+
 ```typescript
 // API error responses
 {
@@ -515,6 +559,7 @@ async function ensureConnected() {
 ### Recovery Patterns
 
 **Redis Connection Failures**:
+
 ```typescript
 try {
   await redis.operation();
@@ -530,6 +575,7 @@ try {
 ### From Static to Redis
 
 **Data Migration Strategy**:
+
 1. **Dual Mode**: Run both static and Redis systems in parallel
 2. **User Migration**: Migrate users on first login
 3. **Fallback**: Graceful fallback to static data if Redis unavailable
@@ -538,6 +584,7 @@ try {
 ### Backward Compatibility
 
 **Interface Preservation**:
+
 ```typescript
 // Maintain existing function signatures
 export async function getUserById(userId: string): Promise<User | undefined> {
@@ -547,6 +594,7 @@ export async function getUserById(userId: string): Promise<User | undefined> {
 ```
 
 **Type Conversion**:
+
 ```typescript
 function convertRedisUserToUser(redisUser: RedisUser): User {
   return {

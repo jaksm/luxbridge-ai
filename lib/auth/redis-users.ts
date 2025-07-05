@@ -17,9 +17,9 @@ async function ensureConnected() {
 
 export async function createUser(params: CreateUserParams): Promise<RedisUser> {
   await ensureConnected();
-  
+
   const { email, password, name, scenario = "empty_portfolio" } = params;
-  
+
   const existingUser = await getUserByEmail(email);
   if (existingUser) {
     throw new Error("User already exists");
@@ -27,7 +27,7 @@ export async function createUser(params: CreateUserParams): Promise<RedisUser> {
 
   const userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
   const passwordHash = await bcrypt.hash(password, 12);
-  
+
   const user: RedisUser = {
     userId,
     email,
@@ -62,7 +62,7 @@ export async function createUser(params: CreateUserParams): Promise<RedisUser> {
 
 export async function getUserByEmail(email: string): Promise<RedisUser | null> {
   await ensureConnected();
-  
+
   const key = `user:${email}`;
   const userData = await redis.hGetAll(key);
 
@@ -84,7 +84,7 @@ export async function getUserByEmail(email: string): Promise<RedisUser | null> {
 
 export async function getUserById(userId: string): Promise<RedisUser | null> {
   await ensureConnected();
-  
+
   const email = await redis.get(`user_id:${userId}`);
   if (!email) {
     return null;
@@ -115,7 +115,7 @@ export async function updateUser(
   updates: UpdateUserParams,
 ): Promise<RedisUser | null> {
   await ensureConnected();
-  
+
   const user = await getUserById(userId);
   if (!user) {
     return null;
@@ -143,7 +143,7 @@ export async function addAssetToPortfolio(
   asset: UserPortfolioHolding,
 ): Promise<RedisUser | null> {
   await ensureConnected();
-  
+
   const user = await getUserById(userId);
   if (!user) {
     return null;
@@ -176,7 +176,7 @@ export async function removeAssetFromPortfolio(
   assetId: string,
 ): Promise<RedisUser | null> {
   await ensureConnected();
-  
+
   const user = await getUserById(userId);
   if (!user) {
     return null;
@@ -204,7 +204,7 @@ export async function updatePortfolioAsset(
   updates: Partial<UserPortfolioHolding>,
 ): Promise<RedisUser | null> {
   await ensureConnected();
-  
+
   const user = await getUserById(userId);
   if (!user) {
     return null;
@@ -237,9 +237,11 @@ export async function updatePortfolioAsset(
 export async function getUserPortfolio(
   userId: string,
   platform?: PlatformType,
-): Promise<UserPortfolioHolding[] | Record<PlatformType, UserPortfolioHolding[]> | null> {
+): Promise<
+  UserPortfolioHolding[] | Record<PlatformType, UserPortfolioHolding[]> | null
+> {
   await ensureConnected();
-  
+
   const user = await getUserById(userId);
   if (!user) {
     return null;
@@ -252,19 +254,22 @@ export async function getUserPortfolio(
   return user.portfolios;
 }
 
-export async function registerUser(params: CreateUserParams): Promise<RedisUserAuthResult> {
+export async function registerUser(
+  params: CreateUserParams,
+): Promise<RedisUserAuthResult> {
   try {
     const user = await createUser(params);
     return { success: true, user };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Registration failed";
+    const errorMessage =
+      error instanceof Error ? error.message : "Registration failed";
     return { success: false, error: errorMessage };
   }
 }
 
 export async function deleteUser(userId: string): Promise<boolean> {
   await ensureConnected();
-  
+
   const user = await getUserById(userId);
   if (!user) {
     return false;
@@ -281,13 +286,13 @@ export async function deleteUser(userId: string): Promise<boolean> {
 
 export async function getAllUsers(): Promise<RedisUser[]> {
   await ensureConnected();
-  
+
   const keys = await redis.keys("user:*");
   const users: RedisUser[] = [];
 
   for (const key of keys) {
     if (key.startsWith("user_id:")) continue;
-    
+
     const userData = await redis.hGetAll(key);
     if (userData.userId) {
       users.push({

@@ -56,7 +56,8 @@ export function handleAssetTokenized(event: AssetTokenized): void {
   platform.updatedAt = event.block.timestamp;
   platform.save();
 
-  let assetId = event.params.platform.toString() + "-" + event.params.assetId.toString();
+  let assetId =
+    event.params.platform.toString() + "-" + event.params.assetId.toString();
   let asset = new Asset(assetId);
   asset.platform = platformId;
   asset.platformAssetId = event.params.assetId.toString();
@@ -87,7 +88,8 @@ export function handleAssetTokenized(event: AssetTokenized): void {
 }
 
 export function handleAssetBurned(event: AssetBurned): void {
-  let assetId = event.params.platform.toString() + "-" + event.params.assetId.toString();
+  let assetId =
+    event.params.platform.toString() + "-" + event.params.assetId.toString();
   let asset = Asset.load(assetId);
 
   if (asset != null) {
@@ -105,7 +107,8 @@ export function handleAssetBurned(event: AssetBurned): void {
 }
 
 export function handleValuationUpdated(event: ValuationUpdated): void {
-  let assetId = event.params.platform.toString() + "-" + event.params.assetId.toString();
+  let assetId =
+    event.params.platform.toString() + "-" + event.params.assetId.toString();
   let asset = Asset.load(assetId);
 
   if (asset != null) {
@@ -136,8 +139,14 @@ export function handleValuationUpdated(event: ValuationUpdated): void {
 }
 
 export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
-  let sellAssetId = event.params.sellPlatform.toString() + "-" + event.params.sellAssetId.toString();
-  let buyAssetId = event.params.buyPlatform.toString() + "-" + event.params.buyAssetId.toString();
+  let sellAssetId =
+    event.params.sellPlatform.toString() +
+    "-" +
+    event.params.sellAssetId.toString();
+  let buyAssetId =
+    event.params.buyPlatform.toString() +
+    "-" +
+    event.params.buyAssetId.toString();
 
   let sellAsset = Asset.load(sellAssetId);
   let buyAsset = Asset.load(buyAssetId);

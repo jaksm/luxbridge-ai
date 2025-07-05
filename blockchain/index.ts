@@ -624,9 +624,7 @@ export const TokenizeAssetSchema = z
       ),
     currency: z
       .string()
-      .describe(
-        "Currency code for the valuation (e.g., 'USD', 'EUR', 'GBP')",
-      ),
+      .describe("Currency code for the valuation (e.g., 'USD', 'EUR', 'GBP')"),
   })
   .describe(
     "Parameters for tokenizing a real-world asset into fungible ERC-20 tokens on the blockchain",

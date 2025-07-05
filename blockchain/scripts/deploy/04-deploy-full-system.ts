@@ -60,7 +60,7 @@ async function main() {
     ethers.keccak256(ethers.toUtf8Bytes("bordeaux-legal-doc")),
     ethers.parseEther("100000"),
     ethers.parseEther("100"),
-    "USD"
+    "USD",
   );
   console.log("✓ Created Bordeaux 2019 wine asset");
 
@@ -73,7 +73,7 @@ async function main() {
     ethers.keccak256(ethers.toUtf8Bytes("picasso-legal-doc")),
     ethers.parseEther("200000"),
     ethers.parseEther("400"),
-    "USD"
+    "USD",
   );
   console.log("✓ Created Picasso artwork asset");
 
@@ -86,7 +86,7 @@ async function main() {
     ethers.keccak256(ethers.toUtf8Bytes("detroit-house-legal")),
     ethers.parseEther("50000"),
     ethers.parseEther("500"),
-    "USD"
+    "USD",
   );
   console.log("✓ Created Detroit house real estate asset");
 
