@@ -43,3 +43,13 @@ next-env.d.ts
 next-env.d.ts
 .env*.local
 datasets
+
+# Hardhat/Blockchain
+blockchain/cache
+blockchain/artifacts
+blockchain/typechain-types
+blockchain/coverage
+blockchain/coverage.json
+blockchain/deployments/localhost
+blockchain/deployments/hardhat
+blockchain/gasReporterOutput.json
