@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Next.js MCP (Model Context Protocol) server implementation with OAuth 2.1 authentication and mock token verification. Uses `@vercel/mcp-adapter` to create secure MCP endpoints that require valid OAuth access tokens for all requests. Supports both SSE and Streamable HTTP transport protocols.
 
-**Blockchain Integration**: Includes a complete smart contract infrastructure for Real-World Asset (RWA) tokenization and cross-platform trading. The blockchain layer enables universal liquidity aggregation across platforms like Splint Invest, Masterworks, and RealT through sophisticated AMMs and AI-powered automation.
+**Blockchain Integration**: Includes a complete smart contract infrastructure for Real-World Asset (RWA) tokenization and cross-platform trading. The blockchain layer enables universal liquidity aggregation across platforms like Splint Invest, Masterworks, and RealT through sophisticated AMMs and AI-powered automation using ETH-based settlements.
 
 **Current State**: Template with mock authentication that can be easily upgraded to real authentication providers, plus production-ready smart contracts optimized for Zircuit network.
 
