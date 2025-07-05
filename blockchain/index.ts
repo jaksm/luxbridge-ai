@@ -132,9 +132,9 @@ export class LuxBridgeSDK {
     return this.signer;
   }
 
-  private async estimateGasWithBuffer(transaction: any, bufferPercent = 20) {
+  private async estimateGasWithBuffer(contractMethod: any, bufferPercent = 20) {
     try {
-      const estimated = await transaction.estimateGas();
+      const estimated = await contractMethod.estimateGas();
       const buffer = (estimated * BigInt(bufferPercent)) / 100n;
       return estimated + buffer;
     } catch (error) {
@@ -155,18 +155,6 @@ export class LuxBridgeSDK {
       parsed.assetType,
       parsed.legalHash,
       ethers.parseEther(parsed.valuation),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.factory.tokenizeAsset.populateTransaction(
-            parsed.platform,
-            parsed.assetId,
-            ethers.parseEther(parsed.totalSupply),
-            parsed.assetType,
-            parsed.legalHash,
-            ethers.parseEther(parsed.valuation),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -192,15 +180,6 @@ export class LuxBridgeSDK {
       parsed.platform,
       parsed.assetId,
       ethers.parseEther(parsed.amount),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.factory.burnTokens.populateTransaction(
-            parsed.platform,
-            parsed.assetId,
-            ethers.parseEther(parsed.amount),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -220,15 +199,6 @@ export class LuxBridgeSDK {
       parsed.platform,
       parsed.assetId,
       ethers.parseEther(parsed.newValuation),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.factory.updateValuation.populateTransaction(
-            parsed.platform,
-            parsed.assetId,
-            ethers.parseEther(parsed.newValuation),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -270,18 +240,6 @@ export class LuxBridgeSDK {
       parsed.assets.map((a) => a.assetType),
       parsed.assets.map((a) => a.legalHash),
       parsed.assets.map((a) => ethers.parseEther(a.valuation)),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.factory.batchTokenize.populateTransaction(
-            parsed.assets.map((a) => a.platform),
-            parsed.assets.map((a) => a.assetId),
-            parsed.assets.map((a) => ethers.parseEther(a.totalSupply)),
-            parsed.assets.map((a) => a.assetType),
-            parsed.assets.map((a) => a.legalHash),
-            parsed.assets.map((a) => ethers.parseEther(a.valuation)),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -311,15 +269,6 @@ export class LuxBridgeSDK {
       parsed.tokenA,
       parsed.tokenB,
       swapFee,
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.amm.createPool.populateTransaction(
-            parsed.tokenA,
-            parsed.tokenB,
-            swapFee,
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -345,18 +294,6 @@ export class LuxBridgeSDK {
       ethers.parseEther(parsed.amountBDesired),
       ethers.parseEther(parsed.amountAMin || "0"),
       ethers.parseEther(parsed.amountBMin || "0"),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.amm.addLiquidity.populateTransaction(
-            parsed.tokenA,
-            parsed.tokenB,
-            ethers.parseEther(parsed.amountADesired),
-            ethers.parseEther(parsed.amountBDesired),
-            ethers.parseEther(parsed.amountAMin || "0"),
-            ethers.parseEther(parsed.amountBMin || "0"),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -378,17 +315,6 @@ export class LuxBridgeSDK {
       ethers.parseEther(parsed.liquidity),
       ethers.parseEther(parsed.amountAMin || "0"),
       ethers.parseEther(parsed.amountBMin || "0"),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.amm.removeLiquidity.populateTransaction(
-            parsed.tokenA,
-            parsed.tokenB,
-            ethers.parseEther(parsed.liquidity),
-            ethers.parseEther(parsed.amountAMin || "0"),
-            ethers.parseEther(parsed.amountBMin || "0"),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -409,16 +335,6 @@ export class LuxBridgeSDK {
       parsed.tokenOut,
       ethers.parseEther(parsed.amountIn),
       ethers.parseEther(parsed.amountOutMin || "0"),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.amm.swap.populateTransaction(
-            parsed.tokenIn,
-            parsed.tokenOut,
-            ethers.parseEther(parsed.amountIn),
-            ethers.parseEther(parsed.amountOutMin || "0"),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -470,14 +386,6 @@ export class LuxBridgeSDK {
     const tx = await this.oracle.requestCrossPlatformPrices(
       parsed.assetId,
       parsed.platforms,
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.oracle.requestCrossPlatformPrices.populateTransaction(
-            parsed.assetId,
-            parsed.platforms,
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -528,15 +436,6 @@ export class LuxBridgeSDK {
       parsed.platform,
       parsed.assetId,
       ethers.parseEther(parsed.price),
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.oracle.mockPriceUpdate.populateTransaction(
-            parsed.platform,
-            parsed.assetId,
-            ethers.parseEther(parsed.price),
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -556,14 +455,6 @@ export class LuxBridgeSDK {
     const tx = await this.factory.registerPlatform(
       parsed.name,
       parsed.apiEndpoint,
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.factory.registerPlatform.populateTransaction(
-            parsed.name,
-            parsed.apiEndpoint,
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -611,15 +502,6 @@ export class LuxBridgeSDK {
       ethers.parseEther(parsed.maxTradeSize),
       ethers.parseEther(parsed.maxDailyVolume),
       parsed.allowedAssets,
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.automation.delegateTrading.populateTransaction(
-            ethers.parseEther(parsed.maxTradeSize),
-            ethers.parseEther(parsed.maxDailyVolume),
-            parsed.allowedAssets,
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -639,13 +521,6 @@ export class LuxBridgeSDK {
 
     const tx = await this.automation.executeAutomatedTrade(
       parsed.tradeId,
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.automation.executeAutomatedTrade.populateTransaction(
-            parsed.tradeId,
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
@@ -668,18 +543,6 @@ export class LuxBridgeSDK {
       ethers.parseEther(parsed.amount),
       ethers.parseEther(parsed.minAmountOut || "0"),
       parsed.deadline,
-      {
-        gasLimit: await this.estimateGasWithBuffer(
-          this.automation.queueAutomatedTrade.populateTransaction(
-            parsed.user,
-            parsed.sellAsset,
-            parsed.buyAsset,
-            ethers.parseEther(parsed.amount),
-            ethers.parseEther(parsed.minAmountOut || "0"),
-            parsed.deadline,
-          ),
-        ),
-      },
     );
 
     const receipt = await tx.wait();
