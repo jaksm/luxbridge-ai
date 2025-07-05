@@ -43,7 +43,7 @@ describe("Platform Portfolio Route", () => {
       ];
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio).mockResolvedValue(
         mockConstructedAssets,
       );
@@ -176,7 +176,7 @@ describe("Platform Portfolio Route", () => {
       const { getUserById } = await import("@/lib/auth/authCommon");
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(undefined);
+      vi.mocked(getUserById).mockResolvedValue(undefined);
 
       const request = createMockRequestWithPlatform(
         "splint_invest",
@@ -208,7 +208,7 @@ describe("Platform Portfolio Route", () => {
       const { getUserById } = await import("@/lib/auth/authCommon");
 
       const mockUser = mockUsers["test@example.com"];
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
 
       const platforms = ["splint_invest", "masterworks", "realt"] as const;
 
@@ -264,7 +264,7 @@ describe("Platform Portfolio Route", () => {
       ];
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio).mockResolvedValue(
         mockConstructedAssets,
       );
@@ -301,7 +301,7 @@ describe("Platform Portfolio Route", () => {
       const mockUser = mockUsers["test@example.com"];
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio).mockRejectedValue(
         new Error("Asset not found"),
       );

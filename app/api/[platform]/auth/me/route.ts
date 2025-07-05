@@ -36,7 +36,7 @@ export async function GET(
       );
     }
 
-    const user = getUserById(tokenPayload.userId);
+    const user = await getUserById(tokenPayload.userId);
     if (!user) {
       return NextResponse.json(
         { error: "user_not_found", message: "User not found" },

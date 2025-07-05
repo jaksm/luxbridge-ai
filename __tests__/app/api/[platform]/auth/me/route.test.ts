@@ -26,10 +26,10 @@ describe("Platform Auth Me Route", () => {
       );
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue({
+      vi.mocked(getUserById).mockResolvedValue({
         userId: "test_user_1",
         email: "test@example.com",
-        password: "password123",
+        password: "",
         name: "Test User",
         scenario: "diversified",
         portfolios: { splint_invest: [], masterworks: [], realt: [] },
@@ -110,7 +110,7 @@ describe("Platform Auth Me Route", () => {
       );
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(undefined);
+      vi.mocked(getUserById).mockResolvedValue(undefined);
 
       const request = createMockRequestWithAuth({}, mockJWTTokens.valid);
       const context = createMockContext({ platform: "splint_invest" });
@@ -148,10 +148,10 @@ describe("Platform Auth Me Route", () => {
         "@/lib/auth/authCommon"
       );
 
-      vi.mocked(getUserById).mockReturnValue({
+      vi.mocked(getUserById).mockResolvedValue({
         userId: "test_user_1",
         email: "test@example.com",
-        password: "password123",
+        password: "",
         name: "Test User",
         scenario: "diversified",
         portfolios: { splint_invest: [], masterworks: [], realt: [] },

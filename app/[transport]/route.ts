@@ -4,10 +4,10 @@ import { registerGetAssetTool } from "@/lib/tools/get-asset-tool";
 import { registerGetAssetsByPlatformTool } from "@/lib/tools/get-assets-by-platform-tool";
 import { registerGetAuthStateTool } from "@/lib/tools/get-auth-state-tool";
 import { registerGetLinkedPlatformsTool } from "@/lib/tools/get-linked-platforms-tool";
-import { registerGetUserPortfolioCrossPlatformTool } from "@/lib/tools/get-user-portfolio-cross-platform-tool";
+import { registerGetPortfolioTool } from "@/lib/tools/get-portfolio-tool";
 import { registerGetUserPortfolioTool } from "@/lib/tools/get-user-portfolio-tool";
 import { registerListSupportedPlatformsTool } from "@/lib/tools/list-supported-platforms-tool";
-import { registerSearchAssetsCrossPlatformTool } from "@/lib/tools/search-assets-cross-platform-tool";
+import { registerSearchAssetsTool } from "@/lib/tools/search-assets-tool";
 import { registerSemanticSearchTool } from "@/lib/tools/semantic-search-tool";
 import { createMcpHandler } from "@vercel/mcp-adapter";
 import { NextRequest } from "next/server";
@@ -38,8 +38,8 @@ const handler = async (req: Request) => {
       registerListSupportedPlatformsTool({ accessToken })(server);
       registerGeneratePlatformAuthLinksTool({ accessToken })(server);
       registerGetLinkedPlatformsTool({ accessToken })(server);
-      registerGetUserPortfolioCrossPlatformTool({ accessToken })(server);
-      registerSearchAssetsCrossPlatformTool({ accessToken })(server);
+      registerGetPortfolioTool({ accessToken })(server);
+      registerSearchAssetsTool({ accessToken })(server);
     },
     {
       capabilities: {

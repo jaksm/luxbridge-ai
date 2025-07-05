@@ -6,8 +6,10 @@ import {
 } from "@/__tests__/fixtures/mockTokens";
 import * as jwtUtils from "@/lib/auth/jwtUtils";
 
-vi.mock("@/lib/auth/users", () => ({
-  users: mockUsers,
+vi.mock("@/lib/auth/redis-users", () => ({
+  validateCredentials: vi.fn(),
+  getUserById: vi.fn(),
+  registerUser: vi.fn(),
 }));
 
 vi.mock("@/lib/auth/jwtUtils", () => ({
@@ -20,6 +22,7 @@ import {
   authenticateToken,
   getUserById,
 } from "@/lib/auth/authCommon";
+import * as redisUsers from "@/lib/auth/redis-users";
 
 describe("authCommon", () => {
   beforeEach(() => {
@@ -28,17 +31,36 @@ describe("authCommon", () => {
 
   describe("validateCredentials", () => {
     it("should validate correct credentials", async () => {
+      const mockRedisUser = {
+        ...mockUsers["test@example.com"],
+        passwordHash: "hashedpassword",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01",
+      };
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: true,
+        user: mockRedisUser,
+      });
+
       const result = await validateCredentials(
         "test@example.com",
         "password123",
       );
 
       expect(result.success).toBe(true);
-      expect(result.user).toEqual(mockUsers["test@example.com"]);
+      expect(result.user).toEqual({
+        ...mockUsers["test@example.com"],
+        password: "", // Password is stripped for security
+      });
       expect(result.error).toBeUndefined();
     });
 
     it("should reject invalid email", async () => {
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: false,
+        error: "Invalid credentials",
+      });
+
       const result = await validateCredentials(
         "nonexistent@example.com",
         "password123",
@@ -50,6 +72,11 @@ describe("authCommon", () => {
     });
 
     it("should reject invalid password", async () => {
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: false,
+        error: "Invalid credentials",
+      });
+
       const result = await validateCredentials(
         "test@example.com",
         "wrongpassword",
@@ -61,6 +88,11 @@ describe("authCommon", () => {
     });
 
     it("should handle empty email", async () => {
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: false,
+        error: "Invalid credentials",
+      });
+
       const result = await validateCredentials("", "password123");
 
       expect(result.success).toBe(false);
@@ -68,6 +100,11 @@ describe("authCommon", () => {
     });
 
     it("should handle empty password", async () => {
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: false,
+        error: "Invalid credentials",
+      });
+
       const result = await validateCredentials("test@example.com", "");
 
       expect(result.success).toBe(false);
@@ -75,6 +112,17 @@ describe("authCommon", () => {
     });
 
     it("should validate demo user credentials", async () => {
+      const mockRedisUser = {
+        ...mockUsers["jaksa.malisic@gmail.com"],
+        passwordHash: "hashedpassword",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01",
+      };
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: true,
+        user: mockRedisUser,
+      });
+
       const result = await validateCredentials(
         "jaksa.malisic@gmail.com",
         "demo123",
@@ -83,9 +131,21 @@ describe("authCommon", () => {
       expect(result.success).toBe(true);
       expect(result.user?.userId).toBe("demo_user");
       expect(result.user?.scenario).toBe("empty_portfolio");
+      expect(result.user?.password).toBe(""); // Password is stripped for security
     });
 
     it("should validate empty portfolio user", async () => {
+      const mockRedisUser = {
+        ...mockUsers["empty@example.com"],
+        passwordHash: "hashedpassword",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01",
+      };
+      vi.mocked(redisUsers.validateCredentials).mockResolvedValue({
+        success: true,
+        user: mockRedisUser,
+      });
+
       const result = await validateCredentials(
         "empty@example.com",
         "password123",
@@ -93,6 +153,7 @@ describe("authCommon", () => {
 
       expect(result.success).toBe(true);
       expect(result.user?.userId).toBe("empty_user");
+      expect(result.user?.password).toBe(""); // Password is stripped for security
       expect(result.user?.portfolios.splint_invest).toEqual([]);
       expect(result.user?.portfolios.masterworks).toEqual([]);
       expect(result.user?.portfolios.realt).toEqual([]);
@@ -171,44 +232,85 @@ describe("authCommon", () => {
   });
 
   describe("getUserById", () => {
-    it("should return user for valid user ID", () => {
-      const result = getUserById("test_user_1");
+    it("should return user for valid user ID", async () => {
+      const mockRedisUser = {
+        ...mockUsers["test@example.com"],
+        passwordHash: "hashedpassword",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01",
+      };
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(mockRedisUser);
 
-      expect(result).toEqual(mockUsers["test@example.com"]);
+      const result = await getUserById("test_user_1");
+
+      expect(result).toEqual({
+        ...mockUsers["test@example.com"],
+        password: "", // Password is stripped for security
+      });
     });
 
-    it("should return user for demo user ID", () => {
-      const result = getUserById("demo_user");
+    it("should return user for demo user ID", async () => {
+      const mockRedisUser = {
+        ...mockUsers["jaksa.malisic@gmail.com"],
+        passwordHash: "hashedpassword",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01",
+      };
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(mockRedisUser);
 
-      expect(result).toEqual(mockUsers["jaksa.malisic@gmail.com"]);
+      const result = await getUserById("demo_user");
+
+      expect(result).toEqual({
+        ...mockUsers["jaksa.malisic@gmail.com"],
+        password: "", // Password is stripped for security
+      });
     });
 
-    it("should return user for empty user ID", () => {
-      const result = getUserById("empty_user");
+    it("should return user for empty user ID", async () => {
+      const mockRedisUser = {
+        ...mockUsers["empty@example.com"],
+        passwordHash: "hashedpassword",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01",
+      };
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(mockRedisUser);
 
-      expect(result).toEqual(mockUsers["empty@example.com"]);
+      const result = await getUserById("empty_user");
+
+      expect(result).toEqual({
+        ...mockUsers["empty@example.com"],
+        password: "", // Password is stripped for security
+      });
     });
 
-    it("should return undefined for nonexistent user ID", () => {
-      const result = getUserById("nonexistent_user");
+    it("should return undefined for nonexistent user ID", async () => {
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(null);
+
+      const result = await getUserById("nonexistent_user");
 
       expect(result).toBeUndefined();
     });
 
-    it("should return undefined for empty user ID", () => {
-      const result = getUserById("");
+    it("should return undefined for empty user ID", async () => {
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(null);
+
+      const result = await getUserById("");
 
       expect(result).toBeUndefined();
     });
 
-    it("should handle special characters in user ID", () => {
-      const result = getUserById("user@with#special$chars");
+    it("should handle special characters in user ID", async () => {
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(null);
+
+      const result = await getUserById("user@with#special$chars");
 
       expect(result).toBeUndefined();
     });
 
-    it("should be case sensitive", () => {
-      const result = getUserById("TEST_USER_1");
+    it("should be case sensitive", async () => {
+      vi.mocked(redisUsers.getUserById).mockResolvedValue(null);
+
+      const result = await getUserById("TEST_USER_1");
 
       expect(result).toBeUndefined();
     });

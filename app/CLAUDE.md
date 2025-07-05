@@ -7,10 +7,24 @@ This directory contains the Next.js 15 app router implementation for LuxBridge A
 ### Route Organization
 
 - `api/` - API route handlers (see `api/CLAUDE.md` for detailed guidelines)
-- `oauth/` - OAuth 2.1 authorization pages and flows
+- `oauth/` - **Dual authentication flows**: LuxBridge OAuth 2.1 + Platform registration/login
 - `[transport]/` - Dynamic MCP transport routes (SSE/HTTP)
 - `page.tsx` - Root application page
 - `layout.tsx` - Root layout and providers
+
+### OAuth Directory Structure
+
+**LuxBridge OAuth 2.1** (Primary Authentication):
+- `oauth/authorize/page.tsx` - Main OAuth authorization with Privy integration
+
+**Platform Authentication** (RWA Platform Access):
+- `oauth/[platform]/authorize/page.tsx` - Platform-specific login pages
+- `oauth/[platform]/register/page.tsx` - Platform-specific registration pages
+
+**Supported Platforms**:
+- `oauth/splint_invest/` - Splint Invest authentication flows
+- `oauth/masterworks/` - Masterworks authentication flows  
+- `oauth/realt/` - RealT authentication flows
 
 ## Development Rules
 
@@ -130,9 +144,112 @@ export async function OPTIONS() {
 }
 ```
 
+### Dual Authentication Implementation
+
+#### Authentication Flow Architecture
+
+The app implements **two distinct authentication systems**:
+
+**1. LuxBridge OAuth 2.1 Flow** (`oauth/authorize/page.tsx`):
+- **Purpose**: Main application access and MCP server authorization
+- **Integration**: Privy-based email authentication with PKCE
+- **UI Pattern**: Privy login components with OAuth parameter handling
+- **State Management**: Redis-based OAuth state with authorization codes
+
+**2. Platform Authentication Flow** (`oauth/[platform]/authorize|register/page.tsx`):
+- **Purpose**: Individual RWA platform access (Splint Invest, Masterworks, RealT)
+- **Registration**: Full user registration with email, password, name
+- **Login**: Credential-based authentication with platform-specific JWT tokens
+- **UI Pattern**: Platform-branded forms with shared components
+
+#### Platform Authentication Components
+
+**Shared Components** (`components/auth/`):
+- `PlatformRegisterForm` - Reusable registration form with platform branding
+- `PlatformAuthorizeForm` - Reusable login form with platform-specific styling
+
+**Registration Flow Pattern**:
+```typescript
+// oauth/[platform]/register/page.tsx
+export default function PlatformRegisterPage() {
+  return <PlatformRegisterForm platform="splint_invest" />;
+}
+```
+
+**Authorization Flow Pattern**:
+```typescript
+// oauth/[platform]/authorize/page.tsx  
+export default function PlatformAuthorizePage() {
+  return <PlatformAuthorizeForm platform="splint_invest" />;
+}
+```
+
+**Form Features**:
+- Email validation and duplicate checking
+- Password strength requirements (6+ characters)
+- Confirm password matching
+- Platform-specific branding and descriptions
+- Registration/login flow linking
+- Comprehensive error handling
+
+#### Platform Registration Form
+
+**Key Features**:
+```typescript
+interface PlatformRegisterFormProps {
+  platform: PlatformType; // "splint_invest" | "masterworks" | "realt"
+}
+
+// Form validation
+const RegisterSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Name is required"),
+});
+
+// Registration flow
+const handleSubmit = async (e: React.FormEvent) => {
+  // Validate form data
+  // POST to /api/[platform]/auth/register
+  // Handle success/error states
+  // Redirect on successful registration
+};
+```
+
+**Security Features**:
+- Client-side form validation with Zod schemas
+- Password visibility toggles  
+- CSRF protection
+- Secure error handling
+- Input sanitization
+
+#### Platform Authorization Form
+
+**Key Features**:
+```typescript
+interface PlatformAuthorizeFormProps {
+  platform: PlatformType;
+}
+
+// Login flow
+const handleSubmit = async (e: React.FormEvent) => {
+  // Validate credentials
+  // POST to /api/[platform]/auth/login
+  // Handle authentication response
+  // Redirect on successful login
+};
+```
+
+**User Experience**:
+- Platform-specific branding and colors
+- Registration link integration
+- Loading states and progress indicators
+- Comprehensive error messaging
+- Responsive design
+
 ### OAuth Implementation
 
-#### Authorization Page Pattern
+#### LuxBridge Authorization Page Pattern
 
 ```typescript
 // app/oauth/authorize/page.tsx

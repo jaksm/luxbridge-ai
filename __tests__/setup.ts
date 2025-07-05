@@ -29,6 +29,22 @@ vi.mock("@/lib/redis", () => ({
   default: mockRedisClient,
 }));
 
+// Mock Redis auth system
+vi.mock("@/lib/auth/redis-users", () => ({
+  validateCredentials: vi.fn(),
+  getUserById: vi.fn(),
+  registerUser: vi.fn(),
+  createUser: vi.fn(),
+  getUserByEmail: vi.fn(),
+  updateUser: vi.fn(),
+  addAssetToPortfolio: vi.fn(),
+  removeAssetFromPortfolio: vi.fn(),
+  updatePortfolioAsset: vi.fn(),
+  getUserPortfolio: vi.fn(),
+  deleteUser: vi.fn(),
+  getAllUsers: vi.fn(),
+}));
+
 const mockPineconeIndex = {
   query: vi.fn().mockResolvedValue({ matches: [] }),
   upsert: vi.fn().mockResolvedValue({}),

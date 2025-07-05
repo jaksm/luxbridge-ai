@@ -33,7 +33,7 @@ export const registerGetUserPortfolioTool: RegisterTool =
       GetUserPortfolioSchema.shape,
       async ({ platform, userId }) => {
         try {
-          const user = getUserById(userId);
+          const user = await getUserById(userId);
           if (!user) {
             return {
               content: [
