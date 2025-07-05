@@ -1,10 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createMockAsset } from "@/__tests__/fixtures/mockAssets";
-import { mockPortfolioHoldings, mockUsers } from "@/__tests__/fixtures/mockUsers";
+import {
+  mockPortfolioHoldings,
+  mockUsers,
+} from "@/__tests__/fixtures/mockUsers";
 import { mockTokenPayloads } from "@/__tests__/fixtures/mockTokens";
 import { assetStorage } from "@/lib/storage/redisClient";
 import { PineconeClient } from "@/lib/storage/pineconeClient";
-import { GetAssetSchema, GetAssetsByPlatformSchema, GetUserPortfolioSchema, SemanticSearchSchema } from "@/lib/types/schemas";
+import {
+  GetAssetSchema,
+  GetAssetsByPlatformSchema,
+  GetUserPortfolioSchema,
+  SemanticSearchSchema,
+} from "@/lib/types/schemas";
 
 vi.mock("@/lib/storage/redisClient");
 vi.mock("@/lib/storage/pineconeClient");
@@ -22,7 +30,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should validate correct parameters", () => {
       const validParams = {
         platform: "splint_invest",
-        assetId: "WINE-BORDEAUX-001"
+        assetId: "WINE-BORDEAUX-001",
       };
 
       const result = GetAssetSchema.safeParse(validParams);
@@ -33,7 +41,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should reject invalid platform", () => {
       const invalidParams = {
         platform: "invalid_platform",
-        assetId: "WINE-BORDEAUX-001"
+        assetId: "WINE-BORDEAUX-001",
       };
 
       const result = GetAssetSchema.safeParse(invalidParams);
@@ -42,7 +50,7 @@ describe("MCP Tools with Zod Validation", () => {
 
     it("should reject missing assetId", () => {
       const invalidParams = {
-        platform: "splint_invest"
+        platform: "splint_invest",
       };
 
       const result = GetAssetSchema.safeParse(invalidParams);
@@ -54,8 +62,8 @@ describe("MCP Tools with Zod Validation", () => {
       vi.mocked(assetStorage.getAsset).mockResolvedValue(mockAsset);
 
       const params = {
-        platform: "splint_invest",
-        assetId: "WINE-BORDEAUX-001"
+        platform: "splint_invest" as const,
+        assetId: "WINE-BORDEAUX-001",
       };
 
       const result = await assetStorage.getAsset(params);
@@ -67,7 +75,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should validate correct parameters", () => {
       const validParams = {
         platform: "masterworks",
-        limit: 20
+        limit: 20,
       };
 
       const result = GetAssetsByPlatformSchema.safeParse(validParams);
@@ -77,7 +85,7 @@ describe("MCP Tools with Zod Validation", () => {
 
     it("should provide default limit", () => {
       const params = {
-        platform: "realt"
+        platform: "realt",
       };
 
       const result = GetAssetsByPlatformSchema.safeParse(params);
@@ -88,7 +96,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should validate limit boundaries", () => {
       const tooHighLimit = {
         platform: "splint_invest",
-        limit: 250
+        limit: 250,
       };
 
       const result = GetAssetsByPlatformSchema.safeParse(tooHighLimit);
@@ -97,7 +105,7 @@ describe("MCP Tools with Zod Validation", () => {
 
     it("should allow optional parameters", () => {
       const minimalParams = {
-        platform: "splint_invest"
+        platform: "splint_invest",
       };
 
       const result = GetAssetsByPlatformSchema.safeParse(minimalParams);
@@ -110,7 +118,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should validate correct parameters", () => {
       const validParams = {
         platform: "splint_invest",
-        userId: "test_user_1"
+        userId: "test_user_1",
       };
 
       const result = GetUserPortfolioSchema.safeParse(validParams);
@@ -121,7 +129,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should accept any string userId", () => {
       const params = {
         platform: "splint_invest",
-        userId: "any_user_id_123"
+        userId: "any_user_id_123",
       };
 
       const result = GetUserPortfolioSchema.safeParse(params);
@@ -130,12 +138,16 @@ describe("MCP Tools with Zod Validation", () => {
     });
 
     it("should handle tool execution with portfolio construction", async () => {
-      vi.mocked(assetStorage.getUserPortfolio).mockResolvedValue(mockPortfolioHoldings.splint_invest);
-      vi.mocked(assetStorage.getAssetsByIds).mockResolvedValue([createMockAsset()]);
+      vi.mocked(assetStorage.getUserPortfolio).mockResolvedValue(
+        mockPortfolioHoldings.splint_invest,
+      );
+      vi.mocked(assetStorage.getAssetsByIds).mockResolvedValue([
+        createMockAsset(),
+      ]);
 
       const params = {
-        platform: "splint_invest",
-        userId: "test_user_1"
+        platform: "splint_invest" as const,
+        userId: "test_user_1",
       };
 
       const holdings = await assetStorage.getUserPortfolio(params);
@@ -149,7 +161,7 @@ describe("MCP Tools with Zod Validation", () => {
         query: "high yield wine investments",
         platform: "splint_invest",
         limit: 5,
-        minScore: 0.7
+        minScore: 0.7,
       };
 
       const result = SemanticSearchSchema.safeParse(validParams);
@@ -159,7 +171,7 @@ describe("MCP Tools with Zod Validation", () => {
 
     it("should provide default values", () => {
       const params = {
-        query: "art investments"
+        query: "art investments",
       };
 
       const result = SemanticSearchSchema.safeParse(params);
@@ -170,7 +182,7 @@ describe("MCP Tools with Zod Validation", () => {
 
     it("should accept any query string", () => {
       const shortQuery = {
-        query: "a"
+        query: "a",
       };
 
       const result = SemanticSearchSchema.safeParse(shortQuery);
@@ -181,7 +193,7 @@ describe("MCP Tools with Zod Validation", () => {
     it("should validate score boundaries", () => {
       const invalidScore = {
         query: "investments",
-        minScore: 1.5
+        minScore: 1.5,
       };
 
       const result = SemanticSearchSchema.safeParse(invalidScore);
@@ -196,7 +208,7 @@ describe("MCP Tools with Zod Validation", () => {
         query: "fine wine",
         platform: "splint_invest",
         limit: 5,
-        minScore: 0.6
+        minScore: 0.6,
       };
 
       const results = await mockPineconeClient.searchAssets(params);
@@ -224,122 +236,6 @@ describe("MCP Tools with Zod Validation", () => {
       const authHeader = "Bearer invalid.token";
       const tokenPayload = authenticateToken(authHeader);
 
-      expect(tokenPayload).toBeNull();
-    });
-  });
-});
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createMockAsset } from "@/__tests__/fixtures/mockAssets";
-import { mockPortfolioHoldings } from "@/__tests__/fixtures/mockUsers";
-import { mockTokenPayloads } from "@/__tests__/fixtures/mockTokens";
-import { assetStorage } from "@/lib/storage/redisClient";
-import { PineconeClient } from "@/lib/storage/pineconeClient";
-import {
-  GetAssetSchema,
-  GetAssetsByPlatformSchema,
-  GetUserPortfolioSchema,
-  SemanticSearchSchema,
-} from "@/lib/types/schemas";
-vi.mock("@/lib/storage/redisClient");
-vi.mock("@/lib/storage/pineconeClient");
-    it("should validate correct parameters", () => {
-      const validParams = {
-        platform: "splint_invest",
-        assetId: "WINE-BORDEAUX-001",
-      };
-      const result = GetAssetSchema.safeParse(validParams);
-    it("should reject invalid platform", () => {
-      const invalidParams = {
-        platform: "invalid_platform",
-        assetId: "WINE-BORDEAUX-001",
-      };
-      const result = GetAssetSchema.safeParse(invalidParams);
-    it("should reject missing assetId", () => {
-      const invalidParams = {
-        platform: "splint_invest",
-      };
-      const result = GetAssetSchema.safeParse(invalidParams);
-      vi.mocked(assetStorage.getAsset).mockResolvedValue(mockAsset);
-      const params = {
-        platform: "splint_invest" as const,
-        assetId: "WINE-BORDEAUX-001",
-      };
-      const result = await assetStorage.getAsset(params);
-    it("should validate correct parameters", () => {
-      const validParams = {
-        platform: "masterworks",
-        limit: 20,
-      };
-      const result = GetAssetsByPlatformSchema.safeParse(validParams);
-    it("should provide default limit", () => {
-      const params = {
-        platform: "realt",
-      };
-      const result = GetAssetsByPlatformSchema.safeParse(params);
-    it("should validate limit boundaries", () => {
-      const tooHighLimit = {
-        platform: "splint_invest",
-        limit: 250,
-      };
-      const result = GetAssetsByPlatformSchema.safeParse(tooHighLimit);
-    it("should allow optional parameters", () => {
-      const minimalParams = {
-        platform: "splint_invest",
-      };
-      const result = GetAssetsByPlatformSchema.safeParse(minimalParams);
-    it("should validate correct parameters", () => {
-      const validParams = {
-        platform: "splint_invest",
-        userId: "test_user_1",
-      };
-      const result = GetUserPortfolioSchema.safeParse(validParams);
-    it("should accept any string userId", () => {
-      const params = {
-        platform: "splint_invest",
-        userId: "any_user_id_123",
-      };
-      const result = GetUserPortfolioSchema.safeParse(params);
-    });
-    it("should handle tool execution with portfolio construction", async () => {
-      vi.mocked(assetStorage.getUserPortfolio).mockResolvedValue(
-        mockPortfolioHoldings.splint_invest,
-      );
-      vi.mocked(assetStorage.getAssetsByIds).mockResolvedValue([
-        createMockAsset(),
-      ]);
-      const params = {
-        platform: "splint_invest" as const,
-        userId: "test_user_1",
-      };
-      const holdings = await assetStorage.getUserPortfolio(params);
-        query: "high yield wine investments",
-        platform: "splint_invest",
-        limit: 5,
-        minScore: 0.7,
-      };
-      const result = SemanticSearchSchema.safeParse(validParams);
-    it("should provide default values", () => {
-      const params = {
-        query: "art investments",
-      };
-      const result = SemanticSearchSchema.safeParse(params);
-    it("should accept any query string", () => {
-      const shortQuery = {
-        query: "a",
-      };
-      const result = SemanticSearchSchema.safeParse(shortQuery);
-    it("should validate score boundaries", () => {
-      const invalidScore = {
-        query: "investments",
-        minScore: 1.5,
-      };
-      const result = SemanticSearchSchema.safeParse(invalidScore);
-        query: "fine wine",
-        platform: "splint_invest",
-        limit: 5,
-        minScore: 0.6,
-      };
-      const results = await mockPineconeClient.searchAssets(params);
       expect(tokenPayload).toBeNull();
     });
   });
