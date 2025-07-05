@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Next.js MCP (Model Context Protocol) server implementation with OAuth 2.1 authentication and mock token verification. Uses `@vercel/mcp-adapter` to create secure MCP endpoints that require valid OAuth access tokens for all requests. Supports both SSE and Streamable HTTP transport protocols.
 
-**Current State**: Template with mock authentication that can be easily upgraded to real authentication providers.
+**Blockchain Integration**: Includes a complete smart contract infrastructure for Real-World Asset (RWA) tokenization and cross-platform trading. The blockchain layer enables universal liquidity aggregation across platforms like Splint Invest, Masterworks, and RealT through sophisticated AMMs and AI-powered automation.
+
+**Current State**: Template with mock authentication that can be easily upgraded to real authentication providers, plus production-ready smart contracts optimized for Zircuit network.
 
 ## Development Commands
 
@@ -21,15 +23,24 @@ This is a Next.js MCP (Model Context Protocol) server implementation with OAuth 
 - `npm run format` - Format code with Prettier (always before commit)
 - `npm run format:check` - Check code formatting
 
+**Blockchain Commands:**
+
+- `npm run blockchain:compile` - Compile smart contracts
+- `npm run blockchain:test` - Run blockchain tests
+- `npm run blockchain:node` - Start local Hardhat network
+- `npm run blockchain:deploy` - Deploy contracts to localhost
+
 **Pre-commit checklist:**
 
 1. Run `npm run typecheck` and fix any errors
 2. Run `npm run format` and fix formatting
+3. For blockchain changes: Run `npm run blockchain:compile` and fix any compilation errors
 
 **Pre-push checklist:**
 
 1. Run `npm run test:run` and ensure all tests pass
-2. Run `npm run build` to fix any build errors
+2. For blockchain changes: Run `npm run blockchain:test` and ensure all tests pass
+3. Run `npm run build` to fix any build errors
 
 ## Environment Variables
 
@@ -47,6 +58,21 @@ NEXTAUTH_URL=https://your-domain.com (defaults to current request URL)
 
 Use `vercel env pull .env.development.local` to sync from Vercel dashboard.
 
+Optional for blockchain deployment:
+
+```
+# Network RPC URLs
+ZIRCUIT_RPC_URL=https://zircuit1.p2pify.com
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR-PROJECT-ID
+
+# Private key for deployment (use default Hardhat accounts for local)
+PRIVATE_KEY=0x...
+
+# API keys for contract verification
+ZIRCUIT_API_KEY=...
+ETHERSCAN_API_KEY=...
+```
+
 ## Architecture
 
 ### MCP Request Flow
@@ -54,8 +80,9 @@ Use `vercel env pull .env.development.local` to sync from Vercel dashboard.
 1. **Client Request** → `/sse` or `/mcp` endpoint with Bearer token
 2. **Authentication Layer** → Validates token via Redis-stored OAuth access tokens
 3. **MCP Handler** (`createMcpHandler`) → Routes to appropriate tool
-4. **Tool Execution** → Has access to authenticated user data
-5. **Response** → Returns tool results or 401 if unauthorized
+4. **Tool Execution** → Has access to authenticated user data and blockchain interaction
+5. **Blockchain Integration** → MCP tools can interact with smart contracts via ethers.js
+6. **Response** → Returns tool results or 401 if unauthorized
 
 ### Core Components
 
@@ -224,6 +251,7 @@ vercel inspect [url]    # Deployment details
 - See `__tests__/CLAUDE.md` for testing guidelines and patterns
 - See `app/api/CLAUDE.md` for API implementation standards
 - See `lib/CLAUDE.md` for library and utility development rules
+- See `blockchain/CLAUDE.md` for smart contract development guidelines
 - Follow the specific conventions outlined in each subdirectory
 
 ## Dependencies
@@ -239,10 +267,19 @@ vercel inspect [url]    # Deployment details
 - `redis@4.7.0` - OAuth state management
 - `@modelcontextprotocol/sdk@1.12.1` - MCP protocol implementation
 
+**Blockchain:**
+
+- `@chainlink/contracts@1.2.0` - Chainlink Functions integration
+- `@openzeppelin/contracts@5.0.2` - Security and utility contracts
+- `hardhat@2.22.0` - Smart contract development framework
+- `ethers@6.4.0` - Ethereum library for contract interaction
+- `@nomicfoundation/hardhat-toolbox@5.0.0` - Hardhat plugin suite
+
 **Testing:**
 
 - `vitest@3.2.4` - Test framework
 - `@vitest/ui@3.2.4` - Test UI interface
+- `chai@4.2.0` - Blockchain assertion library
 
 **UI:**
 
