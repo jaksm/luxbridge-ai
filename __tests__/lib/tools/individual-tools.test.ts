@@ -67,7 +67,7 @@ describe("Individual MCP Tools", () => {
         "get_asset",
         expect.stringContaining("Retrieves a specific asset"),
         expect.any(Object),
-        expect.any(Function)
+        expect.any(Function),
       );
 
       const toolHandler = mockServer.tool.mock.calls[0][3];
@@ -77,7 +77,7 @@ describe("Individual MCP Tools", () => {
       });
 
       expect(result.content[0].text).toContain(
-        JSON.stringify(mockAsset, null, 2)
+        JSON.stringify(mockAsset, null, 2),
       );
     });
 
@@ -101,7 +101,7 @@ describe("Individual MCP Tools", () => {
       vi.mocked(assetStorage.getAssetsByPlatform).mockResolvedValue(mockAssets);
 
       registerGetAssetsByPlatformTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
@@ -110,7 +110,7 @@ describe("Individual MCP Tools", () => {
       });
 
       expect(result.content[0].text).toContain(
-        `Found ${mockAssets.length} assets`
+        `Found ${mockAssets.length} assets`,
       );
     });
   });
@@ -134,10 +134,12 @@ describe("Individual MCP Tools", () => {
         currentValue: 1000,
         unrealizedGain: 100,
       };
-      vi.mocked(constructUserPortfolio).mockResolvedValue([mockConstructedAsset]);
+      vi.mocked(constructUserPortfolio).mockResolvedValue([
+        mockConstructedAsset,
+      ]);
 
       registerGetUserPortfolioTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
@@ -152,7 +154,7 @@ describe("Individual MCP Tools", () => {
       vi.mocked(getUserById).mockReturnValue(undefined);
 
       registerGetUserPortfolioTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
@@ -172,7 +174,7 @@ describe("Individual MCP Tools", () => {
         searchAssets: vi.fn().mockResolvedValue(mockSearchResults),
       };
       vi.mocked(SemanticAssetSearch).mockImplementation(
-        () => mockSemanticSearch as any
+        () => mockSemanticSearch as any,
       );
       vi.mocked(assetStorage.getAssetsByIds).mockResolvedValue(mockAssets);
 
@@ -191,7 +193,7 @@ describe("Individual MCP Tools", () => {
         searchAssets: vi.fn().mockResolvedValue([]),
       };
       vi.mocked(SemanticAssetSearch).mockImplementation(
-        () => mockSemanticSearch as any
+        () => mockSemanticSearch as any,
       );
 
       registerSemanticSearchTool({ accessToken: mockAccessToken })(mockServer);
@@ -204,7 +206,6 @@ describe("Individual MCP Tools", () => {
       expect(result.content[0].text).toContain("No assets found matching");
     });
   });
-
 
   describe("registerListSupportedPlatformsTool", () => {
     it("should register tool and handle successful platform listing", async () => {
@@ -221,7 +222,7 @@ describe("Individual MCP Tools", () => {
       vi.mocked(getAuthSession).mockResolvedValue(mockSession as any);
 
       registerListSupportedPlatformsTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({});
@@ -233,7 +234,7 @@ describe("Individual MCP Tools", () => {
       vi.mocked(getAuthSession).mockResolvedValue(null);
 
       registerListSupportedPlatformsTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({});
@@ -243,9 +244,9 @@ describe("Individual MCP Tools", () => {
 
     it("should handle missing sessionId in access token", async () => {
       const tokenWithoutSession = { ...mockAccessToken, sessionId: undefined };
-      
+
       registerListSupportedPlatformsTool({ accessToken: tokenWithoutSession })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({});
@@ -263,7 +264,7 @@ describe("Individual MCP Tools", () => {
       vi.mocked(getAuthSession).mockResolvedValue(mockSession as any);
 
       registerGeneratePlatformAuthLinksTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
@@ -271,7 +272,7 @@ describe("Individual MCP Tools", () => {
       });
 
       expect(result.content[0].text).toContain(
-        "🔗 Platform Authentication Links"
+        "🔗 Platform Authentication Links",
       );
     });
   });
@@ -291,7 +292,7 @@ describe("Individual MCP Tools", () => {
       vi.mocked(getAuthSession).mockResolvedValue(mockSession as any);
 
       registerGetLinkedPlatformsTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({});
@@ -323,7 +324,7 @@ describe("Individual MCP Tools", () => {
       });
 
       expect(result.content[0].text).toContain(
-        "📊 Portfolio from splint_invest"
+        "📊 Portfolio from splint_invest",
       );
     });
 
@@ -346,7 +347,7 @@ describe("Individual MCP Tools", () => {
       });
 
       expect(result.content[0].text).toContain(
-        "❌ Platform splint_invest not linked or inactive"
+        "❌ Platform splint_invest not linked or inactive",
       );
     });
   });
@@ -362,11 +363,11 @@ describe("Individual MCP Tools", () => {
       const mockSearchResponse = { assets: [createMockAsset()] };
       vi.mocked(getAuthSession).mockResolvedValue(mockSession as any);
       vi.mocked(makeAuthenticatedPlatformCall).mockResolvedValue(
-        mockSearchResponse
+        mockSearchResponse,
       );
 
       registerSearchAssetsCrossPlatformTool({ accessToken: mockAccessToken })(
-        mockServer
+        mockServer,
       );
       const toolHandler = mockServer.tool.mock.calls[0][3];
       const result = await toolHandler({
@@ -375,7 +376,7 @@ describe("Individual MCP Tools", () => {
       });
 
       expect(result.content[0].text).toContain(
-        "🔍 Cross-platform search results"
+        "🔍 Cross-platform search results",
       );
     });
   });

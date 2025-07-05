@@ -30,18 +30,22 @@ const pineconeClient = new PineconeClient();
 
 const outputParser = StructuredOutputParser.fromZodSchema(
   z.object({
-    assets: z.array(PlatformAssetSchema)
-  })
+    assets: z.array(PlatformAssetSchema),
+  }),
 );
 
 function loadPrompt(platform: PlatformType): string {
-  const promptPath = join(__dirname, "prompts", `${platform.replace("_", "-")}-prompt.md`);
+  const promptPath = join(
+    __dirname,
+    "prompts",
+    `${platform.replace("_", "-")}-prompt.md`,
+  );
   return readFileSync(promptPath, "utf-8");
 }
 
 function createPromptTemplate(platform: PlatformType): PromptTemplate {
   const platformPrompt = loadPrompt(platform);
-  
+
   const template = `${platformPrompt}
 
 ## Task
@@ -70,13 +74,13 @@ Generate the assets now:`;
 }
 
 async function generateAssetChunk(
-  platform: PlatformType, 
-  assetIds: string[]
+  platform: PlatformType,
+  assetIds: string[],
 ): Promise<any[]> {
   const prompt = createPromptTemplate(platform);
-  
+
   const chain = prompt.pipe(llm).pipe(outputParser);
-  
+
   try {
     const result = await chain.invoke({
       platform: platform.replace("_", " "),
@@ -84,7 +88,7 @@ async function generateAssetChunk(
       assetIds: assetIds.join("\n"),
       format_instructions: outputParser.getFormatInstructions(),
     });
-    
+
     return result.assets;
   } catch (error) {
     console.error(`Error generating assets for ${platform}:`, error);
@@ -100,54 +104,71 @@ function chunkArray<T>(array: T[], chunkSize: number): T[][] {
   return chunks;
 }
 
-async function generateAndStoreAssets(platform: PlatformType, assetIds: string[]): Promise<void> {
+async function generateAndStoreAssets(
+  platform: PlatformType,
+  assetIds: string[],
+): Promise<void> {
   const chunks = chunkArray(assetIds, CHUNK_SIZE);
-  
-  console.log(`Generating ${assetIds.length} assets for ${platform} in ${chunks.length} chunks...`);
-  
+
+  console.log(
+    `Generating ${assetIds.length} assets for ${platform} in ${chunks.length} chunks...`,
+  );
+
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
-    console.log(`Processing chunk ${i + 1}/${chunks.length} (${chunk.length} assets)...`);
-    
+    console.log(
+      `Processing chunk ${i + 1}/${chunks.length} (${chunk.length} assets)...`,
+    );
+
     try {
       const assets = await generateAssetChunk(platform, chunk);
-      
-      console.log(`Generated ${assets.length} assets, storing in Redis and Pinecone...`);
-      
+
+      console.log(
+        `Generated ${assets.length} assets, storing in Redis and Pinecone...`,
+      );
+
       for (const asset of assets) {
         await assetStorage.storeAsset(asset, platform);
-        
+
         try {
           await pineconeClient.upsertAsset(asset, platform);
         } catch (error) {
-          console.error(`Failed to save asset ${asset.assetId} to Pinecone:`, error);
+          console.error(
+            `Failed to save asset ${asset.assetId} to Pinecone:`,
+            error,
+          );
         }
       }
-      
+
       console.log(`✓ Chunk ${i + 1} completed successfully`);
-      
+
       // Add delay between chunks to avoid rate limiting
       if (i < chunks.length - 1) {
         console.log("Waiting 2 seconds before next chunk...");
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     } catch (error) {
       console.error(`✗ Failed to process chunk ${i + 1}:`, error);
       throw error;
     }
   }
-  
-  console.log(`✓ All ${assetIds.length} assets generated and stored for ${platform}`);
+
+  console.log(
+    `✓ All ${assetIds.length} assets generated and stored for ${platform}`,
+  );
 }
 
 async function main() {
   console.log("Starting platform asset generation...");
-  
+
   const allAssetIds = getAllAssetIds();
-  
-  for (const [platform, assetIds] of Object.entries(allAssetIds) as [PlatformType, string[]][]) {
+
+  for (const [platform, assetIds] of Object.entries(allAssetIds) as [
+    PlatformType,
+    string[],
+  ][]) {
     console.log(`\n=== Generating assets for ${platform} ===`);
-    
+
     try {
       await generateAndStoreAssets(platform, assetIds);
     } catch (error) {
@@ -155,16 +176,19 @@ async function main() {
       process.exit(1);
     }
   }
-  
+
   console.log("\n🎉 All platform assets generated successfully!");
-  
+
   // Print summary
   console.log("\nSummary:");
   for (const [platform, assetIds] of Object.entries(allAssetIds)) {
     console.log(`  ${platform}: ${assetIds.length} assets`);
   }
-  
-  const totalAssets = Object.values(allAssetIds).reduce((sum, ids) => sum + ids.length, 0);
+
+  const totalAssets = Object.values(allAssetIds).reduce(
+    (sum, ids) => sum + ids.length,
+    0,
+  );
   console.log(`  Total: ${totalAssets} assets`);
 }
 

@@ -29,10 +29,16 @@ async function main() {
   );
   console.log("✓ Registered Splint Invest platform");
 
-  await factory.registerPlatform("masterworks", "https://mock-api.luxbridge.local/masterworks");
+  await factory.registerPlatform(
+    "masterworks",
+    "https://mock-api.luxbridge.local/masterworks",
+  );
   console.log("✓ Registered Masterworks platform");
 
-  await factory.registerPlatform("realt", "https://mock-api.luxbridge.local/realt");
+  await factory.registerPlatform(
+    "realt",
+    "https://mock-api.luxbridge.local/realt",
+  );
   console.log("✓ Registered RealT platform");
 
   // Verify deployment

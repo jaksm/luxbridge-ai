@@ -370,7 +370,9 @@ describe("LuxBridge SDK", function () {
       });
 
       expect(info.name).to.equal("test_platform");
-      expect(info.apiEndpoint).to.equal("https://mock-api.luxbridge.local/test");
+      expect(info.apiEndpoint).to.equal(
+        "https://mock-api.luxbridge.local/test",
+      );
       expect(info.isActive).to.be.true;
     });
 
@@ -463,7 +465,8 @@ describe("LuxBridge SDK", function () {
       if (!factory || !amm || !oracle || !automation) {
         [owner, user, aiAgent] = await ethers.getSigners();
 
-        const RWATokenFactory = await ethers.getContractFactory("RWATokenFactory");
+        const RWATokenFactory =
+          await ethers.getContractFactory("RWATokenFactory");
         factory = await RWATokenFactory.deploy();
 
         const LuxBridgeAMM = await ethers.getContractFactory("LuxBridgeAMM");
@@ -571,26 +574,42 @@ describe("LuxBridge SDK", function () {
       });
 
       // Get token contracts for approvals
-      const wineToken = await userSdk.getTokenContract(wineTokenAddress.tokenAddress);
-      const artToken = await userSdk.getTokenContract(artTokenAddress.tokenAddress);
-      
+      const wineToken = await userSdk.getTokenContract(
+        wineTokenAddress.tokenAddress,
+      );
+      const artToken = await userSdk.getTokenContract(
+        artTokenAddress.tokenAddress,
+      );
+
       // Approve AMM to spend tokens for liquidity (larger amounts)
-      await wineToken.approve(await amm.getAddress(), ethers.parseEther("100000"));
-      await artToken.approve(await amm.getAddress(), ethers.parseEther("50000"));
+      await wineToken.approve(
+        await amm.getAddress(),
+        ethers.parseEther("100000"),
+      );
+      await artToken.approve(
+        await amm.getAddress(),
+        ethers.parseEther("50000"),
+      );
 
       // Add liquidity to the pool (larger amounts for multiple tests)
       await userSdk.addLiquidity({
         tokenA: wineTokenAddress.tokenAddress,
         tokenB: artTokenAddress.tokenAddress,
         amountADesired: "100000", // 100K wine tokens
-        amountBDesired: "50000",  // 50K art tokens
+        amountBDesired: "50000", // 50K art tokens
         amountAMin: "90000",
         amountBMin: "45000",
       });
 
       // Approve automation contract to spend tokens for automated trading (large allowance)
-      await wineToken.approve(await automation.getAddress(), ethers.parseEther("500000"));
-      await artToken.approve(await automation.getAddress(), ethers.parseEther("250000"));
+      await wineToken.approve(
+        await automation.getAddress(),
+        ethers.parseEther("500000"),
+      );
+      await artToken.approve(
+        await automation.getAddress(),
+        ethers.parseEther("250000"),
+      );
 
       // Delegate trading permissions on the current contract deployment
       await userSdk.delegateTrading({
@@ -732,12 +751,22 @@ describe("LuxBridge SDK", function () {
       });
 
       // Get token contracts for approvals
-      const wineToken = await userSdk.getTokenContract(wineTokenAddress.tokenAddress);
-      const artToken = await userSdk.getTokenContract(artTokenAddress.tokenAddress);
-      
+      const wineToken = await userSdk.getTokenContract(
+        wineTokenAddress.tokenAddress,
+      );
+      const artToken = await userSdk.getTokenContract(
+        artTokenAddress.tokenAddress,
+      );
+
       // Approve AMM to spend tokens for liquidity (higher amounts to accommodate the exact liquidity)
-      await wineToken.approve(await amm.getAddress(), ethers.parseEther("150000"));
-      await artToken.approve(await amm.getAddress(), ethers.parseEther("100000"));
+      await wineToken.approve(
+        await amm.getAddress(),
+        ethers.parseEther("150000"),
+      );
+      await artToken.approve(
+        await amm.getAddress(),
+        ethers.parseEther("100000"),
+      );
 
       // Add liquidity to the pool
       await userSdk.addLiquidity({
@@ -750,8 +779,14 @@ describe("LuxBridge SDK", function () {
       });
 
       // Approve automation contract to spend tokens for automated trading
-      await wineToken.approve(await automation.getAddress(), ethers.parseEther("500000"));
-      await artToken.approve(await automation.getAddress(), ethers.parseEther("250000"));
+      await wineToken.approve(
+        await automation.getAddress(),
+        ethers.parseEther("500000"),
+      );
+      await artToken.approve(
+        await automation.getAddress(),
+        ethers.parseEther("250000"),
+      );
 
       await userSdk.delegateTrading({
         maxTradeSize: "10000",
@@ -773,12 +808,12 @@ describe("LuxBridge SDK", function () {
       });
 
       const deadline = Math.floor(Date.now() / 1000) + 86400; // 24 hours
-      
+
       // First queue a trade
       const queueResult = await aiSdk.queueAutomatedTrade({
         user: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // hardhat account 0 address
         sellPlatform: "splint_invest",
-        sellAsset: "WINE-001", 
+        sellAsset: "WINE-001",
         buyPlatform: "masterworks",
         buyAsset: "ART-001",
         amount: "1000",
@@ -788,7 +823,9 @@ describe("LuxBridge SDK", function () {
 
       // Extract trade ID from transaction receipt
       const receipt = await queueResult.receipt;
-      const tradeId = receipt?.logs[0]?.topics[1] || ethers.keccak256(ethers.toUtf8Bytes("fallback"));
+      const tradeId =
+        receipt?.logs[0]?.topics[1] ||
+        ethers.keccak256(ethers.toUtf8Bytes("fallback"));
 
       const result = await aiSdk.executeAutomatedTrade({
         tradeId,

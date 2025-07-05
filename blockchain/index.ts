@@ -35,10 +35,31 @@ export interface NetworkConfig {
   };
 }
 
+function loadContractAddresses(): NetworkConfig["contracts"] | null {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const addressesPath = path.join(__dirname, "test-environment", "contract-addresses.json");
+    
+    if (fs.existsSync(addressesPath)) {
+      const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
+      return {
+        factory: addresses.factory,
+        amm: addresses.amm,
+        oracle: addresses.oracle,
+        automation: addresses.automation,
+      };
+    }
+  } catch (error) {
+    console.warn("Failed to load dynamic contract addresses:", error);
+  }
+  return null;
+}
+
 const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
   localhost: {
     rpcUrl: "http://127.0.0.1:8545",
-    contracts: {
+    contracts: loadContractAddresses() || {
       factory: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       amm: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       oracle: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
@@ -47,7 +68,7 @@ const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
   },
   hardhat: {
     rpcUrl: "http://127.0.0.1:8545",
-    contracts: {
+    contracts: loadContractAddresses() || {
       factory: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       amm: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
       oracle: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
@@ -75,12 +96,12 @@ const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
 };
 
 export class LuxBridgeSDK {
-  private provider: ethers.Provider;
-  private signer?: ethers.Signer;
-  private factory: RWATokenFactory;
-  private amm: LuxBridgeAMM;
-  private oracle: LuxBridgePriceOracle;
-  private automation: LuxBridgeAutomation;
+  public provider: ethers.Provider;
+  public signer?: ethers.Signer;
+  public factory: RWATokenFactory;
+  public amm: LuxBridgeAMM;
+  public oracle: LuxBridgePriceOracle;
+  public automation: LuxBridgeAutomation;
 
   constructor(config: LuxBridgeSDKConfig) {
     const networkConfig = NETWORK_CONFIGS[config.network];
@@ -91,7 +112,12 @@ export class LuxBridgeSDK {
     if (config.provider) {
       this.provider = config.provider;
     } else {
-      this.provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
+      // For localhost/hardhat, use simpler provider without network config
+      if (config.network === "localhost" || config.network === "hardhat") {
+        this.provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
+      } else {
+        this.provider = new ethers.JsonRpcProvider(networkConfig.rpcUrl);
+      }
     }
 
     if (config.privateKey) {
@@ -148,31 +174,63 @@ export class LuxBridgeSDK {
     this.requireSigner();
     const parsed = TokenizeAssetSchema.parse(params);
 
-    const tx = await this.factory.tokenizeAsset(
-      parsed.platform,
-      parsed.assetId,
-      ethers.parseEther(parsed.totalSupply),
-      parsed.assetType,
-      parsed.subcategory,
-      parsed.legalHash,
-      ethers.parseEther(parsed.valuation),
-      ethers.parseEther(parsed.sharePrice),
-      parsed.currency,
-    );
+    try {
+      // Validate parameters before calling contract
+      if (BigInt(parsed.totalSupply) <= 0) {
+        throw new Error(`Invalid totalSupply: ${parsed.totalSupply}. Must be > 0`);
+      }
+      if (BigInt(parsed.valuation) <= 0) {
+        throw new Error(`Invalid valuation: ${parsed.valuation}. Must be > 0`);
+      }
+      if (BigInt(parsed.sharePrice) <= 0) {
+        throw new Error(`Invalid sharePrice: ${parsed.sharePrice}. Must be > 0`);
+      }
 
-    const receipt = await tx.wait();
-    if (!receipt) throw new Error("Transaction failed");
+      const tx = await this.factory.tokenizeAsset(
+        parsed.platform,
+        parsed.assetId,
+        ethers.parseEther(parsed.totalSupply), // ERC-20 token amount (18 decimals)
+        parsed.assetType,
+        parsed.subcategory,
+        parsed.legalHash,
+        BigInt(parsed.valuation), // USD amount (no decimals)
+        BigInt(parsed.sharePrice), // USD amount (no decimals)
+        parsed.currency,
+      );
 
-    const tokenAddress = await this.factory.getTokenAddress(
-      parsed.platform,
-      parsed.assetId,
-    );
+      const receipt = await tx.wait();
+      if (!receipt) throw new Error("Transaction failed");
 
-    return {
-      transactionHash: tx.hash,
-      tokenAddress,
-      receipt,
-    };
+      const tokenAddress = await this.factory.getTokenAddress(
+        parsed.platform,
+        parsed.assetId,
+      );
+
+      return {
+        transactionHash: tx.hash,
+        tokenAddress,
+        receipt,
+      };
+    } catch (error: any) {
+      // Enhanced error handling with parameter context
+      const errorContext = {
+        method: "tokenizeAsset",
+        params: {
+          platform: parsed.platform,
+          assetId: parsed.assetId,
+          totalSupply: parsed.totalSupply,
+          valuation: parsed.valuation,
+          sharePrice: parsed.sharePrice,
+        },
+        contractAddress: this.factory.target,
+      };
+
+      if (error.message?.includes("require(false)") || error.message?.includes("execution reverted")) {
+        throw new Error(`Contract execution failed: ${error.message}. Context: ${JSON.stringify(errorContext)}`);
+      }
+
+      throw new Error(`SDK tokenizeAsset failed: ${error.message}. Context: ${JSON.stringify(errorContext)}`);
+    }
   }
 
   async burnTokens(params: z.infer<typeof BurnTokensSchema>) {
@@ -182,7 +240,7 @@ export class LuxBridgeSDK {
     const tx = await this.factory.burnTokens(
       parsed.platform,
       parsed.assetId,
-      ethers.parseEther(parsed.amount),
+      ethers.parseEther(parsed.amount), // ERC-20 token amount (18 decimals)
     );
 
     const receipt = await tx.wait();
@@ -201,7 +259,7 @@ export class LuxBridgeSDK {
     const tx = await this.factory.updateValuation(
       parsed.platform,
       parsed.assetId,
-      ethers.parseEther(parsed.newValuation),
+      BigInt(parsed.newValuation),
     );
 
     const receipt = await tx.wait();
@@ -243,12 +301,12 @@ export class LuxBridgeSDK {
     const tx = await this.factory.batchTokenize(
       parsed.assets.map((a) => a.platform),
       parsed.assets.map((a) => a.assetId),
-      parsed.assets.map((a) => ethers.parseEther(a.totalSupply)),
+      parsed.assets.map((a) => ethers.parseEther(a.totalSupply)), // ERC-20 token amounts
       parsed.assets.map((a) => a.assetType),
       parsed.assets.map((a) => a.subcategory),
       parsed.assets.map((a) => a.legalHash),
-      parsed.assets.map((a) => ethers.parseEther(a.valuation)),
-      parsed.assets.map((a) => ethers.parseEther(a.sharePrice)),
+      parsed.assets.map((a) => BigInt(a.valuation)),
+      parsed.assets.map((a) => BigInt(a.sharePrice)),
       parsed.assets.map((a) => a.currency),
     );
 
@@ -442,7 +500,7 @@ export class LuxBridgeSDK {
     const tx = await this.oracle.mockPriceUpdate(
       parsed.platform,
       parsed.assetId,
-      ethers.parseEther(parsed.price),
+      BigInt(parsed.price),
     );
 
     const receipt = await tx.wait();
@@ -506,8 +564,8 @@ export class LuxBridgeSDK {
     const parsed = DelegateTradingSchema.parse(params);
 
     const tx = await this.automation.delegateTrading(
-      ethers.parseEther(parsed.maxTradeSize),
-      ethers.parseEther(parsed.maxDailyVolume),
+      BigInt(parsed.maxTradeSize),
+      BigInt(parsed.maxDailyVolume),
       parsed.allowedAssets,
     );
 
@@ -547,8 +605,8 @@ export class LuxBridgeSDK {
       parsed.sellAsset,
       parsed.buyPlatform,
       parsed.buyAsset,
-      ethers.parseEther(parsed.amount),
-      ethers.parseEther(parsed.minAmountOut || "0"),
+      ethers.parseEther(parsed.amount), // Token amount (18 decimals)
+      ethers.parseEther(parsed.minAmountOut || "0"), // Token amount (18 decimals)
       parsed.deadline,
     );
 
@@ -576,6 +634,33 @@ export class LuxBridgeSDK {
       tokenAddress,
       this.signer || this.provider,
     );
+  }
+
+  // Query events from contracts
+  async queryEvents(
+    contractName: "factory" | "amm" | "oracle" | "automation",
+    eventName: string,
+    fromBlock?: number,
+    toBlock?: number,
+    filter?: any
+  ): Promise<any[]> {
+    const contractMap = {
+      factory: this.factory,
+      amm: this.amm,
+      oracle: this.oracle,
+      automation: this.automation,
+    };
+    
+    const contract = contractMap[contractName];
+    const eventFilter = (contract.filters as any)[eventName](...(filter || []));
+    
+    const events = await contract.queryFilter(
+      eventFilter,
+      fromBlock || 0,
+      toBlock || "latest"
+    );
+    
+    return events;
   }
 }
 
@@ -624,9 +709,7 @@ export const TokenizeAssetSchema = z
       ),
     currency: z
       .string()
-      .describe(
-        "Currency code for the valuation (e.g., 'USD', 'EUR', 'GBP')",
-      ),
+      .describe("Currency code for the valuation (e.g., 'USD', 'EUR', 'GBP')"),
   })
   .describe(
     "Parameters for tokenizing a real-world asset into fungible ERC-20 tokens on the blockchain",

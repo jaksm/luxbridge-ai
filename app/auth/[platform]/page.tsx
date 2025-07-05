@@ -82,18 +82,15 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
     setError("");
 
     try {
-      const response = await fetch(
-        `/api/auth/platforms/${platform}/complete`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId,
-            email: credentials.email,
-            password: credentials.password,
-          }),
-        },
-      );
+      const response = await fetch(`/api/auth/platforms/${platform}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          email: credentials.email,
+          password: credentials.password,
+        }),
+      });
 
       const result = await response.json();
 

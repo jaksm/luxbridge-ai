@@ -33,7 +33,8 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8545",
     },
     zircuit: {
-      url: process.env.ZIRCUIT_RPC_URL || "https://garfield-testnet.zircuit.com",
+      url:
+        process.env.ZIRCUIT_RPC_URL || "https://garfield-testnet.zircuit.com",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 48898,
     },

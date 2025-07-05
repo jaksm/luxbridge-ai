@@ -164,7 +164,9 @@ export async function getAccessToken(
     clientId: accessToken.clientId,
     userId: accessToken.userId,
     sessionId: accessToken.sessionId || undefined,
-    userData: accessToken.userData ? JSON.parse(accessToken.userData) : undefined,
+    userData: accessToken.userData
+      ? JSON.parse(accessToken.userData)
+      : undefined,
   };
 
   return result;

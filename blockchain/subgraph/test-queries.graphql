@@ -86,7 +86,7 @@ query GetPriceData {
     price
     timestamp
   }
-  
+
   arbitrageOpportunities(first: 5, orderBy: timestamp, orderDirection: desc) {
     id
     assetId

@@ -84,7 +84,6 @@ export const AssetQuerySchema = z.object({
     .describe("Risk category filter"),
 });
 
-
 export const ListSupportedPlatformsSchema = z
   .object({})
   .describe(

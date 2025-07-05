@@ -1,0 +1,20 @@
+{
+  "name": "luxbridge-subgraph",
+  "version": "1.0.0",
+  "description": "The Graph subgraph for LuxBridge AI RWA trading",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 luxbridge-ai/rwa-trading",
+    "create-local": "graph create --node http://localhost:8020 luxbridge-ai/rwa-trading",
+    "remove-local": "graph remove --node http://localhost:8020 luxbridge-ai/rwa-trading",
+    "deploy-local": "graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 luxbridge-ai/rwa-trading"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.51.2",
+    "@graphprotocol/graph-ts": "0.30.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-asset-prices",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/check-arbitrage",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/execute-queued-trades",
+      "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/optimize-pools",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/rebalance-portfolios",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}
