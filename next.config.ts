@@ -3,6 +3,7 @@ import CopyWebpackPlugin from "copy-webpack-plugin";
 
 const nextConfig: NextConfig = {
   webpack: (config) => {
+    // Copy templates to the webpack output directory
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
