@@ -18,7 +18,7 @@
     "blockchain:deploy": "cd blockchain && hardhat run scripts/deploy/01-deploy-factory.ts --network localhost"
   },
   "dependencies": {
-    "@chainlink/contracts": "^1.2.0",
+    "@chainlink/contracts": "^1.4.0",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@openzeppelin/contracts": "^5.0.2",
     "@pinecone-database/pinecone": "^6.1.1",
