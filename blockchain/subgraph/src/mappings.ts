@@ -35,7 +35,7 @@ import {
 export function handleAssetTokenized(event: AssetTokenized): void {
   let platformId = event.params.platform;
   let platform = Platform.load(platformId);
-  
+
   if (platform == null) {
     platform = new Platform(platformId);
     platform.name = event.params.platform;
@@ -46,9 +46,13 @@ export function handleAssetTokenized(event: AssetTokenized): void {
     platform.createdAt = event.block.timestamp;
     platform.updatedAt = event.block.timestamp;
   }
-  
-  platform.totalAssetsTokenized = platform.totalAssetsTokenized.plus(BigInt.fromI32(1));
-  platform.totalValueLocked = platform.totalValueLocked.plus(event.params.valuation);
+
+  platform.totalAssetsTokenized = platform.totalAssetsTokenized.plus(
+    BigInt.fromI32(1),
+  );
+  platform.totalValueLocked = platform.totalValueLocked.plus(
+    event.params.valuation,
+  );
   platform.updatedAt = event.block.timestamp;
   platform.save();
 
@@ -67,7 +71,7 @@ export function handleAssetTokenized(event: AssetTokenized): void {
   asset.save();
 
   let tokenizationEvent = new TokenizationEvent(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
   );
   tokenizationEvent.asset = assetId;
   tokenizationEvent.tokenAddress = event.params.tokenAddress;
@@ -85,10 +89,10 @@ export function handleAssetTokenized(event: AssetTokenized): void {
 export function handleAssetBurned(event: AssetBurned): void {
   let assetId = event.params.platform + "-" + event.params.assetId;
   let asset = Asset.load(assetId);
-  
+
   if (asset != null) {
     let burnEvent = new AssetBurnEvent(
-      event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+      event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
     );
     burnEvent.asset = assetId;
     burnEvent.holder = event.params.holder;
@@ -103,7 +107,7 @@ export function handleAssetBurned(event: AssetBurned): void {
 export function handleValuationUpdated(event: ValuationUpdated): void {
   let assetId = event.params.platform + "-" + event.params.assetId;
   let asset = Asset.load(assetId);
-  
+
   if (asset != null) {
     asset.lastValuation = event.params.newValuation;
     asset.valuationTimestamp = event.params.timestamp;
@@ -119,7 +123,7 @@ export function handleValuationUpdated(event: ValuationUpdated): void {
     }
 
     let valuationUpdate = new ValuationUpdateEvent(
-      event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+      event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
     );
     valuationUpdate.asset = assetId;
     valuationUpdate.oldValuation = event.params.oldValuation;
@@ -134,13 +138,13 @@ export function handleValuationUpdated(event: ValuationUpdated): void {
 export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
   let sellAssetId = event.params.sellPlatform + "-" + event.params.sellAssetId;
   let buyAssetId = event.params.buyPlatform + "-" + event.params.buyAssetId;
-  
+
   let sellAsset = Asset.load(sellAssetId);
   let buyAsset = Asset.load(buyAssetId);
-  
+
   if (sellAsset != null && buyAsset != null) {
     let trade = new CrossPlatformTrade(
-      event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+      event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
     );
     trade.user = event.params.user;
     trade.sellAsset = sellAssetId;
@@ -148,7 +152,7 @@ export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
     trade.platform = event.params.sellPlatform;
     trade.sellAmount = event.params.sellAmount;
     trade.buyAmount = event.params.buyAmount;
-    
+
     if (event.params.sellAmount.gt(BigInt.fromI32(0))) {
       trade.executionPrice = event.params.buyAmount
         .times(BigInt.fromI32(10000))
@@ -156,7 +160,7 @@ export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
     } else {
       trade.executionPrice = BigInt.fromI32(0);
     }
-    
+
     trade.arbitrageSpread = BigInt.fromI32(0);
     trade.timestamp = event.block.timestamp;
     trade.blockNumber = event.block.number;
@@ -164,9 +168,9 @@ export function handleCrossPlatformSwap(event: CrossPlatformSwap): void {
     trade.save();
 
     updateDailyStats(
-      event.block.timestamp, 
-      event.params.sellAmount.plus(event.params.buyAmount), 
-      BigInt.fromI32(1)
+      event.block.timestamp,
+      event.params.sellAmount.plus(event.params.buyAmount),
+      BigInt.fromI32(1),
     );
   }
 }
@@ -191,7 +195,7 @@ export function handlePoolCreated(event: PoolCreated): void {
 export function handleLiquidityAdded(event: LiquidityAdded): void {
   let poolId = event.params.poolId.toHex();
   let pool = LiquidityPool.load(poolId);
-  
+
   if (pool != null) {
     pool.reserveA = pool.reserveA.plus(event.params.amountA);
     pool.reserveB = pool.reserveB.plus(event.params.amountB);
@@ -199,7 +203,7 @@ export function handleLiquidityAdded(event: LiquidityAdded): void {
     pool.save();
 
     let liquidityEvent = new LiquidityEvent(
-      event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+      event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
     );
     liquidityEvent.pool = poolId;
     liquidityEvent.provider = event.params.provider;
@@ -217,7 +221,7 @@ export function handleLiquidityAdded(event: LiquidityAdded): void {
 export function handleLiquidityRemoved(event: LiquidityRemoved): void {
   let poolId = event.params.poolId.toHex();
   let pool = LiquidityPool.load(poolId);
-  
+
   if (pool != null) {
     pool.reserveA = pool.reserveA.minus(event.params.amountA);
     pool.reserveB = pool.reserveB.minus(event.params.amountB);
@@ -225,7 +229,7 @@ export function handleLiquidityRemoved(event: LiquidityRemoved): void {
     pool.save();
 
     let liquidityEvent = new LiquidityEvent(
-      event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+      event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
     );
     liquidityEvent.pool = poolId;
     liquidityEvent.provider = event.params.provider;
@@ -243,10 +247,10 @@ export function handleLiquidityRemoved(event: LiquidityRemoved): void {
 export function handleSwap(event: Swap): void {
   let poolId = event.params.poolId.toHex();
   let pool = LiquidityPool.load(poolId);
-  
+
   if (pool != null) {
     let swapEvent = new SwapEvent(
-      event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+      event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
     );
     swapEvent.pool = poolId;
     swapEvent.trader = event.params.trader;
@@ -260,9 +264,9 @@ export function handleSwap(event: Swap): void {
     swapEvent.save();
 
     updateDailyStats(
-      event.block.timestamp, 
-      event.params.amountIn.plus(event.params.amountOut), 
-      BigInt.fromI32(1)
+      event.block.timestamp,
+      event.params.amountIn.plus(event.params.amountOut),
+      BigInt.fromI32(1),
     );
   }
 }
@@ -271,7 +275,7 @@ export function handleSwap(event: Swap): void {
 
 export function handlePriceUpdated(event: PriceUpdated): void {
   let priceUpdate = new PriceUpdate(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
   );
   priceUpdate.platform = event.params.platform;
   priceUpdate.assetId = event.params.assetId;
@@ -284,7 +288,7 @@ export function handlePriceUpdated(event: PriceUpdated): void {
 
 export function handleArbitrageOpportunity(event: ArbitrageOpportunity): void {
   let arbitrage = new ArbitrageOpportunityEntity(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString(),
   );
   arbitrage.assetId = event.params.assetId;
   arbitrage.spread = event.params.spread;
@@ -299,10 +303,14 @@ export function handleArbitrageOpportunity(event: ArbitrageOpportunity): void {
 
 // Helper Functions
 
-function updateDailyStats(timestamp: BigInt, volume: BigInt, trades: BigInt): void {
+function updateDailyStats(
+  timestamp: BigInt,
+  volume: BigInt,
+  trades: BigInt,
+): void {
   let dayId = timestamp.toI32() / 86400;
   let dailyStats = DailyStats.load(dayId.toString());
-  
+
   if (dailyStats == null) {
     dailyStats = new DailyStats(dayId.toString());
     dailyStats.date = dayId;
@@ -313,7 +321,7 @@ function updateDailyStats(timestamp: BigInt, volume: BigInt, trades: BigInt): vo
     dailyStats.activeAssets = BigInt.fromI32(0);
     dailyStats.activePlatforms = BigInt.fromI32(0);
   }
-  
+
   dailyStats.totalVolume = dailyStats.totalVolume.plus(volume);
   dailyStats.totalTrades = dailyStats.totalTrades.plus(trades);
   dailyStats.save();
