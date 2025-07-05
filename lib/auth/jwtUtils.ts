@@ -3,11 +3,9 @@ import { TokenPayload } from "../types/user";
 import { PlatformType } from "../types/platformAsset";
 
 export function generateJWT(userId: string, platform: PlatformType): string {
-  return jwt.sign(
-    { userId, platform },
-    process.env.JWT_SECRET!,
-    { expiresIn: "24h" }
-  );
+  return jwt.sign({ userId, platform }, process.env.JWT_SECRET!, {
+    expiresIn: "24h",
+  });
 }
 
 export function validateJWT(token: string): TokenPayload | null {
