@@ -265,11 +265,7 @@ export class LuxBridgeSDK {
 
     const swapFee = parsed.swapFee ? Math.floor(parsed.swapFee * 100) : 30;
 
-    const tx = await this.amm.createPool(
-      parsed.tokenA,
-      parsed.tokenB,
-      swapFee,
-    );
+    const tx = await this.amm.createPool(parsed.tokenA, parsed.tokenB, swapFee);
 
     const receipt = await tx.wait();
     if (!receipt) throw new Error("Transaction failed");
@@ -519,9 +515,7 @@ export class LuxBridgeSDK {
     this.requireSigner();
     const parsed = ExecuteAutomatedTradeSchema.parse(params);
 
-    const tx = await this.automation.executeAutomatedTrade(
-      parsed.tradeId,
-    );
+    const tx = await this.automation.executeAutomatedTrade(parsed.tradeId);
 
     const receipt = await tx.wait();
     if (!receipt) throw new Error("Transaction failed");
@@ -876,14 +870,10 @@ export const DelegateTradingSchema = z
   .object({
     maxTradeSize: z
       .string()
-      .describe(
-        "Maximum USD value for a single trade (in ETH units)",
-      ),
+      .describe("Maximum USD value for a single trade (in ETH units)"),
     maxDailyVolume: z
       .string()
-      .describe(
-        "Maximum USD value of trades per day (in ETH units)",
-      ),
+      .describe("Maximum USD value of trades per day (in ETH units)"),
     allowedAssets: z
       .array(z.string())
       .describe("Array of asset identifiers the user allows to be traded"),
