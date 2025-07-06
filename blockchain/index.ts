@@ -39,8 +39,12 @@ function loadContractAddresses(): NetworkConfig["contracts"] | null {
   try {
     const fs = require("fs");
     const path = require("path");
-    const addressesPath = path.join(__dirname, "test-environment", "contract-addresses.json");
-    
+    const addressesPath = path.join(
+      __dirname,
+      "test-environment",
+      "contract-addresses.json",
+    );
+
     if (fs.existsSync(addressesPath)) {
       const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
       return {
@@ -78,10 +82,18 @@ const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
   zircuit: {
     rpcUrl: process.env.ZIRCUIT_RPC_URL || "https://zircuit1.p2pify.com",
     contracts: {
-      factory: process.env.ZIRCUIT_FACTORY_ADDRESS || "",
-      amm: process.env.ZIRCUIT_AMM_ADDRESS || "",
-      oracle: process.env.ZIRCUIT_ORACLE_ADDRESS || "",
-      automation: process.env.ZIRCUIT_AUTOMATION_ADDRESS || "",
+      factory:
+        process.env.ZIRCUIT_FACTORY_ADDRESS ||
+        "0x6E52943b3Be391f7245f5f3c8F8A16238aEC8F3B",
+      amm:
+        process.env.ZIRCUIT_AMM_ADDRESS ||
+        "0xa59F5257cFf701aEc174425dBcEa1Ce4C94704EE",
+      oracle:
+        process.env.ZIRCUIT_ORACLE_ADDRESS ||
+        "0xdb38b00cb3052ED861C2782787700539d08F8F99",
+      automation:
+        process.env.ZIRCUIT_AUTOMATION_ADDRESS ||
+        "0x20D527BB5a9601bBd8750567a020dcdC6c7D8b0b",
     },
   },
   sepolia: {
@@ -136,11 +148,11 @@ export class LuxBridgeSDK {
       if (!contractAddresses.amm) missingContracts.push("amm");
       if (!contractAddresses.oracle) missingContracts.push("oracle");
       if (!contractAddresses.automation) missingContracts.push("automation");
-      
+
       if (missingContracts.length > 0) {
         throw new Error(
           `Missing contract addresses for ${config.network} network: ${missingContracts.join(", ")}. ` +
-          `Please deploy contracts first using: npx hardhat run scripts/deploy/04-deploy-full-system.ts --network ${config.network}`
+            `Please deploy contracts first using: npx hardhat run scripts/deploy/04-deploy-full-system.ts --network ${config.network}`,
         );
       }
     }
@@ -193,13 +205,17 @@ export class LuxBridgeSDK {
     try {
       // Validate parameters before calling contract
       if (BigInt(parsed.totalSupply) <= 0) {
-        throw new Error(`Invalid totalSupply: ${parsed.totalSupply}. Must be > 0`);
+        throw new Error(
+          `Invalid totalSupply: ${parsed.totalSupply}. Must be > 0`,
+        );
       }
       if (BigInt(parsed.valuation) <= 0) {
         throw new Error(`Invalid valuation: ${parsed.valuation}. Must be > 0`);
       }
       if (BigInt(parsed.sharePrice) <= 0) {
-        throw new Error(`Invalid sharePrice: ${parsed.sharePrice}. Must be > 0`);
+        throw new Error(
+          `Invalid sharePrice: ${parsed.sharePrice}. Must be > 0`,
+        );
       }
 
       const tx = await this.factory.tokenizeAsset(
@@ -241,11 +257,18 @@ export class LuxBridgeSDK {
         contractAddress: this.factory.target,
       };
 
-      if (error.message?.includes("require(false)") || error.message?.includes("execution reverted")) {
-        throw new Error(`Contract execution failed: ${error.message}. Context: ${JSON.stringify(errorContext)}`);
+      if (
+        error.message?.includes("require(false)") ||
+        error.message?.includes("execution reverted")
+      ) {
+        throw new Error(
+          `Contract execution failed: ${error.message}. Context: ${JSON.stringify(errorContext)}`,
+        );
       }
 
-      throw new Error(`SDK tokenizeAsset failed: ${error.message}. Context: ${JSON.stringify(errorContext)}`);
+      throw new Error(
+        `SDK tokenizeAsset failed: ${error.message}. Context: ${JSON.stringify(errorContext)}`,
+      );
     }
   }
 
@@ -658,7 +681,7 @@ export class LuxBridgeSDK {
     eventName: string,
     fromBlock?: number,
     toBlock?: number,
-    filter?: any
+    filter?: any,
   ): Promise<any[]> {
     const contractMap = {
       factory: this.factory,
@@ -666,16 +689,16 @@ export class LuxBridgeSDK {
       oracle: this.oracle,
       automation: this.automation,
     };
-    
+
     const contract = contractMap[contractName];
     const eventFilter = (contract.filters as any)[eventName](...(filter || []));
-    
+
     const events = await contract.queryFilter(
       eventFilter,
       fromBlock || 0,
-      toBlock || "latest"
+      toBlock || "latest",
     );
-    
+
     return events;
   }
 }

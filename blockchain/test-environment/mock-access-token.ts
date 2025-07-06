@@ -17,7 +17,7 @@ export const DEFAULT_TEST_USERS: MockUserData[] = [
     clientId: "test-client-1",
   },
   {
-    userId: "test-user-2", 
+    userId: "test-user-2",
     email: "bob@luxbridge.test",
     privyUserId: "privy-bob-456",
     walletAddress: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", // Hardhat account #1
@@ -25,7 +25,7 @@ export const DEFAULT_TEST_USERS: MockUserData[] = [
   },
   {
     userId: "test-user-3",
-    email: "charlie@luxbridge.test", 
+    email: "charlie@luxbridge.test",
     privyUserId: "privy-charlie-789",
     walletAddress: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", // Hardhat account #2
     clientId: "test-client-3",
@@ -34,7 +34,7 @@ export const DEFAULT_TEST_USERS: MockUserData[] = [
 
 export function createMockAccessToken(
   userData: Partial<MockUserData> = {},
-  overrides: Partial<AccessToken> = {}
+  overrides: Partial<AccessToken> = {},
 ): AccessToken {
   const defaultUser = DEFAULT_TEST_USERS[0];
   const user = { ...defaultUser, ...userData };
@@ -57,14 +57,20 @@ export function createMockAccessToken(
   };
 }
 
-export function createMockAccessTokenForUser(userIndex: number = 0): AccessToken {
+export function createMockAccessTokenForUser(
+  userIndex: number = 0,
+): AccessToken {
   if (userIndex >= DEFAULT_TEST_USERS.length) {
-    throw new Error(`User index ${userIndex} out of range. Max: ${DEFAULT_TEST_USERS.length - 1}`);
+    throw new Error(
+      `User index ${userIndex} out of range. Max: ${DEFAULT_TEST_USERS.length - 1}`,
+    );
   }
-  
+
   return createMockAccessToken(DEFAULT_TEST_USERS[userIndex]);
 }
 
 export function getAllMockAccessTokens(): AccessToken[] {
-  return DEFAULT_TEST_USERS.map((_, index) => createMockAccessTokenForUser(index));
+  return DEFAULT_TEST_USERS.map((_, index) =>
+    createMockAccessTokenForUser(index),
+  );
 }

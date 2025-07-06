@@ -5,6 +5,7 @@ This directory contains the comprehensive testing framework for LuxBridge AI's b
 ## Overview
 
 The testing framework allows you to:
+
 - Test all 11 blockchain MCP tools locally without authentication
 - Run end-to-end integration scenarios
 - Validate smart contract interactions
@@ -47,11 +48,13 @@ npm run test:tools:cleanup
 ## Tool Coverage
 
 ### ✅ Implemented Tools (3/11)
+
 - `tokenize_asset` - Convert RWAs to blockchain tokens
-- `get_asset_metadata` - Retrieve on-chain asset information  
+- `get_asset_metadata` - Retrieve on-chain asset information
 - `add_liquidity` - Provide liquidity to AMM pools
 
 ### 🚧 To Be Implemented (8/11)
+
 - `remove_liquidity` - Withdraw liquidity from pools
 - `swap_tokens` - Execute token swaps via AMM
 - `get_swap_quote` - Preview swap results
@@ -66,22 +69,26 @@ npm run test:tools:cleanup
 ### Core Components
 
 #### `setup-local-chain.ts`
+
 - Deploys complete smart contract system to local Hardhat chain
 - Registers platforms (Splint Invest, Masterworks, RealT)
 - Saves contract addresses for tests
 - Returns deployment configuration
 
 #### `mock-access-token.ts`
+
 - Creates realistic AccessToken objects for testing
 - Provides test user data (email, wallet, Privy ID)
 - Supports multiple test users with different accounts
 
 #### `test-auth-bypass.ts`
+
 - Bypasses OAuth authentication for testing
 - Allows direct tool execution without authentication flow
 - Maintains proper AccessToken structure
 
 #### `tool-test-helpers.ts`
+
 - `ToolTester` class for running MCP tools
 - Test result tracking and summary generation
 - Sample asset data generation utilities
@@ -109,14 +116,16 @@ blockchain/test-scenarios/
 ## Test Scenarios
 
 ### End-to-End Trading
+
 1. Tokenize wine asset (Splint Invest)
-2. Tokenize art asset (Masterworks)  
+2. Tokenize art asset (Masterworks)
 3. Verify asset metadata
 4. Add liquidity to create WINE/ART pool
 5. Execute swap from wine to art
 6. Verify final state
 
 ### Cross-Platform Arbitrage
+
 1. Create same asset on different platforms with different prices
 2. Set up liquidity pools for both versions
 3. Detect arbitrage opportunities
@@ -156,19 +165,21 @@ import { createMockAccessTokenForUser } from "./mock-access-token";
 
 // Use different test users
 const alice = createMockAccessTokenForUser(0); // First user
-const bob = createMockAccessTokenForUser(1);   // Second user
+const bob = createMockAccessTokenForUser(1); // Second user
 const charlie = createMockAccessTokenForUser(2); // Third user
 ```
 
 ## Expected Test Results
 
 ### Successful Tests
+
 - Tool execution without authentication errors
 - Valid blockchain transactions and state changes
 - Proper error handling for invalid inputs
 - Consistent tool return value formats
 
 ### Common Failure Cases
+
 - Missing contract deployments (run setup first)
 - Insufficient token balances (test limitation)
 - Invalid tool parameters (expected behavior)
@@ -177,24 +188,28 @@ const charlie = createMockAccessTokenForUser(2); // Third user
 ## Troubleshooting
 
 ### "No contract addresses found"
+
 ```bash
 # Run setup first
 npm run test:tools:setup
 ```
 
 ### "Failed to create mock access token"
+
 ```bash
 # Check if auth bypass is enabled
 enableAuthBypass();
 ```
 
 ### "Tool execution timeout"
+
 ```bash
 # Restart local Hardhat node
 npm run blockchain:node
 ```
 
 ### Test Cleanup Issues
+
 ```bash
 # Manual cleanup
 npm run test:tools:cleanup
@@ -234,7 +249,7 @@ The test framework is designed for local development and can be integrated into 
 ## Next Steps
 
 1. **Complete Tool Coverage**: Implement remaining 8 tool tests
-2. **Advanced Scenarios**: Add more complex integration tests  
+2. **Advanced Scenarios**: Add more complex integration tests
 3. **Performance Testing**: Add gas usage and timing validation
 4. **Error Simulation**: Test network failures and edge cases
 5. **Parallel Execution**: Optimize test suite performance

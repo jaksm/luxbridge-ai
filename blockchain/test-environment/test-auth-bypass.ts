@@ -34,7 +34,9 @@ export function isAuthBypassed(): boolean {
   return testConfig.bypassAuth;
 }
 
-export async function mockAuthenticateRequest(req: NextRequest): Promise<AccessToken | null> {
+export async function mockAuthenticateRequest(
+  req: NextRequest,
+): Promise<AccessToken | null> {
   if (!testConfig.bypassAuth) {
     throw new Error("Auth bypass not enabled. Call enableAuthBypass() first.");
   }

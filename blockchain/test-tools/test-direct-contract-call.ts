@@ -2,10 +2,10 @@ import { ethers } from "hardhat";
 
 async function testDirectContractCall() {
   console.log("🔧 Testing direct contract calls...");
-  
+
   try {
     const [deployer] = await ethers.getSigners();
-    
+
     // Deploy RWATokenFactory
     const RWATokenFactory = await ethers.getContractFactory("RWATokenFactory");
     const factory = await RWATokenFactory.deploy();
@@ -14,12 +14,14 @@ async function testDirectContractCall() {
     console.log(`✅ RWATokenFactory: ${factoryAddress}`);
 
     // Deploy oracle (simplified)
-    const LuxBridgePriceOracle = await ethers.getContractFactory("LuxBridgePriceOracle");
+    const LuxBridgePriceOracle = await ethers.getContractFactory(
+      "LuxBridgePriceOracle",
+    );
     const oracle = await LuxBridgePriceOracle.deploy(
       deployer.address,
       ethers.keccak256(ethers.toUtf8Bytes("test")),
       1,
-      300000
+      300000,
     );
     await oracle.waitForDeployment();
     const oracleAddress = await oracle.getAddress();
@@ -30,7 +32,10 @@ async function testDirectContractCall() {
     console.log("✅ Oracle set");
 
     // Register platform
-    const tx = await factory.registerPlatform("test_platform", "https://test.api");
+    const tx = await factory.registerPlatform(
+      "test_platform",
+      "https://test.api",
+    );
     await tx.wait();
     console.log("✅ Platform registered");
 
@@ -46,20 +51,22 @@ async function testDirectContractCall() {
         ethers.ZeroHash,
         ethers.parseEther("100000"),
         ethers.parseEther("100"),
-        "USD"
+        "USD",
       );
-      
+
       const receipt = await tokenizeTx.wait();
       console.log("✅ Tokenization successful!");
       console.log(`Gas used: ${receipt?.gasUsed}`);
-      
+
       // Get token address
-      const tokenAddress = await factory.getTokenAddress("test_platform", "TEST-001");
+      const tokenAddress = await factory.getTokenAddress(
+        "test_platform",
+        "TEST-001",
+      );
       console.log(`Token address: ${tokenAddress}`);
-      
     } catch (error) {
       console.log("❌ Tokenization failed:", error);
-      
+
       // Try to get more detailed error
       try {
         console.log("\n🔍 Testing with static call...");
@@ -72,7 +79,7 @@ async function testDirectContractCall() {
           ethers.ZeroHash,
           ethers.parseEther("100000"),
           ethers.parseEther("100"),
-          "USD"
+          "USD",
         );
         console.log("✅ Static call succeeded");
       } catch (staticError) {
@@ -92,7 +99,6 @@ async function testDirectContractCall() {
     } catch (error) {
       console.log("❌ Platform info failed:", error);
     }
-
   } catch (error) {
     console.error("Test failed:", error);
   }

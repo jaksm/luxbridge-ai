@@ -16,9 +16,18 @@ async function main() {
   console.log("Setting up with account:", deployer.address);
 
   // Get contract instances
-  const factory = await ethers.getContractAt("RWATokenFactory", DEPLOYED_ADDRESSES.factory);
-  const amm = await ethers.getContractAt("LuxBridgeAMM", DEPLOYED_ADDRESSES.amm);
-  const oracle = await ethers.getContractAt("LuxBridgePriceOracle", DEPLOYED_ADDRESSES.oracle);
+  const factory = await ethers.getContractAt(
+    "RWATokenFactory",
+    DEPLOYED_ADDRESSES.factory,
+  );
+  const amm = await ethers.getContractAt(
+    "LuxBridgeAMM",
+    DEPLOYED_ADDRESSES.amm,
+  );
+  const oracle = await ethers.getContractAt(
+    "LuxBridgePriceOracle",
+    DEPLOYED_ADDRESSES.oracle,
+  );
 
   console.log("\n📋 Connecting contracts...");
 
@@ -27,7 +36,10 @@ async function main() {
     await factory.setPriceOracle(DEPLOYED_ADDRESSES.oracle);
     console.log("✓ Connected factory to oracle");
   } catch (error: any) {
-    console.log("⚠️ Factory-Oracle connection may already exist:", error.message);
+    console.log(
+      "⚠️ Factory-Oracle connection may already exist:",
+      error.message,
+    );
   }
 
   // Set up demo assets
@@ -68,7 +80,10 @@ async function main() {
   for (const asset of demoAssets) {
     try {
       // Check if asset already exists
-      const tokenAddress = await factory.getTokenAddress(asset.platform, asset.assetId);
+      const tokenAddress = await factory.getTokenAddress(
+        asset.platform,
+        asset.assetId,
+      );
       console.log(`✓ Asset ${asset.assetId} already exists at ${tokenAddress}`);
       tokenAddresses.push(tokenAddress);
     } catch (error) {
@@ -85,12 +100,18 @@ async function main() {
           asset.sharePrice,
           "USD",
         );
-        
-        const tokenAddress = await factory.getTokenAddress(asset.platform, asset.assetId);
+
+        const tokenAddress = await factory.getTokenAddress(
+          asset.platform,
+          asset.assetId,
+        );
         console.log(`✓ Created ${asset.assetId} asset at ${tokenAddress}`);
         tokenAddresses.push(tokenAddress);
       } catch (createError: any) {
-        console.log(`❌ Failed to create ${asset.assetId}:`, createError.message);
+        console.log(
+          `❌ Failed to create ${asset.assetId}:`,
+          createError.message,
+        );
       }
     }
   }
@@ -130,20 +151,26 @@ async function main() {
     if (tokenAddresses.length >= 2) {
       try {
         // Get token contracts
-        const token0 = await ethers.getContractAt("RWA20Token", tokenAddresses[0]);
-        const token1 = await ethers.getContractAt("RWA20Token", tokenAddresses[1]);
+        const token0 = await ethers.getContractAt(
+          "RWA20Token",
+          tokenAddresses[0],
+        );
+        const token1 = await ethers.getContractAt(
+          "RWA20Token",
+          tokenAddresses[1],
+        );
 
         // Check balances
         const balance0 = await token0.balanceOf(deployer.address);
         const balance1 = await token1.balanceOf(deployer.address);
-        
+
         console.log(`Token0 balance: ${ethers.formatEther(balance0)}`);
         console.log(`Token1 balance: ${ethers.formatEther(balance1)}`);
 
         if (balance0 > 0 && balance1 > 0) {
           // Approve AMM to spend tokens
           const amount0 = ethers.parseEther("10000"); // 10K tokens
-          const amount1 = ethers.parseEther("5000");  // 5K tokens
+          const amount1 = ethers.parseEther("5000"); // 5K tokens
 
           await token0.approve(DEPLOYED_ADDRESSES.amm, amount0);
           await token1.approve(DEPLOYED_ADDRESSES.amm, amount1);
@@ -155,9 +182,9 @@ async function main() {
             amount0,
             amount1,
             ethers.parseEther("9000"), // min amount0
-            ethers.parseEther("4500"),  // min amount1
+            ethers.parseEther("4500"), // min amount1
           );
-          
+
           console.log("✓ Added initial liquidity to Wine-Art pool");
         } else {
           console.log("⚠️ Insufficient token balances to add liquidity");
@@ -177,10 +204,14 @@ async function main() {
   console.log("   LuxBridgeAMM:", DEPLOYED_ADDRESSES.amm);
   console.log("   LuxBridgePriceOracle:", DEPLOYED_ADDRESSES.oracle);
   console.log("   LuxBridgeAutomation:", DEPLOYED_ADDRESSES.automation);
-  
+
   if (tokenAddresses.length > 0) {
     console.log("\n🏛️ Demo Assets:");
-    const assetNames = ["Wine (BORDEAUX-2019)", "Art (PICASSO-042)", "Real Estate (DETROIT-HOUSE-001)"];
+    const assetNames = [
+      "Wine (BORDEAUX-2019)",
+      "Art (PICASSO-042)",
+      "Real Estate (DETROIT-HOUSE-001)",
+    ];
     tokenAddresses.forEach((address, i) => {
       if (assetNames[i]) {
         console.log(`   ${assetNames[i]}: ${address}`);
@@ -190,12 +221,23 @@ async function main() {
 
   console.log("\n👥 Key Accounts:");
   console.log("   Deployer/AI Agent:", deployer.address);
-  
+
   console.log("\n🔗 Explorer Links:");
-  console.log("   Factory: https://explorer.zircuit.com/address/" + DEPLOYED_ADDRESSES.factory);
-  console.log("   AMM: https://explorer.zircuit.com/address/" + DEPLOYED_ADDRESSES.amm);
-  console.log("   Oracle: https://explorer.zircuit.com/address/" + DEPLOYED_ADDRESSES.oracle);
-  console.log("   Automation: https://explorer.zircuit.com/address/" + DEPLOYED_ADDRESSES.automation);
+  console.log(
+    "   Factory: https://explorer.zircuit.com/address/" +
+      DEPLOYED_ADDRESSES.factory,
+  );
+  console.log(
+    "   AMM: https://explorer.zircuit.com/address/" + DEPLOYED_ADDRESSES.amm,
+  );
+  console.log(
+    "   Oracle: https://explorer.zircuit.com/address/" +
+      DEPLOYED_ADDRESSES.oracle,
+  );
+  console.log(
+    "   Automation: https://explorer.zircuit.com/address/" +
+      DEPLOYED_ADDRESSES.automation,
+  );
 
   console.log("\n🔧 Next Steps:");
   console.log("   1. Update MCP server config with testnet addresses");

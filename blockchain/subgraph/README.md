@@ -17,11 +17,13 @@ This subgraph indexes all on-chain events for the LuxBridge AI RWA trading platf
 ### Prerequisites
 
 1. Install Graph CLI:
+
 ```bash
 npm install -g @graphprotocol/graph-cli
 ```
 
 2. Start local Graph node:
+
 ```bash
 cd blockchain
 docker-compose up -d
@@ -30,18 +32,21 @@ docker-compose up -d
 ### Deployment
 
 1. Install dependencies:
+
 ```bash
 cd blockchain/subgraph
 npm install
 ```
 
 2. Deploy contracts first:
+
 ```bash
 cd blockchain
 npx hardhat run scripts/deploy/04-deploy-full-system.ts --network localhost
 ```
 
 3. Deploy subgraph:
+
 ```bash
 cd blockchain
 npx hardhat run scripts/deploy-subgraph.ts
@@ -59,6 +64,7 @@ For mainnet deployment:
 
 1. Update `subgraph.yaml` with mainnet contract addresses
 2. Deploy to The Graph's hosted service:
+
 ```bash
 graph deploy --product hosted-service luxbridge-ai/rwa-trading
 ```
@@ -66,6 +72,7 @@ graph deploy --product hosted-service luxbridge-ai/rwa-trading
 ## Useful Queries
 
 ### Get all tokenized assets
+
 ```graphql
 {
   assets(first: 100) {
@@ -82,6 +89,7 @@ graph deploy --product hosted-service luxbridge-ai/rwa-trading
 ```
 
 ### Recent trades
+
 ```graphql
 {
   trades(first: 10, orderBy: timestamp, orderDirection: desc) {
@@ -98,6 +106,7 @@ graph deploy --product hosted-service luxbridge-ai/rwa-trading
 ```
 
 ### Active liquidity pools
+
 ```graphql
 {
   pools(where: { totalLiquidity_gt: "0" }) {

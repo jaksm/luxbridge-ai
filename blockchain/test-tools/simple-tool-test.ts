@@ -1,5 +1,8 @@
 import { LuxBridgeSDK } from "../index";
-import { loadContractAddresses, type DeployedContracts } from "../test-environment/setup-local-chain";
+import {
+  loadContractAddresses,
+  type DeployedContracts,
+} from "../test-environment/setup-local-chain";
 import { createMockAccessToken } from "../test-environment/mock-access-token";
 import { AssetDataBridge } from "../../lib/utils/assetDataBridge";
 import { ethers } from "hardhat";
@@ -20,25 +23,32 @@ export class SimpleToolTester {
 
   constructor(verbose: boolean = false) {
     this.verbose = verbose;
-    
+
     // We'll initialize the SDK later with fresh contract addresses
     this.sdk = null as any;
     this.contracts = null as any;
   }
-  
+
   private async initializeSdk() {
     if (this.sdk) return; // Already initialized
-    
+
     // Force reload contract addresses from file
     const fs = require("fs");
     const path = require("path");
-    const addressesPath = path.join(__dirname, "..", "test-environment", "contract-addresses.json");
-    
+    const addressesPath = path.join(
+      __dirname,
+      "..",
+      "test-environment",
+      "contract-addresses.json",
+    );
+
     let contracts;
     if (fs.existsSync(addressesPath)) {
       contracts = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
     } else {
-      throw new Error("No contract addresses found. Run setup-local-chain.ts first.");
+      throw new Error(
+        "No contract addresses found. Run setup-local-chain.ts first.",
+      );
     }
 
     this.contracts = contracts;
@@ -47,7 +57,8 @@ export class SimpleToolTester {
     this.sdk = new LuxBridgeSDK({
       network: "localhost",
       provider: ethers.provider, // Use hardhat provider (known to work)
-      privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Hardhat account #0
+      privateKey:
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Hardhat account #0
       contracts: {
         factory: contracts.factory,
         amm: contracts.amm,
@@ -55,7 +66,7 @@ export class SimpleToolTester {
         automation: contracts.automation,
       },
     });
-    
+
     if (this.verbose) {
       console.log("🔧 SDK initialized with contracts:", {
         factory: contracts.factory,
@@ -66,10 +77,13 @@ export class SimpleToolTester {
     }
   }
 
-  async testTokenizeAsset(platform: string, assetId: string): Promise<SimpleToolTestResult> {
+  async testTokenizeAsset(
+    platform: string,
+    assetId: string,
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
       console.log(`🪙 Testing tokenize_asset: ${platform}:${assetId}`);
     }
@@ -77,16 +91,18 @@ export class SimpleToolTester {
     try {
       // Create sample asset data
       const apiAssetData = this.createSampleAssetData(platform, assetId);
-      
+
       // Use AssetDataBridge to prepare data
       const bridgeResult = AssetDataBridge.prepareForTokenization(apiAssetData);
-      
+
       if (bridgeResult.validationErrors.length > 0) {
-        throw new Error(`Validation errors: ${bridgeResult.validationErrors.join(', ')}`);
+        throw new Error(
+          `Validation errors: ${bridgeResult.validationErrors.join(", ")}`,
+        );
       }
-      
+
       const contractData = bridgeResult.contractData;
-      
+
       // Debug: log the contract data before calling SDK
       if (this.verbose) {
         console.log("Contract data:", {
@@ -145,21 +161,24 @@ export class SimpleToolTester {
     }
   }
 
-  async testGetAssetMetadata(platform: string, assetId: string): Promise<SimpleToolTestResult> {
+  async testGetAssetMetadata(
+    platform: string,
+    assetId: string,
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
       console.log(`📊 Testing get_asset_metadata: ${platform}:${assetId}`);
     }
 
     try {
       const result = await this.sdk.getTokenAddress({ platform, assetId });
-      
+
       if (result.tokenAddress) {
         // If token exists, get its metadata
         const metadata = await this.sdk.getAssetMetadata({ platform, assetId });
-        
+
         const executionTime = Date.now() - startTime;
 
         if (this.verbose) {
@@ -197,11 +216,11 @@ export class SimpleToolTester {
     tokenA: string,
     tokenB: string,
     amountA: string,
-    amountB: string
+    amountB: string,
   ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
       console.log(`💧 Testing add_liquidity: ${tokenA} + ${tokenB}`);
     }
@@ -212,8 +231,14 @@ export class SimpleToolTester {
       const [platformB, assetIdB] = tokenB.split(":");
 
       // Get token addresses
-      const tokenAddressA = await this.sdk.getTokenAddress({ platform: platformA, assetId: assetIdA });
-      const tokenAddressB = await this.sdk.getTokenAddress({ platform: platformB, assetId: assetIdB });
+      const tokenAddressA = await this.sdk.getTokenAddress({
+        platform: platformA,
+        assetId: assetIdA,
+      });
+      const tokenAddressB = await this.sdk.getTokenAddress({
+        platform: platformB,
+        assetId: assetIdB,
+      });
 
       if (!tokenAddressA.tokenAddress || !tokenAddressB.tokenAddress) {
         throw new Error("One or both tokens not found");
@@ -229,13 +254,19 @@ export class SimpleToolTester {
       } catch (error) {
         // Pool might already exist, continue
         if (this.verbose) {
-          console.log("Pool might already exist, continuing with add liquidity...");
+          console.log(
+            "Pool might already exist, continuing with add liquidity...",
+          );
         }
       }
 
       // Get token contracts and approve the AMM to spend tokens
-      const tokenContractA = await this.sdk.getTokenContract(tokenAddressA.tokenAddress);
-      const tokenContractB = await this.sdk.getTokenContract(tokenAddressB.tokenAddress);
+      const tokenContractA = await this.sdk.getTokenContract(
+        tokenAddressA.tokenAddress,
+      );
+      const tokenContractB = await this.sdk.getTokenContract(
+        tokenAddressB.tokenAddress,
+      );
       const ammAddress = this.sdk.getContractAddresses().amm;
 
       // Approve AMM to spend tokens
@@ -293,18 +324,20 @@ export class SimpleToolTester {
       realt: { type: "real_estate", subcategory: "residential" },
     };
 
-    const config = assetTypes[platform as keyof typeof assetTypes] || assetTypes.splint_invest;
+    const config =
+      assetTypes[platform as keyof typeof assetTypes] ||
+      assetTypes.splint_invest;
 
     return {
       assetId,
       name: `Test ${config.type} ${assetId}`,
       category: config.type,
       subcategory: config.subcategory,
-      
+
       valuation: {
-        currentValue: 1000,  // Much smaller values to avoid overflow
-        sharePrice: 10,      // Smaller values
-        totalShares: 100,    // Smaller values
+        currentValue: 1000, // Much smaller values to avoid overflow
+        sharePrice: 10, // Smaller values
+        totalShares: 100, // Smaller values
         availableShares: 50,
         currency: "USD" as const,
         lastValuationDate: "2024-01-01T00:00:00Z",
@@ -362,19 +395,25 @@ export class SimpleToolTester {
 
   // Oracle Testing Methods
 
-  async testMockPriceUpdate(platform: string, assetId: string, price: string): Promise<SimpleToolTestResult> {
+  async testMockPriceUpdate(
+    platform: string,
+    assetId: string,
+    price: string,
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
-      console.log(`🔮 Testing mock_price_update: ${platform}:${assetId} @ $${price}`);
+      console.log(
+        `🔮 Testing mock_price_update: ${platform}:${assetId} @ $${price}`,
+      );
     }
 
     try {
       const result = await this.sdk.mockPriceUpdate({
         platform,
         assetId,
-        price
+        price,
       });
 
       const executionTime = Date.now() - startTime;
@@ -407,10 +446,13 @@ export class SimpleToolTester {
     }
   }
 
-  async testGetPrice(platform: string, assetId: string): Promise<SimpleToolTestResult> {
+  async testGetPrice(
+    platform: string,
+    assetId: string,
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
       console.log(`📊 Testing get_price: ${platform}:${assetId}`);
     }
@@ -422,7 +464,9 @@ export class SimpleToolTester {
 
       if (this.verbose) {
         console.log(`✅ get_price succeeded in ${executionTime}ms`);
-        console.log(`💰 Price: $${result.price}, Timestamp: ${result.timestamp}`);
+        console.log(
+          `💰 Price: $${result.price}, Timestamp: ${result.timestamp}`,
+        );
       }
 
       return {
@@ -448,18 +492,23 @@ export class SimpleToolTester {
     }
   }
 
-  async testCrossPlatformPrices(assetId: string, platforms: string[]): Promise<SimpleToolTestResult> {
+  async testCrossPlatformPrices(
+    assetId: string,
+    platforms: string[],
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
-      console.log(`🌐 Testing cross_platform_prices: ${assetId} across [${platforms.join(', ')}]`);
+      console.log(
+        `🌐 Testing cross_platform_prices: ${assetId} across [${platforms.join(", ")}]`,
+      );
     }
 
     try {
       const result = await this.sdk.requestCrossPlatformPrices({
         assetId,
-        platforms
+        platforms,
       });
 
       const executionTime = Date.now() - startTime;
@@ -492,26 +541,34 @@ export class SimpleToolTester {
     }
   }
 
-  async testArbitrageSpread(assetId: string, platformA: string, platformB: string): Promise<SimpleToolTestResult> {
+  async testArbitrageSpread(
+    assetId: string,
+    platformA: string,
+    platformB: string,
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
-      console.log(`⚖️ Testing arbitrage_spread: ${assetId} between ${platformA} and ${platformB}`);
+      console.log(
+        `⚖️ Testing arbitrage_spread: ${assetId} between ${platformA} and ${platformB}`,
+      );
     }
 
     try {
       const result = await this.sdk.calculateArbitrageSpread({
         assetId,
         platformA,
-        platformB
+        platformB,
       });
 
       const executionTime = Date.now() - startTime;
 
       if (this.verbose) {
         console.log(`✅ arbitrage_spread succeeded in ${executionTime}ms`);
-        console.log(`📈 Spread: ${result.spread} basis points (${result.spreadPercentage}%)`);
+        console.log(
+          `📈 Spread: ${result.spread} basis points (${result.spreadPercentage}%)`,
+        );
       }
 
       return {
@@ -539,19 +596,25 @@ export class SimpleToolTester {
 
   // Automation Testing Methods
 
-  async testDelegateTrading(maxTradeSize: string, maxDailyVolume: string, allowedAssets: string[]): Promise<SimpleToolTestResult> {
+  async testDelegateTrading(
+    maxTradeSize: string,
+    maxDailyVolume: string,
+    allowedAssets: string[],
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
-      console.log(`🤖 Testing delegate_trading: maxTrade=$${maxTradeSize}, dailyLimit=$${maxDailyVolume}`);
+      console.log(
+        `🤖 Testing delegate_trading: maxTrade=$${maxTradeSize}, dailyLimit=$${maxDailyVolume}`,
+      );
     }
 
     try {
       const result = await this.sdk.delegateTrading({
         maxTradeSize,
         maxDailyVolume,
-        allowedAssets
+        allowedAssets,
       });
 
       const executionTime = Date.now() - startTime;
@@ -595,9 +658,11 @@ export class SimpleToolTester {
   }): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
-      console.log(`📋 Testing queue_automated_trade: ${params.sellPlatform}:${params.sellAsset} → ${params.buyPlatform}:${params.buyAsset}`);
+      console.log(
+        `📋 Testing queue_automated_trade: ${params.sellPlatform}:${params.sellAsset} → ${params.buyPlatform}:${params.buyAsset}`,
+      );
     }
 
     try {
@@ -608,7 +673,7 @@ export class SimpleToolTester {
         buyPlatform: params.buyPlatform,
         buyAsset: params.buyAsset,
         amount: params.amount,
-        deadline: params.deadline
+        deadline: params.deadline,
       });
 
       const executionTime = Date.now() - startTime;
@@ -643,10 +708,13 @@ export class SimpleToolTester {
 
   // Platform Management Testing Methods
 
-  async testRegisterPlatform(name: string, apiEndpoint: string): Promise<SimpleToolTestResult> {
+  async testRegisterPlatform(
+    name: string,
+    apiEndpoint: string,
+  ): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
       console.log(`🏢 Testing register_platform: ${name} at ${apiEndpoint}`);
     }
@@ -654,7 +722,7 @@ export class SimpleToolTester {
     try {
       const result = await this.sdk.registerPlatform({
         name,
-        apiEndpoint
+        apiEndpoint,
       });
 
       const executionTime = Date.now() - startTime;
@@ -690,7 +758,7 @@ export class SimpleToolTester {
   async testGetPlatformInfo(platform: string): Promise<SimpleToolTestResult> {
     await this.initializeSdk();
     const startTime = Date.now();
-    
+
     if (this.verbose) {
       console.log(`📋 Testing get_platform_info: ${platform}`);
     }
@@ -702,7 +770,9 @@ export class SimpleToolTester {
 
       if (this.verbose) {
         console.log(`✅ get_platform_info succeeded in ${executionTime}ms`);
-        console.log(`📊 Platform: ${result.name}, Active: ${result.isActive}, Assets: ${result.totalAssetsTokenized}`);
+        console.log(
+          `📊 Platform: ${result.name}, Active: ${result.isActive}, Assets: ${result.totalAssetsTokenized}`,
+        );
       }
 
       return {
@@ -731,23 +801,24 @@ export class SimpleToolTester {
   printSummary(results: SimpleToolTestResult[]): void {
     console.log("\n📊 Test Summary");
     console.log("===============");
-    
-    const successCount = results.filter(r => r.success).length;
+
+    const successCount = results.filter((r) => r.success).length;
     const totalCount = results.length;
-    const avgTime = results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
-    
+    const avgTime =
+      results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
+
     console.log(`✅ Passed: ${successCount}/${totalCount}`);
     console.log(`⏱️  Average execution time: ${Math.round(avgTime)}ms`);
-    
+
     if (successCount < totalCount) {
       console.log("\n❌ Failed tests:");
       results
-        .filter(r => !r.success)
-        .forEach(r => {
+        .filter((r) => !r.success)
+        .forEach((r) => {
           console.log(`  - ${r.toolName}: ${r.error}`);
         });
     }
-    
+
     console.log();
   }
 }

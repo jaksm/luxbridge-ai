@@ -1,6 +1,7 @@
 import { makeAuthenticatedPlatformCall } from "@/lib/auth/platform-auth";
 import { getUserConnectedPlatforms } from "@/lib/auth/session-manager";
 import { getUserById } from "@/lib/auth/authCommon";
+import { getPlatformUserByEmail } from "@/lib/auth/redis-users";
 import { resolvePrivyUserToRedisUser } from "@/lib/auth/user-id-mapping";
 import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 import { PlatformType } from "@/lib/types/platformAsset";
@@ -65,8 +66,10 @@ export const registerGetPortfolioTool: RegisterTool =
       try {
         // Resolve Privy DID to Redis user ID if needed for session lookup
         let sessionUserId = accessToken.userId;
-        if (accessToken.userId.startsWith('did:privy:')) {
-          const mappedUserId = await resolvePrivyUserToRedisUser(accessToken.userId);
+        if (accessToken.userId.startsWith("did:privy:")) {
+          const mappedUserId = await resolvePrivyUserToRedisUser(
+            accessToken.userId,
+          );
           if (mappedUserId) {
             sessionUserId = mappedUserId;
           }
@@ -132,7 +135,7 @@ export const registerGetPortfolioTool: RegisterTool =
 
             let portfolio;
             let holdings = [];
-            
+
             try {
               // Try platform API first
               portfolio = await makeAuthenticatedPlatformCall(
@@ -143,20 +146,27 @@ export const registerGetPortfolioTool: RegisterTool =
               holdings = portfolio.holdings || [];
             } catch (platformError) {
               // Fallback to Redis portfolio data
-              console.log(`Platform API failed for ${platform}, falling back to Redis data`);
-              
-              // Resolve Privy DID to Redis user ID if needed
-              let resolvedUserId = accessToken.userId;
-              if (accessToken.userId.startsWith('did:privy:')) {
-                const mappedUserId = await resolvePrivyUserToRedisUser(accessToken.userId);
-                if (mappedUserId) {
-                  resolvedUserId = mappedUserId;
+              console.log(
+                `Platform API failed for ${platform}, falling back to Redis data`,
+              );
+
+              // Use the already resolved sessionUserId
+              let user = await getUserById(sessionUserId);
+              let portfolios = user?.portfolios;
+
+              // If no LuxBridge user found, try to find platform-specific user
+              if (!user && accessToken.userData?.email) {
+                const platformUser = await getPlatformUserByEmail(
+                  platform,
+                  accessToken.userData.email,
+                );
+                if (platformUser) {
+                  portfolios = platformUser.portfolios;
                 }
               }
-              
-              const user = await getUserById(resolvedUserId);
-              if (user && user.portfolios[platform]) {
-                const rawHoldings = user.portfolios[platform];
+
+              if (portfolios && portfolios[platform]) {
+                const rawHoldings = portfolios[platform];
                 holdings = await constructUserPortfolio(rawHoldings, platform);
               }
             }

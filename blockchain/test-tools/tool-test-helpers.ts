@@ -1,7 +1,10 @@
 import type { McpServer } from "../../lib/tools/types";
 import type { AccessToken } from "../../lib/redis-oauth";
 import { createMockAccessToken } from "../test-environment/mock-access-token";
-import { loadContractAddresses, type DeployedContracts } from "../test-environment/setup-local-chain";
+import {
+  loadContractAddresses,
+  type DeployedContracts,
+} from "../test-environment/setup-local-chain";
 
 export interface ToolTestResult {
   toolName: string;
@@ -23,10 +26,12 @@ export class ToolTester {
 
   constructor(server: McpServer, config: Partial<ToolTestConfig> = {}) {
     this.server = server;
-    
+
     const contracts = loadContractAddresses();
     if (!contracts) {
-      throw new Error("No contract addresses found. Run setup-local-chain.ts first.");
+      throw new Error(
+        "No contract addresses found. Run setup-local-chain.ts first.",
+      );
     }
 
     this.config = {
@@ -39,10 +44,10 @@ export class ToolTester {
 
   async testTool(
     toolName: string,
-    arguments_: Record<string, any> = {}
+    arguments_: Record<string, any> = {},
   ): Promise<ToolTestResult> {
     const startTime = Date.now();
-    
+
     if (this.config.verbose) {
       console.log(`\n🔧 Testing tool: ${toolName}`);
       console.log(`📋 Arguments:`, JSON.stringify(arguments_, null, 2));
@@ -90,18 +95,18 @@ export class ToolTester {
   }
 
   async testMultipleTools(
-    tests: Array<{ toolName: string; arguments: Record<string, any> }>
+    tests: Array<{ toolName: string; arguments: Record<string, any> }>,
   ): Promise<ToolTestResult[]> {
     const results: ToolTestResult[] = [];
-    
+
     for (const test of tests) {
       const result = await this.testTool(test.toolName, test.arguments);
       results.push(result);
-      
+
       // Small delay between tests to avoid overwhelming the system
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    
+
     return results;
   }
 
@@ -116,23 +121,24 @@ export class ToolTester {
   printSummary(results: ToolTestResult[]): void {
     console.log("\n📊 Test Summary");
     console.log("===============");
-    
-    const successCount = results.filter(r => r.success).length;
+
+    const successCount = results.filter((r) => r.success).length;
     const totalCount = results.length;
-    const avgTime = results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
-    
+    const avgTime =
+      results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
+
     console.log(`✅ Passed: ${successCount}/${totalCount}`);
     console.log(`⏱️  Average execution time: ${Math.round(avgTime)}ms`);
-    
+
     if (successCount < totalCount) {
       console.log("\n❌ Failed tests:");
       results
-        .filter(r => !r.success)
-        .forEach(r => {
+        .filter((r) => !r.success)
+        .forEach((r) => {
           console.log(`  - ${r.toolName}: ${r.error}`);
         });
     }
-    
+
     console.log();
   }
 }
@@ -144,7 +150,8 @@ export function createSampleAssetData(platform: string, assetId: string) {
     realt: { type: "real_estate", subcategory: "residential" },
   };
 
-  const config = assetTypes[platform as keyof typeof assetTypes] || assetTypes.splint_invest;
+  const config =
+    assetTypes[platform as keyof typeof assetTypes] || assetTypes.splint_invest;
 
   return {
     platform,

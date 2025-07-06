@@ -65,7 +65,13 @@ export async function createPlatformUser(
 ): Promise<RedisUser> {
   await ensureConnected();
 
-  const { email, password, name, platform, scenario = "empty_portfolio" } = params;
+  const {
+    email,
+    password,
+    name,
+    platform,
+    scenario = "empty_portfolio",
+  } = params;
 
   const existingUser = await getPlatformUserByEmail(platform, email);
   if (existingUser) {

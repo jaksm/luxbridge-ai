@@ -253,13 +253,13 @@ export async function POST(request: NextRequest) {
 
       await storeLuxBridgeUser(luxUser);
       sessionId = await createAuthSession(luxUser.userId, "");
-      
+
       // Create user ID mapping for portfolio tools
       if (authCode.userData.privyUserId && authCode.userData.email) {
         await ensureUserExistsForPrivyId(
           authCode.userData.privyUserId,
           authCode.userData.email,
-          luxUser.name || "User"
+          luxUser.name || "User",
         );
       }
     }

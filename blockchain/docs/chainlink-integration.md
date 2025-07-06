@@ -33,6 +33,7 @@ LuxBridge AI uses Chainlink Functions to fetch real-time pricing data from multi
 ### 2. Network Support
 
 Currently supported networks:
+
 - **Sepolia**: For testing
 - **Polygon Mumbai**: For testing
 - **Polygon Mainnet**: Production (planned)
@@ -53,6 +54,7 @@ npx hardhat run scripts/chainlink/setup-functions.ts --network sepolia
 ### 4. Configuration
 
 The oracle requires:
+
 - **Router Address**: Chainlink Functions router
 - **Subscription ID**: Your funded subscription
 - **DON ID**: Decentralized Oracle Network identifier
@@ -74,16 +76,16 @@ The oracle executes JavaScript code in the Chainlink Functions environment:
 const assetId = args[0];
 const platforms = args.slice(1);
 
-const requests = platforms.map(platform => {
-    const url = `https://api.luxbridge.ai/${platform}/assets/${assetId}`;
-    return Functions.makeHttpRequest({
-        url: url,
-        headers: { "Content-Type": "application/json" }
-    });
+const requests = platforms.map((platform) => {
+  const url = `https://api.luxbridge.ai/${platform}/assets/${assetId}`;
+  return Functions.makeHttpRequest({
+    url: url,
+    headers: { "Content-Type": "application/json" },
+  });
 });
 
 const responses = await Promise.all(requests);
-const prices = responses.map(res => res.data.valuation);
+const prices = responses.map((res) => res.data.valuation);
 
 // Calculate weighted average or detect arbitrage
 const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -112,6 +114,7 @@ Response:
 ### Error Handling
 
 The oracle handles various failure scenarios:
+
 - API timeouts (30s limit)
 - Invalid responses
 - Network failures
@@ -138,8 +141,8 @@ The oracle handles various failure scenarios:
 ```solidity
 modifier onlyAuthorized() {
     require(
-        msg.sender == owner || 
-        msg.sender == address(this) || 
+        msg.sender == owner ||
+        msg.sender == address(this) ||
         msg.sender == router,
         "Unauthorized"
     );
@@ -190,19 +193,19 @@ function mockRequestCrossPlatformPrices(
 
 ```typescript
 it("Should fetch cross-platform prices", async function () {
-    const tx = await oracle.requestCrossPlatformPrices(
-        "WINE-001",
-        ["splint_invest", "masterworks"]
-    );
-    
-    const receipt = await tx.wait();
-    const requestId = receipt.events[0].args.requestId;
-    
-    // Wait for fulfillment (simulate in tests)
-    await oracle.mockFulfillRequest(requestId, ethers.parseEther("125"));
-    
-    const price = await oracle.getPrice("splint_invest", "WINE-001");
-    expect(price).to.equal(ethers.parseEther("125"));
+  const tx = await oracle.requestCrossPlatformPrices("WINE-001", [
+    "splint_invest",
+    "masterworks",
+  ]);
+
+  const receipt = await tx.wait();
+  const requestId = receipt.events[0].args.requestId;
+
+  // Wait for fulfillment (simulate in tests)
+  await oracle.mockFulfillRequest(requestId, ethers.parseEther("125"));
+
+  const price = await oracle.getPrice("splint_invest", "WINE-001");
+  expect(price).to.equal(ethers.parseEther("125"));
 });
 ```
 
@@ -248,15 +251,18 @@ npx hardhat run scripts/chainlink/manual-update.ts --network sepolia
 ## Cost Analysis
 
 ### Per Request
+
 - Gas: ~250k @ 50 gwei = 0.0125 ETH
 - LINK: 0.2 LINK @ $15 = $3
 - Total: ~$3.50 per cross-platform price update
 
 ### Monthly Estimates
+
 - 100 assets × 4 updates/day × 30 days = 12,000 requests
 - Cost: 12,000 × $3.50 = $42,000/month
 
 ### Optimization
+
 - Reduce update frequency for stable assets
 - Implement change thresholds (only update if >1% change)
 - Use keeper pattern for efficient batch updates

@@ -14,9 +14,9 @@ export interface DeployedContracts {
 
 export async function setupLocalChain(): Promise<DeployedContracts> {
   console.log("🚀 Setting up local blockchain test environment...");
-  
+
   const [deployer, user1, user2, aiAgent] = await ethers.getSigners();
-  
+
   console.log("📋 Deploying contracts...");
   console.log(`Deployer: ${deployer.address}`);
   console.log(`User1: ${user1.address}`);
@@ -41,12 +41,14 @@ export async function setupLocalChain(): Promise<DeployedContracts> {
 
   // Deploy LuxBridgePriceOracle
   console.log("\n3️⃣ Deploying LuxBridgePriceOracle...");
-  const LuxBridgePriceOracle = await ethers.getContractFactory("LuxBridgePriceOracle");
+  const LuxBridgePriceOracle = await ethers.getContractFactory(
+    "LuxBridgePriceOracle",
+  );
   const oracle = await LuxBridgePriceOracle.deploy(
     deployer.address, // router (mock)
     ethers.keccak256(ethers.toUtf8Bytes("fun-localhost-test")), // donId
     1, // subscriptionId
-    300000 // gasLimit
+    300000, // gasLimit
   );
   await oracle.waitForDeployment();
   const oracleAddress = await oracle.getAddress();
@@ -54,11 +56,13 @@ export async function setupLocalChain(): Promise<DeployedContracts> {
 
   // Deploy LuxBridgeAutomation
   console.log("\n4️⃣ Deploying LuxBridgeAutomation...");
-  const LuxBridgeAutomation = await ethers.getContractFactory("LuxBridgeAutomation");
+  const LuxBridgeAutomation = await ethers.getContractFactory(
+    "LuxBridgeAutomation",
+  );
   const automation = await LuxBridgeAutomation.deploy(
     ammAddress,
     factoryAddress,
-    aiAgent.address
+    aiAgent.address,
   );
   await automation.waitForDeployment();
   const automationAddress = await automation.getAddress();
@@ -71,9 +75,18 @@ export async function setupLocalChain(): Promise<DeployedContracts> {
 
   // Register platforms
   console.log("\n📱 Registering platforms...");
-  await factory.registerPlatform("splint_invest", "https://mock-api.luxbridge.ai/splint");
-  await factory.registerPlatform("masterworks", "https://mock-api.luxbridge.ai/masterworks");
-  await factory.registerPlatform("realt", "https://mock-api.luxbridge.ai/realt");
+  await factory.registerPlatform(
+    "splint_invest",
+    "https://mock-api.luxbridge.ai/splint",
+  );
+  await factory.registerPlatform(
+    "masterworks",
+    "https://mock-api.luxbridge.ai/masterworks",
+  );
+  await factory.registerPlatform(
+    "realt",
+    "https://mock-api.luxbridge.ai/realt",
+  );
   console.log("✅ Registered platforms: splint_invest, masterworks, realt");
 
   // Get network info

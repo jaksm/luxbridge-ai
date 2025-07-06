@@ -1,7 +1,13 @@
 import { ethers } from "hardhat";
 import { LuxBridgeSDK } from "..";
-import { setupLocalChain, type DeployedContracts } from "../test-environment/setup-local-chain";
-import { createMockAccessToken, DEFAULT_TEST_USERS } from "../test-environment/mock-access-token";
+import {
+  setupLocalChain,
+  type DeployedContracts,
+} from "../test-environment/setup-local-chain";
+import {
+  createMockAccessToken,
+  DEFAULT_TEST_USERS,
+} from "../test-environment/mock-access-token";
 
 interface TestResult {
   functionName: string;
@@ -25,16 +31,17 @@ class BlockchainSDKTester {
     this.contracts = contracts;
     this.sdk = new LuxBridgeSDK({
       network: "localhost",
-      privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Default hardhat account
+      privateKey:
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Default hardhat account
     });
   }
 
   private async executeFunction(
     functionName: string,
-    asyncFunction: () => Promise<any>
+    asyncFunction: () => Promise<any>,
   ): Promise<TestResult> {
     const startTime = Date.now();
-    
+
     try {
       console.log(`🔧 Testing ${functionName}...`);
       const result = await asyncFunction();
@@ -46,7 +53,9 @@ class BlockchainSDKTester {
         gasUsed = result.receipt.gasUsed?.toString();
       }
 
-      console.log(`✅ ${functionName} succeeded in ${executionTime}ms${gasUsed ? ` (Gas: ${gasUsed})` : ''}`);
+      console.log(
+        `✅ ${functionName} succeeded in ${executionTime}ms${gasUsed ? ` (Gas: ${gasUsed})` : ""}`,
+      );
 
       return {
         functionName,
@@ -57,8 +66,10 @@ class BlockchainSDKTester {
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
-      console.log(`❌ ${functionName} failed in ${executionTime}ms: ${error instanceof Error ? error.message : String(error)}`);
+
+      console.log(
+        `❌ ${functionName} failed in ${executionTime}ms: ${error instanceof Error ? error.message : String(error)}`,
+      );
 
       return {
         functionName,
@@ -71,7 +82,7 @@ class BlockchainSDKTester {
 
   async runAllTests(): Promise<TestResult[]> {
     console.log("\n🚀 Starting comprehensive blockchain SDK test...");
-    
+
     const results: TestResult[] = [];
 
     // Test 1: Asset Tokenization
@@ -109,12 +120,27 @@ class BlockchainSDKTester {
 
   private async testTokenization(): Promise<TestResult[]> {
     const results: TestResult[] = [];
-    
+
     // Test tokenizing different asset types
     const assetsToTokenize = [
-      { platform: "splint_invest", assetId: "WINE-001", assetType: "wine", subcategory: "bordeaux" },
-      { platform: "masterworks", assetId: "ART-001", assetType: "art", subcategory: "painting" },
-      { platform: "realt", assetId: "REAL-001", assetType: "real_estate", subcategory: "residential" },
+      {
+        platform: "splint_invest",
+        assetId: "WINE-001",
+        assetType: "wine",
+        subcategory: "bordeaux",
+      },
+      {
+        platform: "masterworks",
+        assetId: "ART-001",
+        assetType: "art",
+        subcategory: "painting",
+      },
+      {
+        platform: "realt",
+        assetId: "REAL-001",
+        assetType: "real_estate",
+        subcategory: "residential",
+      },
     ];
 
     for (const asset of assetsToTokenize) {
@@ -127,14 +153,15 @@ class BlockchainSDKTester {
             totalSupply: "1000",
             assetType: asset.assetType,
             subcategory: asset.subcategory,
-            legalHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+            legalHash:
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
             valuation: "100000",
             sharePrice: "100",
             currency: "USD",
           });
-        }
+        },
       );
-      
+
       results.push(result);
 
       if (result.success) {
@@ -161,7 +188,7 @@ class BlockchainSDKTester {
             platform: asset.platform,
             assetId: asset.assetId,
           });
-        }
+        },
       );
       results.push(result);
     }
@@ -188,7 +215,7 @@ class BlockchainSDKTester {
           tokenB: tokenB.tokenAddress,
           swapFee: 0.3,
         });
-      }
+      },
     );
     results.push(createPoolResult);
 
@@ -204,7 +231,7 @@ class BlockchainSDKTester {
           amountAMin: "90",
           amountBMin: "180",
         });
-      }
+      },
     );
     results.push(addLiquidityResult);
 
@@ -217,22 +244,19 @@ class BlockchainSDKTester {
           tokenOut: tokenB.tokenAddress,
           amountIn: "10",
         });
-      }
+      },
     );
     results.push(getAmountOutResult);
 
     // Test swap
-    const swapResult = await this.executeFunction(
-      "swap_tokens",
-      async () => {
-        return await this.sdk.swap({
-          tokenIn: tokenA.tokenAddress,
-          tokenOut: tokenB.tokenAddress,
-          amountIn: "5",
-          amountOutMin: "1",
-        });
-      }
-    );
+    const swapResult = await this.executeFunction("swap_tokens", async () => {
+      return await this.sdk.swap({
+        tokenIn: tokenA.tokenAddress,
+        tokenOut: tokenB.tokenAddress,
+        amountIn: "5",
+        amountOutMin: "1",
+      });
+    });
     results.push(swapResult);
 
     // Test remove liquidity
@@ -246,7 +270,7 @@ class BlockchainSDKTester {
           amountAMin: "1",
           amountBMin: "1",
         });
-      }
+      },
     );
     results.push(removeLiquidityResult);
 
@@ -272,26 +296,23 @@ class BlockchainSDKTester {
           assetId: asset.assetId,
           price: "105000", // 5% increase
         });
-      }
+      },
     );
     results.push(mockPriceResult);
 
     // Test get price
-    const getPriceResult = await this.executeFunction(
-      "get_price",
-      async () => {
-        return await this.sdk.getPrice({
-          platform: asset.platform,
-          assetId: asset.assetId,
-        });
-      }
-    );
+    const getPriceResult = await this.executeFunction("get_price", async () => {
+      return await this.sdk.getPrice({
+        platform: asset.platform,
+        assetId: asset.assetId,
+      });
+    });
     results.push(getPriceResult);
 
     // Test arbitrage calculation
     if (this.tokenizedAssets.length >= 2) {
       const [assetA, assetB] = this.tokenizedAssets.slice(0, 2);
-      
+
       const arbitrageResult = await this.executeFunction(
         "calculate_arbitrage",
         async () => {
@@ -300,7 +321,7 @@ class BlockchainSDKTester {
             platformA: assetA.platform,
             platformB: assetB.platform,
           });
-        }
+        },
       );
       results.push(arbitrageResult);
     }
@@ -318,9 +339,11 @@ class BlockchainSDKTester {
         return await this.sdk.delegateTrading({
           maxTradeSize: "1000",
           maxDailyVolume: "5000",
-          allowedAssets: this.tokenizedAssets.map(asset => asset.tokenAddress),
+          allowedAssets: this.tokenizedAssets.map(
+            (asset) => asset.tokenAddress,
+          ),
         });
-      }
+      },
     );
     results.push(delegateResult);
 
@@ -341,7 +364,7 @@ class BlockchainSDKTester {
             minAmountOut: "5",
             deadline: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
           });
-        }
+        },
       );
       results.push(queueResult);
     }
@@ -354,13 +377,13 @@ class BlockchainSDKTester {
 
     // Test get platform info
     const platforms = ["splint_invest", "masterworks", "realt"];
-    
+
     for (const platform of platforms) {
       const result = await this.executeFunction(
         `get_platform_info_${platform}`,
         async () => {
           return await this.sdk.getPlatformInfo({ platform });
-        }
+        },
       );
       results.push(result);
     }
@@ -374,7 +397,7 @@ class BlockchainSDKTester {
             platform: asset.platform,
             assetId: asset.assetId,
           });
-        }
+        },
       );
       results.push(result);
     }
@@ -385,26 +408,33 @@ class BlockchainSDKTester {
   printResults(results: TestResult[]): void {
     console.log("\n📊 COMPREHENSIVE BLOCKCHAIN SDK TEST RESULTS");
     console.log("=============================================");
-    
-    const successCount = results.filter(r => r.success).length;
+
+    const successCount = results.filter((r) => r.success).length;
     const totalCount = results.length;
-    const avgTime = results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
+    const avgTime =
+      results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
     const totalGasUsed = results
-      .filter(r => r.gasUsed)
+      .filter((r) => r.gasUsed)
       .reduce((sum, r) => sum + parseInt(r.gasUsed!), 0);
-    
-    console.log(`✅ Passed: ${successCount}/${totalCount} (${Math.round(successCount/totalCount*100)}%)`);
+
+    console.log(
+      `✅ Passed: ${successCount}/${totalCount} (${Math.round((successCount / totalCount) * 100)}%)`,
+    );
     console.log(`⏱️  Average execution time: ${Math.round(avgTime)}ms`);
     console.log(`⛽ Total gas used: ${totalGasUsed.toLocaleString()}`);
     console.log(`📦 Tokenized assets: ${this.tokenizedAssets.length}`);
-    
+
     console.log("\n📋 Detailed Results:");
     results.forEach((result, index) => {
       const status = result.success ? "✅" : "❌";
       const time = `${result.executionTime}ms`;
-      const gas = result.gasUsed ? ` (Gas: ${parseInt(result.gasUsed).toLocaleString()})` : '';
-      console.log(`${index + 1}. ${status} ${result.functionName} (${time})${gas}`);
-      
+      const gas = result.gasUsed
+        ? ` (Gas: ${parseInt(result.gasUsed).toLocaleString()})`
+        : "";
+      console.log(
+        `${index + 1}. ${status} ${result.functionName} (${time})${gas}`,
+      );
+
       if (!result.success) {
         console.log(`   Error: ${result.error}`);
       }
@@ -413,45 +443,57 @@ class BlockchainSDKTester {
     if (successCount < totalCount) {
       console.log("\n❌ Failed Functions:");
       results
-        .filter(r => !r.success)
-        .forEach(r => {
+        .filter((r) => !r.success)
+        .forEach((r) => {
           console.log(`  - ${r.functionName}: ${r.error}`);
         });
     }
 
     console.log("\n🎯 Test Summary by Category:");
     const categories = {
-      "Asset Tokenization": results.filter(r => r.functionName.includes('tokenize')),
-      "Asset Metadata": results.filter(r => r.functionName.includes('metadata')),
-      "AMM Operations": results.filter(r => 
-        r.functionName.includes('pool') || 
-        r.functionName.includes('liquidity') || 
-        r.functionName.includes('swap') || 
-        r.functionName.includes('amount')
+      "Asset Tokenization": results.filter((r) =>
+        r.functionName.includes("tokenize"),
       ),
-      "Oracle Operations": results.filter(r => 
-        r.functionName.includes('price') || 
-        r.functionName.includes('arbitrage')
+      "Asset Metadata": results.filter((r) =>
+        r.functionName.includes("metadata"),
       ),
-      "Automation": results.filter(r => 
-        r.functionName.includes('delegate') || 
-        r.functionName.includes('queue')
+      "AMM Operations": results.filter(
+        (r) =>
+          r.functionName.includes("pool") ||
+          r.functionName.includes("liquidity") ||
+          r.functionName.includes("swap") ||
+          r.functionName.includes("amount"),
       ),
-      "Platform Management": results.filter(r => 
-        r.functionName.includes('platform') || 
-        r.functionName.includes('token_address')
+      "Oracle Operations": results.filter(
+        (r) =>
+          r.functionName.includes("price") ||
+          r.functionName.includes("arbitrage"),
+      ),
+      Automation: results.filter(
+        (r) =>
+          r.functionName.includes("delegate") ||
+          r.functionName.includes("queue"),
+      ),
+      "Platform Management": results.filter(
+        (r) =>
+          r.functionName.includes("platform") ||
+          r.functionName.includes("token_address"),
       ),
     };
 
     Object.entries(categories).forEach(([category, categoryResults]) => {
       if (categoryResults.length > 0) {
-        const categorySuccess = categoryResults.filter(r => r.success).length;
+        const categorySuccess = categoryResults.filter((r) => r.success).length;
         const categoryTotal = categoryResults.length;
-        const categoryPercent = Math.round(categorySuccess / categoryTotal * 100);
+        const categoryPercent = Math.round(
+          (categorySuccess / categoryTotal) * 100,
+        );
         const categoryGas = categoryResults
-          .filter(r => r.gasUsed)
+          .filter((r) => r.gasUsed)
           .reduce((sum, r) => sum + parseInt(r.gasUsed!), 0);
-        console.log(`  ${category}: ${categorySuccess}/${categoryTotal} (${categoryPercent}%) - Gas: ${categoryGas.toLocaleString()}`);
+        console.log(
+          `  ${category}: ${categorySuccess}/${categoryTotal} (${categoryPercent}%) - Gas: ${categoryGas.toLocaleString()}`,
+        );
       }
     });
 
@@ -463,32 +505,34 @@ class BlockchainSDKTester {
 
     console.log("\n🪙 Tokenized Assets:");
     this.tokenizedAssets.forEach((asset, index) => {
-      console.log(`  ${index + 1}. ${asset.platform}:${asset.assetId} → ${asset.tokenAddress}`);
+      console.log(
+        `  ${index + 1}. ${asset.platform}:${asset.assetId} → ${asset.tokenAddress}`,
+      );
     });
-    
+
     console.log();
   }
 }
 
 export async function runComprehensiveSDKTest(): Promise<void> {
   console.log("🚀 Starting comprehensive blockchain SDK test...");
-  
+
   try {
     // Setup local blockchain environment
     console.log("\n📦 Setting up local blockchain environment...");
     const contracts = await setupLocalChain();
-    
+
     // Initialize tester
     const tester = new BlockchainSDKTester(contracts);
-    
+
     // Run all tests
     const results = await tester.runAllTests();
-    
+
     // Print results
     tester.printResults(results);
-    
+
     // Exit with appropriate code
-    const allPassed = results.every(r => r.success);
+    const allPassed = results.every((r) => r.success);
     if (allPassed) {
       console.log("🎉 All blockchain SDK tests passed!");
       process.exit(0);
@@ -496,7 +540,6 @@ export async function runComprehensiveSDKTest(): Promise<void> {
       console.log("💥 Some blockchain SDK tests failed!");
       process.exit(1);
     }
-    
   } catch (error) {
     console.error("❌ Test execution failed:", error);
     process.exit(1);

@@ -386,17 +386,17 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
 
   // Include register navigation with session preservation
   return (
-    <PlatformAuthForm 
-      platform={platform} 
+    <PlatformAuthForm
+      platform={platform}
       sessionId={sessionId}
-      onRegisterClick={() => 
+      onRegisterClick={() =>
         router.push(`/auth/${platform}/register?session=${sessionId}`)
       }
     />
   );
 }
 
-// app/auth/[platform]/register/page.tsx 
+// app/auth/[platform]/register/page.tsx
 export default function PlatformRegisterPage({ params }: RegisterPageProps) {
   const { platform } = use(params);
   const searchParams = useSearchParams();
@@ -408,7 +408,7 @@ export default function PlatformRegisterPage({ params }: RegisterPageProps) {
   };
 
   return (
-    <PlatformRegisterForm 
+    <PlatformRegisterForm
       platform={platform}
       sessionId={sessionId}
       onSuccess={handleRegistrationSuccess}
@@ -439,10 +439,10 @@ const navigateWithSession = (path: string, sessionId: string) => {
 // Registration form with auto-return
 const handleRegistrationSubmit = async (formData: RegistrationData) => {
   const response = await fetch(`/api/${platform}/auth/register`, {
-    method: 'POST',
-    body: JSON.stringify(formData)
+    method: "POST",
+    body: JSON.stringify(formData),
   });
-  
+
   if (response.ok) {
     // Success: redirect back to auth page with session
     router.push(`/auth/${platform}?session=${sessionId}`);

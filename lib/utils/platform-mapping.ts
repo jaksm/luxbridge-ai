@@ -6,9 +6,9 @@ import { PlatformType } from "@/lib/types/platformAsset";
  */
 export const PLATFORM_URL_TO_TYPE_MAP: Record<string, PlatformType> = {
   "splint-invest": "splint_invest",
-  "splint_invest": "splint_invest", // Backward compatibility
-  "masterworks": "masterworks",
-  "realt": "realt",
+  splint_invest: "splint_invest", // Backward compatibility
+  masterworks: "masterworks",
+  realt: "realt",
 } as const;
 
 /**

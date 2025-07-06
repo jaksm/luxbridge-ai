@@ -15,14 +15,14 @@ export async function createUserIdMapping(
   email: string,
 ): Promise<void> {
   await ensureConnected();
-  
+
   const mapping: UserMapping = {
     privyUserId,
     redisUserId,
     email,
     createdAt: new Date().toISOString(),
   };
-  
+
   const key = `privy_user_mapping:${privyUserId}`;
   await redis.set(key, JSON.stringify(mapping));
 }
@@ -31,14 +31,14 @@ export async function getUserIdMapping(
   privyUserId: string,
 ): Promise<UserMapping | null> {
   await ensureConnected();
-  
+
   const key = `privy_user_mapping:${privyUserId}`;
   const mappingData = await redis.get(key);
-  
+
   if (!mappingData) {
     return null;
   }
-  
+
   return JSON.parse(mappingData) as UserMapping;
 }
 
@@ -52,7 +52,7 @@ export async function resolvePrivyUserToRedisUser(
   if (existingMapping) {
     return existingMapping.redisUserId;
   }
-  
+
   // If no mapping exists but we have email, try to find existing user
   if (email) {
     const existingUser = await getUserByEmail(email);
@@ -61,7 +61,7 @@ export async function resolvePrivyUserToRedisUser(
       await createUserIdMapping(privyUserId, existingUser.userId, email);
       return existingUser.userId;
     }
-    
+
     // If no existing user and we have name, create new user
     if (name) {
       try {
@@ -71,7 +71,7 @@ export async function resolvePrivyUserToRedisUser(
           name,
           scenario: "empty_portfolio",
         });
-        
+
         // Create mapping for new user
         await createUserIdMapping(privyUserId, newUser.userId, email);
         return newUser.userId;
@@ -81,7 +81,7 @@ export async function resolvePrivyUserToRedisUser(
       }
     }
   }
-  
+
   return null;
 }
 
@@ -95,10 +95,10 @@ export async function ensureUserExistsForPrivyId(
   if (existingMapping) {
     return existingMapping.redisUserId;
   }
-  
+
   // Check if user exists by email
   let user = await getUserByEmail(email);
-  
+
   // If user doesn't exist, create one
   if (!user) {
     try {
@@ -113,7 +113,7 @@ export async function ensureUserExistsForPrivyId(
       return null;
     }
   }
-  
+
   // Create the mapping
   await createUserIdMapping(privyUserId, user.userId, email);
   return user.userId;
@@ -127,16 +127,16 @@ export async function deleteUserIdMapping(privyUserId: string): Promise<void> {
 
 export async function getAllUserMappings(): Promise<UserMapping[]> {
   await ensureConnected();
-  
+
   const keys = await redis.keys("privy_user_mapping:*");
   const mappings: UserMapping[] = [];
-  
+
   for (const key of keys) {
     const mappingData = await redis.get(key);
     if (mappingData) {
       mappings.push(JSON.parse(mappingData) as UserMapping);
     }
   }
-  
+
   return mappings;
 }

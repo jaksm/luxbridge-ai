@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { PlatformType } from "@/lib/types/platformAsset";
 import { assetStorage } from "@/lib/storage/redisClient";
 import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
-import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
+import {
+  mapUrlPlatformToType,
+  getSupportedUrlPlatforms,
+} from "@/lib/utils/platform-mapping";
 
 export async function GET(
   request: NextRequest,
@@ -12,12 +15,12 @@ export async function GET(
     const params = await context.params;
     const urlPlatform = params.platform;
     const platform = mapUrlPlatformToType(urlPlatform);
-    
+
     if (!platform) {
       return NextResponse.json(
-        { 
-          error: "invalid_platform", 
-          message: `Invalid platform specified. Supported platforms: ${getSupportedUrlPlatforms().join(", ")}` 
+        {
+          error: "invalid_platform",
+          message: `Invalid platform specified. Supported platforms: ${getSupportedUrlPlatforms().join(", ")}`,
         },
         { status: 400 },
       );

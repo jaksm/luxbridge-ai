@@ -55,8 +55,11 @@ export async function getUserById(userId: string): Promise<User | undefined> {
   try {
     const platformUserIdMapping = await redis.get(`platform_user_id:${userId}`);
     if (platformUserIdMapping) {
-      const [platform, email] = platformUserIdMapping.split(':');
-      const platformUser = await redisGetPlatformUserByEmail(platform as PlatformType, email);
+      const [platform, email] = platformUserIdMapping.split(":");
+      const platformUser = await redisGetPlatformUserByEmail(
+        platform as PlatformType,
+        email,
+      );
       if (platformUser) {
         return convertRedisUserToUser(platformUser);
       }
@@ -87,7 +90,11 @@ export async function validatePlatformCredentials(
   email: string,
   password: string,
 ): Promise<AuthResult> {
-  const result = await redisValidatePlatformCredentials(platform, email, password);
+  const result = await redisValidatePlatformCredentials(
+    platform,
+    email,
+    password,
+  );
   if (!result.success || !result.user) {
     return { success: false, error: result.error || "Invalid credentials" };
   }

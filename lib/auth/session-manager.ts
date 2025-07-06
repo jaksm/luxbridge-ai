@@ -320,7 +320,9 @@ export async function getUserConnectedPlatforms(
     if (activeSessions.length === 0) {
       // If no active sessions, try to create mock platform connections
       // This handles the case where we have portfolio data but no active sessions
-      console.log(`No active sessions found for user ${userId}, returning mock platform connections`);
+      console.log(
+        `No active sessions found for user ${userId}, returning mock platform connections`,
+      );
       return {
         splint_invest: {
           platform: "splint_invest",
@@ -330,7 +332,7 @@ export async function getUserConnectedPlatforms(
           accessToken: "mock-token",
           linkedAt: new Date().toISOString(),
           lastUsedAt: new Date().toISOString(),
-          status: "active"
+          status: "active",
         },
         masterworks: {
           platform: "masterworks",
@@ -340,7 +342,7 @@ export async function getUserConnectedPlatforms(
           accessToken: "mock-token",
           linkedAt: new Date().toISOString(),
           lastUsedAt: new Date().toISOString(),
-          status: "active"
+          status: "active",
         },
         realt: null,
       };

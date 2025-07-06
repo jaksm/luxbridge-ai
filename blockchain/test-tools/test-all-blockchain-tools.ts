@@ -1,7 +1,13 @@
 import { ethers } from "hardhat";
 import { LuxBridgeSDK } from "..";
-import { setupLocalChain, type DeployedContracts } from "../test-environment/setup-local-chain";
-import { createMockAccessToken, DEFAULT_TEST_USERS } from "../test-environment/mock-access-token";
+import {
+  setupLocalChain,
+  type DeployedContracts,
+} from "../test-environment/setup-local-chain";
+import {
+  createMockAccessToken,
+  DEFAULT_TEST_USERS,
+} from "../test-environment/mock-access-token";
 import { AssetDataBridge } from "../../lib/utils/assetDataBridge";
 import type { AccessToken } from "../../lib/redis-oauth";
 import type { PlatformAsset } from "../../lib/types/platformAsset";
@@ -61,12 +67,16 @@ class BlockchainToolTester {
   private server: MockMcpServer;
   private state: BlockchainTestState;
 
-  constructor(contracts: DeployedContracts, accessToken: AccessToken, sdk: LuxBridgeSDK) {
+  constructor(
+    contracts: DeployedContracts,
+    accessToken: AccessToken,
+    sdk: LuxBridgeSDK,
+  ) {
     this.server = {
       tools: new Map(),
       tool(name: string, description: string, schema: any, handler: Function) {
         this.tools.set(name, { description, schema, handler });
-      }
+      },
     };
 
     this.state = {
@@ -81,26 +91,51 @@ class BlockchainToolTester {
 
   private async registerAllTools() {
     console.log("📋 Registering all blockchain tools...");
-    
+
     // Register all tools with mock server
-    registerTokenizeAssetTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerGetAssetMetadataTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerAddLiquidityTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerRemoveLiquidityTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerSwapTokensTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerGetSwapQuoteTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerDelegateTradingPermissionsTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerQueueAutomatedTradeTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerExecuteAutomatedTradeTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerCalculateArbitrageOpportunityTool({ accessToken: this.state.accessToken })(this.server as any);
-    registerRebalancePortfolioTool({ accessToken: this.state.accessToken })(this.server as any);
+    registerTokenizeAssetTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerGetAssetMetadataTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerAddLiquidityTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerRemoveLiquidityTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerSwapTokensTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerGetSwapQuoteTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerDelegateTradingPermissionsTool({
+      accessToken: this.state.accessToken,
+    })(this.server as any);
+    registerQueueAutomatedTradeTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerExecuteAutomatedTradeTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
+    registerCalculateArbitrageOpportunityTool({
+      accessToken: this.state.accessToken,
+    })(this.server as any);
+    registerRebalancePortfolioTool({ accessToken: this.state.accessToken })(
+      this.server as any,
+    );
 
     console.log(`✅ Registered ${this.server.tools.size} blockchain tools`);
   }
 
-  private async executeTool(toolName: string, params: any): Promise<TestResult> {
+  private async executeTool(
+    toolName: string,
+    params: any,
+  ): Promise<TestResult> {
     const startTime = Date.now();
-    
+
     try {
       const tool = this.server.tools.get(toolName);
       if (!tool) {
@@ -119,7 +154,7 @@ class BlockchainToolTester {
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       return {
         toolName,
         success: false,
@@ -131,9 +166,9 @@ class BlockchainToolTester {
 
   async runAllTests(): Promise<TestResult[]> {
     console.log("\n🚀 Starting comprehensive blockchain tools test...");
-    
+
     await this.registerAllTools();
-    
+
     const results: TestResult[] = [];
 
     // Test 1: Tokenize Assets
@@ -169,12 +204,21 @@ class BlockchainToolTester {
     return results;
   }
 
-  private createMockPlatformAsset(platform: string, assetId: string, assetType: string): PlatformAsset {
+  private createMockPlatformAsset(
+    platform: string,
+    assetId: string,
+    assetType: string,
+  ): PlatformAsset {
     return {
       assetId,
       name: `Test ${assetType} ${assetId}`,
       category: assetType,
-      subcategory: assetType === "wine" ? "bordeaux" : assetType === "art" ? "painting" : "residential",
+      subcategory:
+        assetType === "wine"
+          ? "bordeaux"
+          : assetType === "art"
+            ? "painting"
+            : "residential",
       valuation: {
         currentValue: 100000,
         sharePrice: 100,
@@ -233,7 +277,7 @@ class BlockchainToolTester {
 
   private async testTokenizeAssets(): Promise<TestResult[]> {
     const results: TestResult[] = [];
-    
+
     // Test tokenizing different asset types
     const assetsToTokenize = [
       { platform: "splint_invest", assetId: "WINE-001", assetType: "wine" },
@@ -242,8 +286,13 @@ class BlockchainToolTester {
     ];
 
     for (const asset of assetsToTokenize) {
-      const assetData = this.createMockPlatformAsset(asset.platform, asset.assetId, asset.assetType);
-      const { contractData } = AssetDataBridge.prepareForTokenization(assetData);
+      const assetData = this.createMockPlatformAsset(
+        asset.platform,
+        asset.assetId,
+        asset.assetType,
+      );
+      const { contractData } =
+        AssetDataBridge.prepareForTokenization(assetData);
 
       const params = {
         platform: asset.platform,
@@ -258,9 +307,9 @@ class BlockchainToolTester {
         // Store tokenized asset info for later tests
         const tokenAddress = await this.state.sdk.factory.getTokenAddress(
           asset.platform,
-          asset.assetId
+          asset.assetId,
         );
-        
+
         this.state.tokenizedAssets.push({
           platform: asset.platform,
           assetId: asset.assetId,
@@ -308,12 +357,18 @@ class BlockchainToolTester {
       slippage: 0.5,
     };
 
-    const addLiquidityResult = await this.executeTool("add_liquidity", addLiquidityParams);
+    const addLiquidityResult = await this.executeTool(
+      "add_liquidity",
+      addLiquidityParams,
+    );
     results.push(addLiquidityResult);
 
     if (addLiquidityResult.success) {
       // Store pool info
-      const poolId = await this.state.sdk.amm.getPoolId(tokenA.tokenAddress, tokenB.tokenAddress);
+      const poolId = await this.state.sdk.amm.getPoolId(
+        tokenA.tokenAddress,
+        tokenB.tokenAddress,
+      );
       this.state.pools.push({
         tokenA: tokenA.tokenAddress,
         tokenB: tokenB.tokenAddress,
@@ -330,7 +385,10 @@ class BlockchainToolTester {
         slippage: 0.5,
       };
 
-      const removeLiquidityResult = await this.executeTool("remove_liquidity", removeLiquidityParams);
+      const removeLiquidityResult = await this.executeTool(
+        "remove_liquidity",
+        removeLiquidityParams,
+      );
       results.push(removeLiquidityResult);
     }
 
@@ -354,7 +412,10 @@ class BlockchainToolTester {
       amountIn: "10",
     };
 
-    const getQuoteResult = await this.executeTool("get_swap_quote", getQuoteParams);
+    const getQuoteResult = await this.executeTool(
+      "get_swap_quote",
+      getQuoteParams,
+    );
     results.push(getQuoteResult);
 
     // Test swap tokens
@@ -378,12 +439,15 @@ class BlockchainToolTester {
     const delegateParams = {
       maxTradeSize: "1000",
       maxDailyVolume: "5000",
-      allowedAssets: this.state.tokenizedAssets.map(asset => 
-        `${asset.platform}:${asset.assetId}`
+      allowedAssets: this.state.tokenizedAssets.map(
+        (asset) => `${asset.platform}:${asset.assetId}`,
       ),
     };
 
-    const delegateResult = await this.executeTool("delegate_trading_permissions", delegateParams);
+    const delegateResult = await this.executeTool(
+      "delegate_trading_permissions",
+      delegateParams,
+    );
     results.push(delegateResult);
 
     if (this.state.tokenizedAssets.length >= 2) {
@@ -399,7 +463,10 @@ class BlockchainToolTester {
         deadline: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
       };
 
-      const queueResult = await this.executeTool("queue_automated_trade", queueParams);
+      const queueResult = await this.executeTool(
+        "queue_automated_trade",
+        queueParams,
+      );
       results.push(queueResult);
 
       if (queueResult.success) {
@@ -419,7 +486,10 @@ class BlockchainToolTester {
           tradeId: mockTradeId,
         };
 
-        const executeResult = await this.executeTool("execute_automated_trade", executeParams);
+        const executeResult = await this.executeTool(
+          "execute_automated_trade",
+          executeParams,
+        );
         results.push(executeResult);
       }
     }
@@ -440,7 +510,10 @@ class BlockchainToolTester {
         platformB: assetB.platform,
       };
 
-      const arbitrageResult = await this.executeTool("calculate_arbitrage_opportunity", arbitrageParams);
+      const arbitrageResult = await this.executeTool(
+        "calculate_arbitrage_opportunity",
+        arbitrageParams,
+      );
       results.push(arbitrageResult);
 
       // Test rebalance portfolio
@@ -460,7 +533,10 @@ class BlockchainToolTester {
         maxSlippage: 0.5,
       };
 
-      const rebalanceResult = await this.executeTool("rebalance_portfolio", rebalanceParams);
+      const rebalanceResult = await this.executeTool(
+        "rebalance_portfolio",
+        rebalanceParams,
+      );
       results.push(rebalanceResult);
     }
 
@@ -470,23 +546,26 @@ class BlockchainToolTester {
   printResults(results: TestResult[]): void {
     console.log("\n📊 BLOCKCHAIN TOOLS TEST RESULTS");
     console.log("=================================");
-    
-    const successCount = results.filter(r => r.success).length;
+
+    const successCount = results.filter((r) => r.success).length;
     const totalCount = results.length;
-    const avgTime = results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
-    
-    console.log(`✅ Passed: ${successCount}/${totalCount} (${Math.round(successCount/totalCount*100)}%)`);
+    const avgTime =
+      results.reduce((sum, r) => sum + r.executionTime, 0) / totalCount;
+
+    console.log(
+      `✅ Passed: ${successCount}/${totalCount} (${Math.round((successCount / totalCount) * 100)}%)`,
+    );
     console.log(`⏱️  Average execution time: ${Math.round(avgTime)}ms`);
     console.log(`📦 Tokenized assets: ${this.state.tokenizedAssets.length}`);
     console.log(`🏊 Liquidity pools: ${this.state.pools.length}`);
     console.log(`🤖 Automated trades: ${this.state.automatedTrades.length}`);
-    
+
     console.log("\n📋 Detailed Results:");
     results.forEach((result, index) => {
       const status = result.success ? "✅" : "❌";
       const time = `${result.executionTime}ms`;
       console.log(`${index + 1}. ${status} ${result.toolName} (${time})`);
-      
+
       if (!result.success) {
         console.log(`   Error: ${result.error}`);
       }
@@ -495,62 +574,76 @@ class BlockchainToolTester {
     if (successCount < totalCount) {
       console.log("\n❌ Failed Tools:");
       results
-        .filter(r => !r.success)
-        .forEach(r => {
+        .filter((r) => !r.success)
+        .forEach((r) => {
           console.log(`  - ${r.toolName}: ${r.error}`);
         });
     }
 
     console.log("\n🎯 Test Summary by Category:");
     const categories = {
-      "Asset Tokenization": results.filter(r => r.toolName.includes('tokenize') || r.toolName.includes('metadata')),
-      "AMM Operations": results.filter(r => r.toolName.includes('liquidity')),
-      "Swap Operations": results.filter(r => r.toolName.includes('swap')),
-      "Automation": results.filter(r => r.toolName.includes('automated') || r.toolName.includes('delegate')),
-      "Advanced": results.filter(r => r.toolName.includes('arbitrage') || r.toolName.includes('rebalance')),
+      "Asset Tokenization": results.filter(
+        (r) =>
+          r.toolName.includes("tokenize") || r.toolName.includes("metadata"),
+      ),
+      "AMM Operations": results.filter((r) => r.toolName.includes("liquidity")),
+      "Swap Operations": results.filter((r) => r.toolName.includes("swap")),
+      Automation: results.filter(
+        (r) =>
+          r.toolName.includes("automated") || r.toolName.includes("delegate"),
+      ),
+      Advanced: results.filter(
+        (r) =>
+          r.toolName.includes("arbitrage") || r.toolName.includes("rebalance"),
+      ),
     };
 
     Object.entries(categories).forEach(([category, categoryResults]) => {
       if (categoryResults.length > 0) {
-        const categorySuccess = categoryResults.filter(r => r.success).length;
+        const categorySuccess = categoryResults.filter((r) => r.success).length;
         const categoryTotal = categoryResults.length;
-        const categoryPercent = Math.round(categorySuccess / categoryTotal * 100);
-        console.log(`  ${category}: ${categorySuccess}/${categoryTotal} (${categoryPercent}%)`);
+        const categoryPercent = Math.round(
+          (categorySuccess / categoryTotal) * 100,
+        );
+        console.log(
+          `  ${category}: ${categorySuccess}/${categoryTotal} (${categoryPercent}%)`,
+        );
       }
     });
-    
+
     console.log();
   }
 }
 
 export async function runComprehensiveBlockchainToolsTest(): Promise<void> {
   console.log("🚀 Starting comprehensive blockchain tools test...");
-  
+
   try {
     // Setup local blockchain environment
     console.log("\n📦 Setting up local blockchain environment...");
     const contracts = await setupLocalChain();
-    
+
     // Create mock access token with wallet address
     const accessToken = createMockAccessToken(DEFAULT_TEST_USERS[0]);
-    
+
     // Initialize SDK
     const sdk = new LuxBridgeSDK({
       network: "localhost",
-      privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Default hardhat account
+      privateKey:
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Default hardhat account
     });
-    
+
     // Initialize tester
     const tester = new BlockchainToolTester(contracts, accessToken, sdk);
-    
+
     // Run all tests
     const results = await tester.runAllTests();
-    
+
     // Print results
     tester.printResults(results);
-    
+
     // Exit with appropriate code
-    const allPassed = results.every(r => r.success);
+    const allPassed = results.every((r) => r.success);
     if (allPassed) {
       console.log("🎉 All blockchain tools tests passed!");
       process.exit(0);
@@ -558,7 +651,6 @@ export async function runComprehensiveBlockchainToolsTest(): Promise<void> {
       console.log("💥 Some blockchain tools tests failed!");
       process.exit(1);
     }
-    
   } catch (error) {
     console.error("❌ Test execution failed:", error);
     process.exit(1);

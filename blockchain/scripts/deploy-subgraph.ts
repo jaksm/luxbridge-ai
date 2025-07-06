@@ -24,16 +24,16 @@ async function deploySubgraph() {
     // Update subgraph.yaml with deployed contract addresses
     console.log("\n2️⃣ Updating subgraph configuration...");
     const deploymentPath = path.join(__dirname, "../deployments/localhost");
-    
+
     const contracts = [
       { name: "RWATokenFactory", startBlock: 1 },
       { name: "LuxBridgeAMM", startBlock: 1 },
-      { name: "LuxBridgeAutomation", startBlock: 1 }
+      { name: "LuxBridgeAutomation", startBlock: 1 },
     ];
 
     let subgraphYaml = fs.readFileSync(
       path.join(__dirname, "../subgraph/subgraph.yaml"),
-      "utf8"
+      "utf8",
     );
 
     for (const contract of contracts) {
@@ -41,64 +41,69 @@ async function deploySubgraph() {
       if (fs.existsSync(deploymentFile)) {
         const deployment = JSON.parse(fs.readFileSync(deploymentFile, "utf8"));
         const address = deployment.address;
-        
+
         // Update address in subgraph.yaml
-        const regex = new RegExp(`(${contract.name}:[\\s\\S]*?address:\\s*)['"]\S+['"]`, "g");
+        const regex = new RegExp(
+          `(${contract.name}:[\\s\\S]*?address:\\s*)['"]\S+['"]`,
+          "g",
+        );
         subgraphYaml = subgraphYaml.replace(regex, `$1"${address}"`);
-        
+
         console.log(`✅ Updated ${contract.name} address: ${address}`);
       } else {
-        console.log(`⚠️  ${contract.name} deployment not found. Run deployment first.`);
+        console.log(
+          `⚠️  ${contract.name} deployment not found. Run deployment first.`,
+        );
       }
     }
 
     fs.writeFileSync(
       path.join(__dirname, "../subgraph/subgraph.yaml"),
-      subgraphYaml
+      subgraphYaml,
     );
 
     // Generate code from ABI
     console.log("\n3️⃣ Generating TypeScript code from ABIs...");
-    execSync("cd subgraph && npm run codegen", { 
+    execSync("cd subgraph && npm run codegen", {
       cwd: path.join(__dirname, ".."),
-      stdio: "inherit" 
+      stdio: "inherit",
     });
     console.log("✅ Code generation complete");
 
     // Build the subgraph
     console.log("\n4️⃣ Building subgraph...");
-    execSync("cd subgraph && npm run build", { 
+    execSync("cd subgraph && npm run build", {
       cwd: path.join(__dirname, ".."),
-      stdio: "inherit" 
+      stdio: "inherit",
     });
     console.log("✅ Build complete");
 
     // Create the subgraph on the node
     console.log("\n5️⃣ Creating subgraph on local node...");
-    execSync(
-      `npx graph create --node ${GRAPH_NODE_URL} ${SUBGRAPH_NAME}`,
-      { 
-        cwd: path.join(__dirname, "../subgraph"),
-        stdio: "inherit" 
-      }
-    );
+    execSync(`npx graph create --node ${GRAPH_NODE_URL} ${SUBGRAPH_NAME}`, {
+      cwd: path.join(__dirname, "../subgraph"),
+      stdio: "inherit",
+    });
     console.log("✅ Subgraph created");
 
     // Deploy the subgraph
     console.log("\n6️⃣ Deploying subgraph...");
     execSync(
       `npx graph deploy --node ${GRAPH_NODE_URL} --ipfs ${IPFS_URL} ${SUBGRAPH_NAME}`,
-      { 
+      {
         cwd: path.join(__dirname, "../subgraph"),
-        stdio: "inherit" 
-      }
+        stdio: "inherit",
+      },
     );
     console.log("✅ Subgraph deployed successfully!");
 
     console.log("\n🎉 Subgraph deployment complete!");
-    console.log(`\n📊 GraphQL endpoint: ${GRAPH_NODE_URL}/subgraphs/name/${SUBGRAPH_NAME}`);
-    console.log("\nExample queries available in: subgraph/test-queries.graphql");
-
+    console.log(
+      `\n📊 GraphQL endpoint: ${GRAPH_NODE_URL}/subgraphs/name/${SUBGRAPH_NAME}`,
+    );
+    console.log(
+      "\nExample queries available in: subgraph/test-queries.graphql",
+    );
   } catch (error) {
     console.error("\n❌ Deployment failed:", error);
     process.exit(1);

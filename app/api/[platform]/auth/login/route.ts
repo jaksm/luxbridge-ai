@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { validatePlatformCredentials } from "@/lib/auth/authCommon";
 import { generateJWT } from "@/lib/auth/jwtUtils";
 import { PlatformType } from "@/lib/types/platformAsset";
-import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
+import {
+  mapUrlPlatformToType,
+  getSupportedUrlPlatforms,
+} from "@/lib/utils/platform-mapping";
 
 export async function POST(
   request: NextRequest,
@@ -12,12 +15,12 @@ export async function POST(
     const params = await context.params;
     const urlPlatform = params.platform;
     const platform = mapUrlPlatformToType(urlPlatform);
-    
+
     if (!platform) {
       return NextResponse.json(
-        { 
-          error: "invalid_platform", 
-          message: `Invalid platform specified. Supported platforms: ${getSupportedUrlPlatforms().join(", ")}` 
+        {
+          error: "invalid_platform",
+          message: `Invalid platform specified. Supported platforms: ${getSupportedUrlPlatforms().join(", ")}`,
         },
         { status: 400 },
       );

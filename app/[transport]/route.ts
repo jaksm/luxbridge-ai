@@ -79,7 +79,7 @@ const handler = async (req: Request) => {
       redisUrl: process.env.REDIS_URL,
       verboseLogs: true,
       maxDuration: 60,
-    }
+    },
   )(req);
 };
 
@@ -91,7 +91,7 @@ export async function OPTIONS() {
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type, Authorization",
   );
   return response;
 }

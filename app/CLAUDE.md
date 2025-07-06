@@ -21,10 +21,12 @@ This directory contains the Next.js 15 app router implementation for LuxBridge A
 **Platform Authentication** (RWA Platform Access):
 
 **OAuth-Based Platform Auth**:
+
 - `oauth/[platform]/authorize/page.tsx` - Platform-specific login pages
 - `oauth/[platform]/register/page.tsx` - Platform-specific registration pages
 
 **Session-Based Platform Auth** (Primary Flow):
+
 - `auth/[platform]/page.tsx` - Session-preserving platform authentication
 - `auth/[platform]/register/page.tsx` - Session-preserving registration with auto-return
 - `auth/[platform]/complete/page.tsx` - Platform linking completion
@@ -188,7 +190,7 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
   const { platform } = use(params);
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session");
-  
+
   // Handles session-based platform linking with register navigation
   return <PlatformAuthForm platform={platform} sessionId={sessionId} />;
 }
@@ -198,7 +200,7 @@ export default function PlatformRegisterPage({ params }: RegisterPageProps) {
   const { platform } = use(params);
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session");
-  
+
   // Auto-redirects back to auth page after successful registration
   return <PlatformRegisterForm platform={platform} sessionId={sessionId} />;
 }

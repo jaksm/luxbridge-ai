@@ -3,10 +3,10 @@ import { LuxBridgeSDK } from "..";
 
 async function testSDKWithCorrectParams() {
   console.log("🔧 Testing SDK with correct parameter formats...");
-  
+
   try {
     const [deployer] = await ethers.getSigners();
-    
+
     // Deploy contracts
     const RWATokenFactory = await ethers.getContractFactory("RWATokenFactory");
     const factory = await RWATokenFactory.deploy();
@@ -19,21 +19,25 @@ async function testSDKWithCorrectParams() {
     await amm.waitForDeployment();
     const ammAddress = await amm.getAddress();
 
-    const LuxBridgePriceOracle = await ethers.getContractFactory("LuxBridgePriceOracle");
+    const LuxBridgePriceOracle = await ethers.getContractFactory(
+      "LuxBridgePriceOracle",
+    );
     const oracle = await LuxBridgePriceOracle.deploy(
       deployer.address,
       ethers.keccak256(ethers.toUtf8Bytes("test")),
       1,
-      300000
+      300000,
     );
     await oracle.waitForDeployment();
     const oracleAddress = await oracle.getAddress();
 
-    const LuxBridgeAutomation = await ethers.getContractFactory("LuxBridgeAutomation");
+    const LuxBridgeAutomation = await ethers.getContractFactory(
+      "LuxBridgeAutomation",
+    );
     const automation = await LuxBridgeAutomation.deploy(
       ammAddress,
       factoryAddress,
-      deployer.address
+      deployer.address,
     );
     await automation.waitForDeployment();
     const automationAddress = await automation.getAddress();
@@ -41,14 +45,18 @@ async function testSDKWithCorrectParams() {
     // Set oracle and register platforms
     await factory.setPriceOracle(oracleAddress);
     await factory.registerPlatform("splint_invest", "https://api.splint.com");
-    await factory.registerPlatform("masterworks", "https://api.masterworks.com");
+    await factory.registerPlatform(
+      "masterworks",
+      "https://api.masterworks.com",
+    );
     await factory.registerPlatform("realt", "https://api.realt.com");
     console.log("✅ Contracts deployed and configured");
 
     // Initialize SDK
     const sdk = new LuxBridgeSDK({
       network: "localhost",
-      privateKey: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      privateKey:
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
       contracts: {
         factory: factoryAddress,
         amm: ammAddress,
@@ -66,7 +74,8 @@ async function testSDKWithCorrectParams() {
       totalSupply: "1000", // This becomes parseEther("1000") = 1000e18
       assetType: "wine",
       subcategory: "bordeaux",
-      legalHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      legalHash:
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
       valuation: "100000", // This becomes BigInt(100000) = 100000 (USD cents or raw value)
       sharePrice: "100", // This becomes BigInt(100) = 100 (USD cents or raw value)
       currency: "USD",
@@ -95,7 +104,8 @@ async function testSDKWithCorrectParams() {
       totalSupply: "500",
       assetType: "art",
       subcategory: "painting",
-      legalHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      legalHash:
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
       valuation: "200000",
       sharePrice: "400",
       currency: "USD",
@@ -156,8 +166,10 @@ async function testSDKWithCorrectParams() {
     console.log("✅ Swap Quote Calculation");
     console.log("✅ Oracle Price Updates");
     console.log("✅ Price Retrieval");
-    
-    console.log("\n🔧 This confirms that ALL blockchain-based MCP tools should work:");
+
+    console.log(
+      "\n🔧 This confirms that ALL blockchain-based MCP tools should work:",
+    );
     console.log("  ✅ registerTokenizeAssetTool");
     console.log("  ✅ registerGetAssetMetadataTool");
     console.log("  ✅ registerAddLiquidityTool");
@@ -169,7 +181,6 @@ async function testSDKWithCorrectParams() {
     console.log("  ✅ registerExecuteAutomatedTradeTool");
     console.log("  ✅ registerCalculateArbitrageOpportunityTool");
     console.log("  ✅ registerRebalancePortfolioTool");
-
   } catch (error) {
     console.error("❌ Test failed:", error);
     process.exit(1);

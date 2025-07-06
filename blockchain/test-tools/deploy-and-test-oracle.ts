@@ -2,13 +2,15 @@ import { ethers } from "hardhat";
 
 async function deployAndTestOracle() {
   console.log("🚀 Deploy and Test Oracle");
-  
+
   const [deployer] = await ethers.getSigners();
   console.log("Deploying with account:", deployer.address);
 
   // Deploy fresh oracle
-  const LuxBridgePriceOracle = await ethers.getContractFactory("LuxBridgePriceOracle");
-  
+  const LuxBridgePriceOracle = await ethers.getContractFactory(
+    "LuxBridgePriceOracle",
+  );
+
   const MOCK_ROUTER = ethers.ZeroAddress;
   const MOCK_DON_ID = ethers.ZeroHash;
   const MOCK_SUBSCRIPTION_ID = 1;
@@ -21,16 +23,16 @@ async function deployAndTestOracle() {
     MOCK_SUBSCRIPTION_ID,
     GAS_LIMIT,
   );
-  
+
   await oracle.waitForDeployment();
   const oracleAddress = await oracle.getAddress();
-  
+
   console.log(`✅ Oracle deployed to: ${oracleAddress}`);
-  
+
   // Verify deployment
   const code = await ethers.provider.getCode(oracleAddress);
   console.log(`📋 Contract code length: ${code.length}`);
-  
+
   if (code === "0x") {
     console.log("❌ Deployment failed - no bytecode");
     return;
@@ -54,8 +56,13 @@ async function deployAndTestOracle() {
   // Test reading price
   console.log("3️⃣ Reading price...");
   try {
-    const [price, timestamp] = await oracle.getPrice("splint_invest", "BORDEAUX-2019");
-    console.log(`✅ Price read successfully: ${ethers.formatEther(price)} at ${timestamp}`);
+    const [price, timestamp] = await oracle.getPrice(
+      "splint_invest",
+      "BORDEAUX-2019",
+    );
+    console.log(
+      `✅ Price read successfully: ${ethers.formatEther(price)} at ${timestamp}`,
+    );
   } catch (error: any) {
     console.log(`❌ Failed to read price: ${error.message}`);
     return;
@@ -65,12 +72,16 @@ async function deployAndTestOracle() {
   console.log("4️⃣ Testing arbitrage calculation...");
   try {
     // Set different prices for two platforms
-    await oracle.mockPriceUpdate("masterworks", "BORDEAUX-2019", ethers.parseEther("13000"));
-    
+    await oracle.mockPriceUpdate(
+      "masterworks",
+      "BORDEAUX-2019",
+      ethers.parseEther("13000"),
+    );
+
     const spread = await oracle.calculateArbitrageSpread(
       "BORDEAUX-2019",
-      "splint_invest", 
-      "masterworks"
+      "splint_invest",
+      "masterworks",
     );
     console.log(`✅ Arbitrage spread: ${spread} basis points`);
   } catch (error: any) {
@@ -81,12 +92,17 @@ async function deployAndTestOracle() {
   console.log("5️⃣ Saving working oracle address...");
   const fs = require("fs");
   const path = require("path");
-  
-  const addressesPath = path.join(__dirname, "..", "test-environment", "contract-addresses.json");
+
+  const addressesPath = path.join(
+    __dirname,
+    "..",
+    "test-environment",
+    "contract-addresses.json",
+  );
   const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
   addresses.oracle = oracleAddress;
   fs.writeFileSync(addressesPath, JSON.stringify(addresses, null, 2));
-  
+
   console.log(`✅ Updated oracle address to: ${oracleAddress}`);
   console.log("🎉 Oracle deployment and testing complete!");
 }

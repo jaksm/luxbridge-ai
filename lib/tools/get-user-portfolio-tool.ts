@@ -36,7 +36,7 @@ export const registerGetUserPortfolioTool: RegisterTool =
         try {
           // First, try to resolve Privy DID to Redis user ID
           let resolvedUserId = userId;
-          if (userId.startsWith('did:privy:')) {
+          if (userId.startsWith("did:privy:")) {
             const mappedUserId = await resolvePrivyUserToRedisUser(userId);
             if (mappedUserId) {
               resolvedUserId = mappedUserId;
