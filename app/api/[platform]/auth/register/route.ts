@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { registerUser } from "@/lib/auth/authCommon";
 import { generateJWT } from "@/lib/auth/jwtUtils";
 import { PlatformType } from "@/lib/types/platformAsset";
+import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
 import { z } from "zod";
 
 const RegisterSchema = z.object({
@@ -16,10 +17,15 @@ export async function POST(
 ) {
   try {
     const params = await context.params;
-    const platform = params.platform as PlatformType;
-    if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
+    const urlPlatform = params.platform;
+    const platform = mapUrlPlatformToType(urlPlatform);
+    
+    if (!platform) {
       return NextResponse.json(
-        { error: "invalid_platform", message: "Invalid platform specified" },
+        { 
+          error: "invalid_platform", 
+          message: `Invalid platform specified. Supported platforms: ${getSupportedUrlPlatforms().join(", ")}` 
+        },
         { status: 400 },
       );
     }
