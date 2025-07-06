@@ -125,7 +125,7 @@ describe("Individual MCP Tools", () => {
           realt: [],
         },
       };
-      vi.mocked(getUserById).mockReturnValue(userWithPortfolio);
+      vi.mocked(getUserById).mockResolvedValue(userWithPortfolio);
       const mockConstructedAsset = {
         ...createMockAsset(),
         sharesOwned: 10,
@@ -151,7 +151,7 @@ describe("Individual MCP Tools", () => {
     });
 
     it("should handle user not found", async () => {
-      vi.mocked(getUserById).mockReturnValue(undefined);
+      vi.mocked(getUserById).mockResolvedValue(undefined);
 
       registerGetUserPortfolioTool({ accessToken: mockAccessToken })(
         mockServer,

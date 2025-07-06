@@ -4,23 +4,25 @@ import { registerGetAssetTool } from "@/lib/tools/get-asset-tool";
 import { registerGetAssetsByPlatformTool } from "@/lib/tools/get-assets-by-platform-tool";
 import { registerGetAuthStateTool } from "@/lib/tools/get-auth-state-tool";
 import { registerGetLinkedPlatformsTool } from "@/lib/tools/get-linked-platforms-tool";
-import { registerGetUserPortfolioCrossPlatformTool } from "@/lib/tools/get-user-portfolio-cross-platform-tool";
+import { registerGetPortfolioTool } from "@/lib/tools/get-portfolio-tool";
 import { registerGetUserPortfolioTool } from "@/lib/tools/get-user-portfolio-tool";
 import { registerListSupportedPlatformsTool } from "@/lib/tools/list-supported-platforms-tool";
-import { registerSearchAssetsCrossPlatformTool } from "@/lib/tools/search-assets-cross-platform-tool";
+import { registerSearchAssetsTool } from "@/lib/tools/search-assets-tool";
 import { registerSemanticSearchTool } from "@/lib/tools/semantic-search-tool";
 // Blockchain tools
-import { registerTokenizeAssetTool } from "@/lib/tools/tokenize-asset-tool";
-import { registerGetAssetMetadataTool } from "@/lib/tools/get-asset-metadata-tool";
 import { registerAddLiquidityTool } from "@/lib/tools/add-liquidity-tool";
-import { registerRemoveLiquidityTool } from "@/lib/tools/remove-liquidity-tool";
-import { registerSwapTokensTool } from "@/lib/tools/swap-tokens-tool";
-import { registerGetSwapQuoteTool } from "@/lib/tools/get-swap-quote-tool";
-import { registerDelegateTradingPermissionsTool } from "@/lib/tools/delegate-trading-permissions-tool";
-import { registerQueueAutomatedTradeTool } from "@/lib/tools/queue-automated-trade-tool";
-import { registerExecuteAutomatedTradeTool } from "@/lib/tools/execute-automated-trade-tool";
 import { registerCalculateArbitrageOpportunityTool } from "@/lib/tools/calculate-arbitrage-opportunity-tool";
+import { registerDelegateTradingPermissionsTool } from "@/lib/tools/delegate-trading-permissions-tool";
+import { registerExecuteAutomatedTradeTool } from "@/lib/tools/execute-automated-trade-tool";
+import { registerGetAssetMetadataTool } from "@/lib/tools/get-asset-metadata-tool";
+import { registerGetSwapQuoteTool } from "@/lib/tools/get-swap-quote-tool";
+import { registerGetUserPortfolioCrossPlatformTool } from "@/lib/tools/get-user-portfolio-cross-platform-tool";
+import { registerQueueAutomatedTradeTool } from "@/lib/tools/queue-automated-trade-tool";
 import { registerRebalancePortfolioTool } from "@/lib/tools/rebalance-portfolio-tool";
+import { registerRemoveLiquidityTool } from "@/lib/tools/remove-liquidity-tool";
+import { registerSearchAssetsCrossPlatformTool } from "@/lib/tools/search-assets-cross-platform-tool";
+import { registerSwapTokensTool } from "@/lib/tools/swap-tokens-tool";
+import { registerTokenizeAssetTool } from "@/lib/tools/tokenize-asset-tool";
 import { createMcpHandler } from "@vercel/mcp-adapter";
 import { NextRequest } from "next/server";
 
@@ -66,6 +68,8 @@ const handler = async (req: Request) => {
       registerExecuteAutomatedTradeTool({ accessToken })(server);
       registerCalculateArbitrageOpportunityTool({ accessToken })(server);
       registerRebalancePortfolioTool({ accessToken })(server);
+      registerGetPortfolioTool({ accessToken })(server);
+      registerSearchAssetsTool({ accessToken })(server);
     },
     {
       capabilities: {
@@ -79,7 +83,7 @@ const handler = async (req: Request) => {
       redisUrl: process.env.REDIS_URL,
       verboseLogs: true,
       maxDuration: 60,
-    },
+    }
   )(req);
 };
 
@@ -91,7 +95,7 @@ export async function OPTIONS() {
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization",
+    "Content-Type, Authorization"
   );
   return response;
 }

@@ -18,7 +18,7 @@ async function handlePortfolioRequest(
   const userId = request.user.userId;
 
   try {
-    const user = getUserById(userId);
+    const user = await getUserById(userId);
     if (!user) {
       throw new Error("User not found");
     }

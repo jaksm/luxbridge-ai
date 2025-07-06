@@ -4,11 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js MCP (Model Context Protocol) server implementation with OAuth 2.1 authentication and mock token verification. Uses `@vercel/mcp-adapter` to create secure MCP endpoints that require valid OAuth access tokens for all requests. Supports both SSE and Streamable HTTP transport protocols.
+This is a Next.js MCP (Model Context Protocol) server implementation with comprehensive authentication system. Features **dual-layer authentication**: OAuth 2.1 with Privy for LuxBridge access + Redis-backed platform authentication for RWA platforms (Splint Invest, Masterworks, RealT). Uses `@vercel/mcp-adapter` to create secure MCP endpoints that require valid OAuth access tokens for all requests. Supports both SSE and Streamable HTTP transport protocols.
 
-**Blockchain Integration**: Includes a complete smart contract infrastructure for Real-World Asset (RWA) tokenization and cross-platform trading. The blockchain layer enables universal liquidity aggregation across mock RWA platforms (mock Splint Invest, mock Masterworks, and mock RealT) through sophisticated AMMs and AI-powered automation using ETH-based settlements.
+**Authentication Architecture**:
 
-**Current State**: Template with mock authentication that can be easily upgraded to real authentication providers, plus production-ready smart contracts optimized for Zircuit network.
+- **Primary Layer**: OAuth 2.1 + Privy for LuxBridge user authentication
+- **Platform Layer**: Redis-backed user registration/login for individual RWA platforms
+- **Multi-Platform Bridge**: OAuth tokens now include sessionId to enable simultaneous connections to multiple platforms
+- **Security**: bcrypt password hashing, JWT tokens, comprehensive session management with platform link tracking
+
+**Blockchain Integration**: Includes a complete smart contract infrastructure for Real-World Asset (RWA) tokenization and cross-platform trading. The blockchain layer enables universal liquidity aggregation across mock RWA platforms through sophisticated AMMs and AI-powered automation using ETH-based settlements.
+
+**Current State**: Production-ready multi-platform authentication system with simultaneous platform connectivity, cross-platform portfolio aggregation, Redis-backed storage, and smart contracts optimized for Zircuit network.
 
 ## Development Commands
 
@@ -93,16 +100,29 @@ ETHERSCAN_API_KEY=...
 - Uses Redis-based OAuth access tokens for validation
 - Configuration: `maxDuration: 60`, `verboseLogs: true`
 
-**Authentication** (`lib/auth/token-verifier.ts`):
+**Dual Authentication System**:
 
-- Mock token verifier that accepts any non-empty token
-- Returns mock user data with consistent structure
-- Designed to be easily replaced with real authentication providers
-- Function signature: `tokenVerifier(bearerToken?: string)`
+**1. LuxBridge OAuth 2.1** (`lib/auth/token-verifier.ts`, `lib/redis-oauth.ts`):
+
+- Privy-based authentication for main LuxBridge access
+- PKCE-compliant OAuth 2.1 flow with Redis state management
+- JWT tokens for MCP server access
+- Discovery endpoints for OAuth server metadata
+
+**2. Platform Authentication** (`lib/auth/redis-users.ts`, `lib/auth/authCommon.ts`):
+
+- Redis-backed user registration and authentication for RWA platforms
+- bcrypt password hashing with 12 salt rounds
+- Individual platform credentials (Splint Invest, Masterworks, RealT)
+- Portfolio management with empty portfolios for new users
 
 **OAuth 2.1 Implementation**:
 
-- **Authorization Flow** (`app/oauth/authorize/page.tsx`): Simple email-based OAuth UI
+- **Authorization Flow** (`app/oauth/authorize/page.tsx`): Privy email-based OAuth UI
+- **Platform Auth Flow** (`app/oauth/[platform]/authorize/page.tsx`): Platform-specific login
+- **Registration Flow** (`app/oauth/[platform]/register/page.tsx`): New user registration
+- **Session-Based Auth** (`app/auth/[platform]/page.tsx`): Session-preserving platform authentication
+- **Session-Based Registration** (`app/auth/[platform]/register/page.tsx`): Session-preserving user registration
 - **Token Exchange** (`app/api/oauth/token/route.ts`): PKCE-compliant token endpoint
 - **Client Registration** (`app/api/oauth/register/route.ts`): Dynamic client registration
 - **Discovery Endpoints** (`app/.well-known/oauth-*`): OAuth server and resource metadata
@@ -120,19 +140,72 @@ ETHERSCAN_API_KEY=...
 - Stateless request/response protocol
 - No Redis required for operation
 
-### OAuth State Management
+### Redis Data Management
 
-**Redis Schema** (`lib/redis-oauth.ts`):
+**OAuth State Schema** (`lib/redis-oauth.ts`):
 
 - **Clients**: `oauth:client:{clientId}` - OAuth client configurations
 - **Auth Codes**: `oauth:auth_code:{code}` - Temporary authorization codes (10min TTL)
-- **Access Tokens**: `oauth:access_token:{token}` - Long-lived access tokens (24hr TTL)
+- **Access Tokens**: `oauth:access_token:{token}` - Long-lived access tokens (24hr TTL) with sessionId for platform linking
+
+**User Authentication Schema** (`lib/auth/redis-users.ts`):
+
+- **Users**: `user:{email}` - Complete user profiles with portfolios
+- **User ID Index**: `user_id:{userId}` → email - Quick userId lookup
+- **Portfolio Data**: Embedded in user object with platform-specific holdings
+
+**Session Management Schema** (`lib/auth/session-manager.ts`):
+
+- **Sessions**: `session:{sessionId}` - Multi-platform authentication sessions (24hr TTL)
+- **User Sessions**: `user_sessions:{luxUserId}` - Active session tracking per user
+- **Platform Links**: Embedded in session object for real-time platform connectivity
+
+**Redis User Structure**:
+
+```json
+{
+  "userId": "user_1234567890_abc123",
+  "email": "user@example.com",
+  "passwordHash": "$2b$12$...",
+  "name": "User Name",
+  "scenario": "empty_portfolio",
+  "portfolios": {
+    "splint_invest": [],
+    "masterworks": [],
+    "realt": []
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
 
 **Key Functions**:
 
+**OAuth Management**:
+
 - `storeClient()` / `getClient()` - Client management
 - `storeAuthCode()` / `getAuthCode()` - Authorization code lifecycle
-- `generateAccessToken()` / `storeAccessToken()` / `getAccessToken()` - Token management
+- `generateAccessToken()` / `storeAccessToken()` / `getAccessToken()` - Token management with sessionId support
+
+**User Management**:
+
+- `createUser()` / `getUserByEmail()` / `getUserById()` - User CRUD operations
+- `validateCredentials()` / `registerUser()` - Authentication operations
+- `addAssetToPortfolio()` / `removeAssetFromPortfolio()` - Portfolio management
+- `updatePortfolioAsset()` / `getUserPortfolio()` - Portfolio operations
+
+**Session Management** (`lib/auth/session-manager.ts`):
+
+- `createAuthSession()` / `getAuthSession()` / `deleteAuthSession()` - Session lifecycle
+- `getUserConnectedPlatforms()` - Multi-platform connectivity status
+- `updateSessionPlatformLink()` - Real-time platform link management
+- `getActiveUserSession()` - Current session retrieval
+
+**Platform Authentication** (`lib/auth/platform-auth.ts`):
+
+- `validatePlatformCredentials()` - Platform-specific authentication
+- `makeAuthenticatedPlatformCall()` - Cross-platform API calls with session context
+- `getAllUserPlatformLinks()` - Multi-platform connectivity overview
 
 ### MCP Tool Pattern
 
@@ -157,28 +230,67 @@ server.tool(
 **Currently Implemented:**
 
 - `get_auth_state`: Returns authenticated user information from access token
+- `get_portfolio`: Aggregates portfolio data from all connected platforms automatically
+- `search_assets`: Searches across all connected platforms with intelligent platform selection
 
-## OAuth Flow Details
+## Authentication Flow Details
 
-### Authorization Request
+### LuxBridge OAuth 2.1 Flow
+
+**Authorization Request**:
 
 1. Client redirects to `/oauth/authorize` with OAuth parameters
-2. User enters email and authenticates
+2. User authenticates via Privy (email-based)
 3. System generates authorization code and stores in Redis
 4. Redirects back to client with authorization code
 
-### Token Exchange
+**Token Exchange**:
 
 1. Client POSTs to `/api/oauth/token` with authorization code
 2. Server validates code and PKCE challenge
 3. Generates access token and stores in Redis
 4. Returns access token to client
 
-### MCP Authentication
+**MCP Authentication**:
 
 1. Client includes `Authorization: Bearer {access_token}` header
 2. MCP server validates token against Redis
 3. Retrieves user info from stored access token data
+
+### Platform Authentication Flow
+
+**Session-Based Authentication** (Primary Flow):
+
+1. User visits `/auth/{platform}?session={sessionId}` (platform linking from MCP)
+2. **For existing users**: Enters credentials and links platform to active session
+3. **For new users**: Clicks "Register here" → navigates to `/auth/{platform}/register?session={sessionId}`
+4. **Registration flow**: Completes form → automatically redirected back to auth page with session preserved
+5. System links platform credentials to active LuxBridge session
+6. User gains access to platform-specific resources within MCP context
+
+**OAuth-Based Authentication** (Alternative Flow):
+
+1. User visits `/oauth/{platform}/register` (splint_invest, masterworks, realt)
+2. Fills registration form (email, password, name)
+3. System validates input and checks for existing users
+4. Creates user with bcrypt-hashed password in Redis
+5. Generates JWT token for immediate platform access
+6. Returns access token for platform API usage
+
+**User Login** (Existing Users):
+
+1. User visits `/oauth/{platform}/authorize`
+2. Enters platform credentials (email, password)
+3. System validates against Redis user data
+4. Generates JWT token on successful authentication
+5. Returns access token for platform API operations
+
+**Platform API Authentication**:
+
+1. Client includes `Authorization: Bearer {platform_jwt}` header
+2. Platform API validates JWT token
+3. Extracts user information and platform context
+4. Allows access to platform-specific resources and portfolio data
 
 ## Deployment
 

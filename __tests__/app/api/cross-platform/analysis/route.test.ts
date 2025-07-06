@@ -45,7 +45,7 @@ describe("Cross-Platform Analysis Route", () => {
       ];
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio).mockResolvedValue(
         mockConstructedAssets,
       );
@@ -150,7 +150,7 @@ describe("Cross-Platform Analysis Route", () => {
       );
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(undefined);
+      vi.mocked(getUserById).mockResolvedValue(undefined);
 
       const request = createMockRequestWithAuth({}, mockJWTTokens.valid);
 
@@ -200,7 +200,7 @@ describe("Cross-Platform Analysis Route", () => {
       ];
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio)
         .mockResolvedValueOnce(splintAssets)
         .mockResolvedValueOnce(masterworksAssets)
@@ -232,7 +232,7 @@ describe("Cross-Platform Analysis Route", () => {
       const mockUser = mockUsers["test@example.com"];
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio)
         .mockRejectedValueOnce(new Error("Asset not found"))
         .mockResolvedValueOnce([])
@@ -272,7 +272,7 @@ describe("Cross-Platform Analysis Route", () => {
       ];
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
       vi.mocked(constructUserPortfolio)
         .mockResolvedValueOnce(mockAssets)
         .mockResolvedValueOnce([])
@@ -334,7 +334,7 @@ describe("Cross-Platform Analysis Route", () => {
       );
 
       const mockUser = mockUsers["test@example.com"];
-      vi.mocked(getUserById).mockReturnValue(mockUser);
+      vi.mocked(getUserById).mockResolvedValue(mockUser);
 
       const platforms = ["splint_invest", "masterworks", "realt"] as const;
 

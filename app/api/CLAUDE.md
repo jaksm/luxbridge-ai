@@ -6,9 +6,16 @@ This directory contains all API route handlers for the LuxBridge AI Mock API sys
 
 ### Platform-Specific Routes (`[platform]/`)
 
-- **Authentication**: `/auth/login`, `/auth/me` - JWT-based platform auth
+- `/auth/login` - Platform credential authentication with Redis user validation
+- `/auth/register` - **NEW**: User registration with bcrypt password hashing
+- `/auth/me` - User profile retrieval with JWT token validation
 - **Assets**: `/assets`, `/assets/[assetId]` - Asset discovery and retrieval
 - **Portfolio**: `/portfolio` - User portfolio management and metrics
+
+### Session-Based Authentication Routes (`auth/platforms/`)
+
+- `/auth/platforms/[platform]/complete` - Session-based platform linking endpoint
+- Handles session-to-platform credential linking for MCP authentication flow
 
 ### Cross-Platform Routes
 
@@ -113,6 +120,196 @@ if (tokenPayload.platform !== platform) {
   message: "Human readable"   // User-friendly message
 }
 ```
+
+### Authentication Endpoints
+
+#### Platform Registration (`/api/[platform]/auth/register`)
+
+**Purpose**: Create new platform user accounts with Redis storage
+
+**Implementation**:
+
+```typescript
+import { registerUser } from "@/lib/auth/authCommon";
+import { generateJWT } from "@/lib/auth/jwtUtils";
+
+const RegisterSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Name is required"),
+});
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
+  // Platform validation
+  const { platform } = await context.params;
+  if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
+    return NextResponse.json({ error: "invalid_platform" }, { status: 400 });
+  }
+
+  // Input validation with Zod
+  const validation = RegisterSchema.safeParse(await request.json());
+  if (!validation.success) {
+    return NextResponse.json(
+      {
+        error: "validation_error",
+        details: validation.error.issues,
+      },
+      { status: 400 },
+    );
+  }
+
+  // User registration
+  const result = await registerUser({
+    email: validation.data.email,
+    password: validation.data.password,
+    name: validation.data.name,
+    scenario: "empty_portfolio",
+  });
+
+  if (!result.success) {
+    const status = result.error === "User already exists" ? 409 : 400;
+    return NextResponse.json(
+      { error: "registration_failed", message: result.error },
+      { status },
+    );
+  }
+
+  // Generate platform JWT
+  const accessToken = generateJWT(result.user!.userId, platform);
+  return NextResponse.json({
+    accessToken,
+    userId: result.user!.userId,
+    expiresIn: 86400,
+    platform,
+  });
+}
+```
+
+**Key Features**:
+
+- Zod schema validation for all inputs
+- Email uniqueness checking
+- bcrypt password hashing (12 salt rounds)
+- Empty portfolio initialization
+- Immediate JWT token generation
+- Comprehensive error handling
+
+#### Platform Login (`/api/[platform]/auth/login`)
+
+**Purpose**: Authenticate existing platform users
+
+**Implementation**:
+
+```typescript
+import { validateCredentials } from "@/lib/auth/authCommon";
+import { generateJWT } from "@/lib/auth/jwtUtils";
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
+  // Platform and input validation
+  const { platform } = await context.params;
+  const { email, password } = await request.json();
+
+  if (!email || !password) {
+    return NextResponse.json(
+      {
+        error: "missing_credentials",
+        message: "Email and password are required",
+      },
+      { status: 400 },
+    );
+  }
+
+  // Redis-backed credential validation
+  const result = await validateCredentials(email, password);
+  if (!result.success) {
+    return NextResponse.json(
+      {
+        error: "invalid_credentials",
+        message: "Invalid email or password",
+      },
+      { status: 401 },
+    );
+  }
+
+  // Generate platform-specific JWT
+  const accessToken = generateJWT(result.user!.userId, platform);
+  return NextResponse.json({
+    accessToken,
+    userId: result.user!.userId,
+    expiresIn: 86400,
+    platform,
+  });
+}
+```
+
+**Key Features**:
+
+- Redis user lookup and validation
+- bcrypt password verification
+- Platform-specific JWT generation
+- Consistent error responses
+
+#### User Profile (`/api/[platform]/auth/me`)
+
+**Purpose**: Retrieve authenticated user information
+
+**Implementation**:
+
+```typescript
+import { authenticateToken, getUserById } from "@/lib/auth/authCommon";
+
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ platform: string }> },
+) {
+  // Platform validation
+  const { platform } = await context.params;
+
+  // JWT token authentication
+  const authHeader = request.headers.get("authorization");
+  const tokenPayload = authenticateToken(authHeader);
+
+  if (!tokenPayload) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  if (tokenPayload.platform !== platform) {
+    return NextResponse.json(
+      {
+        error: "platform_mismatch",
+        message: "Token platform does not match requested platform",
+      },
+      { status: 403 },
+    );
+  }
+
+  // Redis user lookup (async)
+  const user = await getUserById(tokenPayload.userId);
+  if (!user) {
+    return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    userId: user.userId,
+    name: user.name,
+    email: user.email,
+    platform,
+  });
+}
+```
+
+**Key Features**:
+
+- Bearer token extraction and validation
+- Platform token verification
+- Async Redis user lookup
+- Secure user data response (no password)
 
 ### Route-Specific Guidelines
 
@@ -226,7 +423,9 @@ test: add comprehensive validation tests for auth endpoints
 
 ### Platform-Specific Routes (`[platform]/`)
 
-- **Authentication**: `/auth/login`, `/auth/me` - JWT-based platform auth
+- `/auth/login` - Platform credential authentication with Redis user validation
+- `/auth/register` - **NEW**: User registration with bcrypt password hashing
+- `/auth/me` - User profile retrieval with JWT token validation
 - **Assets**: `/assets`, `/assets/[assetId]` - Asset discovery and retrieval
 - **Portfolio**: `/portfolio` - User portfolio management and metrics
 

@@ -133,6 +133,27 @@ export const SearchAssetsCrossPlatformSchema = z
     "Parameters for searching assets across linked platforms using stored credentials",
   );
 
+export const SearchAssetsSchema = z
+  .object({
+    query: z.string().describe("Search query for finding investment assets"),
+    platforms: z
+      .array(z.enum(["splint_invest", "masterworks", "realt"]))
+      .optional()
+      .describe(
+        "Specific platforms to search (searches all connected if not specified)",
+      ),
+    maxResults: z
+      .number()
+      .min(1)
+      .max(50)
+      .optional()
+      .default(10)
+      .describe("Maximum results per platform (1-50, default: 10)"),
+  })
+  .describe(
+    "Parameters for intelligent multi-platform asset search with automatic platform selection",
+  );
+
 export const PlatformCredentialsSchema = z
   .object({
     sessionId: z.string().describe("Active LuxBridge session ID"),
@@ -161,6 +182,7 @@ export type GetUserPortfolioCrossPlatformParams = z.infer<
 export type SearchAssetsCrossPlatformParams = z.infer<
   typeof SearchAssetsCrossPlatformSchema
 >;
+export type SearchAssetsParams = z.infer<typeof SearchAssetsSchema>;
 export type PlatformCredentialsParams = z.infer<
   typeof PlatformCredentialsSchema
 >;

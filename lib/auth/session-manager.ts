@@ -299,3 +299,67 @@ export async function cleanupExpiredSessions(): Promise<void> {
     console.error("Failed to cleanup expired sessions:", error);
   }
 }
+
+export async function getUserConnectedPlatforms(
+  userId: string,
+  sessionId?: string,
+): Promise<Record<PlatformType, PlatformLink | null>> {
+  try {
+    await ensureConnected();
+
+    // If sessionId is provided, get platforms from that specific session
+    if (sessionId) {
+      const session = await getAuthSession(sessionId);
+      if (session && session.luxUserId === userId) {
+        return session.platforms;
+      }
+    }
+
+    // Otherwise, get the most recent active session for the user
+    const activeSessions = await getUserActiveSessions(userId);
+    if (activeSessions.length === 0) {
+      return {
+        splint_invest: null,
+        masterworks: null,
+        realt: null,
+      };
+    }
+
+    // Get the most recent session
+    const latestSession = await getAuthSession(activeSessions[0]);
+    if (latestSession) {
+      return latestSession.platforms;
+    }
+
+    return {
+      splint_invest: null,
+      masterworks: null,
+      realt: null,
+    };
+  } catch (error) {
+    console.error("Failed to get user connected platforms:", error);
+    return {
+      splint_invest: null,
+      masterworks: null,
+      realt: null,
+    };
+  }
+}
+
+export async function getActiveUserSession(
+  userId: string,
+): Promise<AuthSession | null> {
+  try {
+    const activeSessions = await getUserActiveSessions(userId);
+    if (activeSessions.length === 0) {
+      return null;
+    }
+
+    // Return the most recent active session
+    const session = await getAuthSession(activeSessions[0]);
+    return session;
+  } catch (error) {
+    console.error("Failed to get active user session:", error);
+    return null;
+  }
+}

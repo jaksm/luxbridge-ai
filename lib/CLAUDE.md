@@ -6,10 +6,20 @@ This directory contains core business logic and utilities for the LuxBridge AI M
 
 ### Authentication (`auth/`)
 
-- **JWT Utilities**: Token generation, validation, and Bearer token extraction
-- **Auth Common**: Credential validation and token authentication
-- **User Management**: Static user store and lookup functions
-- **Token Verification**: Mock token verification for development
+**Dual Authentication System**:
+
+- **JWT Utilities** (`jwtUtils.ts`): Token generation, validation, and Bearer token extraction
+- **Auth Common** (`authCommon.ts`): Unified authentication interface with Redis backend
+- **Redis User Management** (`redis-users.ts`): Complete user CRUD with bcrypt password hashing
+- **Platform Authentication** (`platform-auth.ts`): Cross-platform session management
+- **Token Verification** (`token-verifier.ts`): Privy-based token verification for LuxBridge
+- **Session Management** (`session-manager.ts`): OAuth session and platform link handling
+
+**Redis Authentication Schema**:
+
+- **Users**: `user:{email}` → Full user profile with hashed passwords and portfolios
+- **User ID Index**: `user_id:{userId}` → Fast userId-to-email lookup
+- **Portfolio Management**: Embedded portfolio data with platform-specific asset holdings
 
 ### Storage (`storage/`)
 
@@ -18,14 +28,124 @@ This directory contains core business logic and utilities for the LuxBridge AI M
 
 ### Types (`types/`)
 
-- **Platform Assets**: Core data structures for RWA assets
-- **User Types**: Authentication and portfolio types
-- **Schemas**: Zod validation schemas for API endpoints and MCP tools
+- **Platform Assets** (`platformAsset.ts`): Core data structures for RWA assets
+- **User Types** (`user.ts`): Legacy authentication and portfolio types
+- **Redis User Types** (`redis-user.ts`): New Redis-backed user authentication types
+- **LuxBridge Auth Types** (`luxbridge-auth.ts`): Platform linking and session types
+- **Schemas** (`schemas.ts`): Zod validation schemas for API endpoints and MCP tools
 
 ### Utilities (`utils/`)
 
 - **Portfolio Calculator**: Portfolio construction, metrics, risk analysis
 - **Semantic Search**: Natural language asset discovery
+
+## Authentication System Architecture
+
+### Dual Authentication Model
+
+The LuxBridge system implements **two distinct authentication layers**:
+
+**1. LuxBridge OAuth 2.1** (Primary Access):
+
+- **Purpose**: Main application access and MCP server authentication
+- **Provider**: Privy-based authentication with email verification
+- **Storage**: Redis-based OAuth state management (`lib/redis-oauth.ts`)
+- **Tokens**: Long-lived access tokens (24hr TTL) for MCP operations
+- **Flow**: PKCE-compliant OAuth 2.1 with authorization codes (10min TTL)
+
+**2. Platform Authentication** (RWA Platform Access):
+
+- **Purpose**: Individual platform credentials for Splint Invest, Masterworks, RealT
+- **Storage**: Redis-backed user profiles (`lib/auth/redis-users.ts`)
+- **Security**: bcrypt password hashing with 12 salt rounds
+- **Tokens**: Platform-specific JWT tokens for API access
+- **Registration**: Full user registration with empty portfolio initialization
+
+### Redis Authentication Data Model
+
+**OAuth State Keys**:
+
+```
+oauth:client:{clientId}      → OAuth client configuration
+oauth:auth_code:{code}       → Temporary authorization codes (10min TTL)
+oauth:access_token:{token}   → Access tokens for MCP (24hr TTL)
+```
+
+**User Authentication Keys**:
+
+```
+user:{email}                 → Complete user profile with portfolios
+user_id:{userId}            → Fast userId → email lookup
+```
+
+**User Data Structure**:
+
+```typescript
+interface RedisUser {
+  userId: string; // Generated unique identifier
+  email: string; // Primary key and login identifier
+  passwordHash: string; // bcrypt hash with 12 salt rounds
+  name: string; // Display name
+  scenario: string; // User type (e.g., "empty_portfolio")
+  portfolios: {
+    // Platform-specific asset holdings
+    splint_invest: UserPortfolioHolding[];
+    masterworks: UserPortfolioHolding[];
+    realt: UserPortfolioHolding[];
+  };
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+}
+```
+
+### Authentication Functions
+
+**User Management** (`lib/auth/redis-users.ts`):
+
+```typescript
+// User lifecycle
+createUser(params: CreateUserParams): Promise<RedisUser>
+getUserByEmail(email: string): Promise<RedisUser | null>
+getUserById(userId: string): Promise<RedisUser | null>
+validateCredentials(email: string, password: string): Promise<RedisUserAuthResult>
+registerUser(params: CreateUserParams): Promise<RedisUserAuthResult>
+
+// Portfolio operations
+addAssetToPortfolio(userId: string, platform: PlatformType, asset: UserPortfolioHolding): Promise<RedisUser | null>
+removeAssetFromPortfolio(userId: string, platform: PlatformType, assetId: string): Promise<RedisUser | null>
+updatePortfolioAsset(userId: string, platform: PlatformType, assetId: string, updates: Partial<UserPortfolioHolding>): Promise<RedisUser | null>
+getUserPortfolio(userId: string, platform?: PlatformType): Promise<UserPortfolioHolding[] | Record<PlatformType, UserPortfolioHolding[]> | null>
+```
+
+**Unified Interface** (`lib/auth/authCommon.ts`):
+
+```typescript
+// Backward-compatible authentication interface
+validateCredentials(email: string, password: string): Promise<AuthResult>
+getUserById(userId: string): Promise<User | undefined>
+registerUser(params: CreateUserParams): Promise<AuthResult>
+authenticateToken(authHeader?: string): TokenPayload | null
+```
+
+### Security Considerations
+
+**Password Security**:
+
+- bcrypt hashing with 12 salt rounds
+- Passwords never stored in plaintext
+- Password fields stripped from API responses
+
+**Token Security**:
+
+- JWT tokens with platform-specific claims
+- OAuth access tokens with TTL management
+- Automatic cleanup of expired tokens
+
+**Session Management**:
+
+- Redis-based session persistence
+- Cross-platform authentication state
+- Secure token validation
 
 ## Development Rules
 
@@ -300,14 +420,124 @@ OPENAI_API_KEY=your_openai_api_key
 
 ### Types (`types/`)
 
-- **Platform Assets**: Core data structures for RWA assets
-- **User Types**: Authentication and portfolio types
-- **Schemas**: Zod validation schemas for API endpoints and MCP tools
+- **Platform Assets** (`platformAsset.ts`): Core data structures for RWA assets
+- **User Types** (`user.ts`): Legacy authentication and portfolio types
+- **Redis User Types** (`redis-user.ts`): New Redis-backed user authentication types
+- **LuxBridge Auth Types** (`luxbridge-auth.ts`): Platform linking and session types
+- **Schemas** (`schemas.ts`): Zod validation schemas for API endpoints and MCP tools
 
 ### Utilities (`utils/`)
 
 - **Portfolio Calculator**: Portfolio construction, metrics, risk analysis
 - **Semantic Search**: Natural language asset discovery
+
+## Authentication System Architecture
+
+### Dual Authentication Model
+
+The LuxBridge system implements **two distinct authentication layers**:
+
+**1. LuxBridge OAuth 2.1** (Primary Access):
+
+- **Purpose**: Main application access and MCP server authentication
+- **Provider**: Privy-based authentication with email verification
+- **Storage**: Redis-based OAuth state management (`lib/redis-oauth.ts`)
+- **Tokens**: Long-lived access tokens (24hr TTL) for MCP operations
+- **Flow**: PKCE-compliant OAuth 2.1 with authorization codes (10min TTL)
+
+**2. Platform Authentication** (RWA Platform Access):
+
+- **Purpose**: Individual platform credentials for Splint Invest, Masterworks, RealT
+- **Storage**: Redis-backed user profiles (`lib/auth/redis-users.ts`)
+- **Security**: bcrypt password hashing with 12 salt rounds
+- **Tokens**: Platform-specific JWT tokens for API access
+- **Registration**: Full user registration with empty portfolio initialization
+
+### Redis Authentication Data Model
+
+**OAuth State Keys**:
+
+```
+oauth:client:{clientId}      → OAuth client configuration
+oauth:auth_code:{code}       → Temporary authorization codes (10min TTL)
+oauth:access_token:{token}   → Access tokens for MCP (24hr TTL)
+```
+
+**User Authentication Keys**:
+
+```
+user:{email}                 → Complete user profile with portfolios
+user_id:{userId}            → Fast userId → email lookup
+```
+
+**User Data Structure**:
+
+```typescript
+interface RedisUser {
+  userId: string; // Generated unique identifier
+  email: string; // Primary key and login identifier
+  passwordHash: string; // bcrypt hash with 12 salt rounds
+  name: string; // Display name
+  scenario: string; // User type (e.g., "empty_portfolio")
+  portfolios: {
+    // Platform-specific asset holdings
+    splint_invest: UserPortfolioHolding[];
+    masterworks: UserPortfolioHolding[];
+    realt: UserPortfolioHolding[];
+  };
+  createdAt: string; // ISO timestamp
+  updatedAt: string; // ISO timestamp
+}
+```
+
+### Authentication Functions
+
+**User Management** (`lib/auth/redis-users.ts`):
+
+```typescript
+// User lifecycle
+createUser(params: CreateUserParams): Promise<RedisUser>
+getUserByEmail(email: string): Promise<RedisUser | null>
+getUserById(userId: string): Promise<RedisUser | null>
+validateCredentials(email: string, password: string): Promise<RedisUserAuthResult>
+registerUser(params: CreateUserParams): Promise<RedisUserAuthResult>
+
+// Portfolio operations
+addAssetToPortfolio(userId: string, platform: PlatformType, asset: UserPortfolioHolding): Promise<RedisUser | null>
+removeAssetFromPortfolio(userId: string, platform: PlatformType, assetId: string): Promise<RedisUser | null>
+updatePortfolioAsset(userId: string, platform: PlatformType, assetId: string, updates: Partial<UserPortfolioHolding>): Promise<RedisUser | null>
+getUserPortfolio(userId: string, platform?: PlatformType): Promise<UserPortfolioHolding[] | Record<PlatformType, UserPortfolioHolding[]> | null>
+```
+
+**Unified Interface** (`lib/auth/authCommon.ts`):
+
+```typescript
+// Backward-compatible authentication interface
+validateCredentials(email: string, password: string): Promise<AuthResult>
+getUserById(userId: string): Promise<User | undefined>
+registerUser(params: CreateUserParams): Promise<AuthResult>
+authenticateToken(authHeader?: string): TokenPayload | null
+```
+
+### Security Considerations
+
+**Password Security**:
+
+- bcrypt hashing with 12 salt rounds
+- Passwords never stored in plaintext
+- Password fields stripped from API responses
+
+**Token Security**:
+
+- JWT tokens with platform-specific claims
+- OAuth access tokens with TTL management
+- Automatic cleanup of expired tokens
+
+**Session Management**:
+
+- Redis-based session persistence
+- Cross-platform authentication state
+- Secure token validation
 
 ## Development Rules
 

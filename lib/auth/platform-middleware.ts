@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateJWT } from "./jwtUtils";
 import { TokenPayload } from "@/lib/types/user";
+import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
 
 export interface AuthenticatedRequest extends NextRequest {
   user: TokenPayload;
@@ -85,18 +86,32 @@ export function createPlatformHandler(
   return withPlatformAuth(async (request: AuthenticatedRequest) => {
     const url = new URL(request.url);
     const pathSegments = url.pathname.split("/");
-    const platformIndex = pathSegments.findIndex((segment) =>
-      ["splint_invest", "masterworks", "realt"].includes(segment),
+    const urlPlatformSegment = pathSegments.find((segment) => 
+      getSupportedUrlPlatforms().includes(segment)
     );
 
-    if (platformIndex === -1) {
+    if (!urlPlatformSegment) {
       return NextResponse.json(
-        { error: "Platform not found in URL" },
+        { 
+          error: "Platform not found in URL", 
+          message: `Supported platforms: ${getSupportedUrlPlatforms().join(", ")}` 
+        },
         { status: 400 },
       );
     }
 
-    const platform = pathSegments[platformIndex];
+    const platform = mapUrlPlatformToType(urlPlatformSegment);
+    
+    if (!platform) {
+      return NextResponse.json(
+        { 
+          error: "Invalid platform", 
+          message: `Unsupported platform: ${urlPlatformSegment}` 
+        },
+        { status: 400 },
+      );
+    }
+
     const result = await handler(request, platform);
 
     return NextResponse.json(result, {

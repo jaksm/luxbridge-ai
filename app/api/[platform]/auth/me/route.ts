@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateToken, getUserById } from "@/lib/auth/authCommon";
 import { PlatformType } from "@/lib/types/platformAsset";
+import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
 
 export async function GET(
   request: NextRequest,
@@ -8,10 +9,15 @@ export async function GET(
 ) {
   try {
     const params = await context.params;
-    const platform = params.platform as PlatformType;
-    if (!["splint_invest", "masterworks", "realt"].includes(platform)) {
+    const urlPlatform = params.platform;
+    const platform = mapUrlPlatformToType(urlPlatform);
+    
+    if (!platform) {
       return NextResponse.json(
-        { error: "invalid_platform", message: "Invalid platform specified" },
+        { 
+          error: "invalid_platform", 
+          message: `Invalid platform specified. Supported platforms: ${getSupportedUrlPlatforms().join(", ")}` 
+        },
         { status: 400 },
       );
     }
@@ -36,7 +42,7 @@ export async function GET(
       );
     }
 
-    const user = getUserById(tokenPayload.userId);
+    const user = await getUserById(tokenPayload.userId);
     if (!user) {
       return NextResponse.json(
         { error: "user_not_found", message: "User not found" },

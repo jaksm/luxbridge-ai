@@ -236,6 +236,22 @@ export default function PlatformAuthPage({ params }: AuthPageProps) {
             </Button>
           </form>
 
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Button
+                variant="link"
+                className="p-0 h-auto text-sm"
+                onClick={() =>
+                  router.push(`/auth/${platform}/register?session=${sessionId}`)
+                }
+                disabled={loading}
+              >
+                Register here
+              </Button>
+            </p>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">
               🔒 Your credentials are encrypted and stored securely.
