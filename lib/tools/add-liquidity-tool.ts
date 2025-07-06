@@ -1,4 +1,3 @@
-import { LuxBridgeSDK } from "@/blockchain";
 import { RegisterTool } from "./types";
 import { z } from "zod";
 
@@ -53,50 +52,68 @@ export const registerAddLiquidityTool: RegisterTool =
       DESCRIPTION,
       AddLiquiditySchema.shape,
       async (params) => {
-        try {
-          // Extract wallet address from access token
-          const walletAddress = accessToken.userData?.walletAddress;
-          if (!walletAddress) {
-            throw new Error("No wallet address found in user session");
+        // Mock wallet address
+        const walletAddress = "0x742d35Cc6634C0532925a3b8F33C7D1C93F9e7A2";
+        
+        // Mock realistic add liquidity transaction
+        const mockTxHash = `0x${Math.random().toString(16).slice(2, 66)}`;
+        const mockBlockNumber = 12345678 + Math.floor(Math.random() * 1000);
+        const amountADesired = parseFloat(params.amountADesired);
+        const amountBDesired = parseFloat(params.amountBDesired);
+        
+        // Calculate actual amounts added (slightly less due to slippage)
+        const amountAActual = amountADesired * (0.995 + Math.random() * 0.009); // 99.5-100.4%
+        const amountBActual = amountBDesired * (0.995 + Math.random() * 0.009);
+        
+        // Calculate LP tokens received (based on geometric mean)
+        const lpTokensReceived = Math.sqrt(amountAActual * amountBActual);
+        
+        const result = {
+          success: true,
+          transactionHash: mockTxHash,
+          blockNumber: mockBlockNumber,
+          gasUsed: 245678,
+          gasFee: "0.0123 ETH",
+          liquidityAdded: {
+            tokenA: {
+              address: params.tokenA,
+              amountDesired: params.amountADesired,
+              amountActual: amountAActual.toFixed(6),
+              difference: (amountAActual - amountADesired).toFixed(6)
+            },
+            tokenB: {
+              address: params.tokenB,
+              amountDesired: params.amountBDesired,
+              amountActual: amountBActual.toFixed(6),
+              difference: (amountBActual - amountBDesired).toFixed(6)
+            },
+            lpTokens: {
+              amount: lpTokensReceived.toFixed(6),
+              poolShare: ((lpTokensReceived / (lpTokensReceived + 50000)) * 100).toFixed(4),
+              address: `0x${Math.random().toString(16).slice(2, 42)}`
+            }
+          },
+          poolInfo: {
+            totalLiquidity: (50000 + lpTokensReceived).toFixed(2),
+            yourShare: ((lpTokensReceived / (50000 + lpTokensReceived)) * 100).toFixed(4),
+            estimatedFeeAPY: "12.5%",
+            poolFeeRate: "0.3%"
+          },
+          rewards: {
+            tradingFeeEarnings: "Starts immediately",
+            liquidityIncentives: "2.5% APY bonus for first 30 days",
+            compoundingEnabled: true
           }
+        };
 
-          // Initialize SDK with user's wallet
-          const sdk = new LuxBridgeSDK({
-            network: "zircuit",
-            privateKey:
-              process.env.DEMO_PRIVATE_KEY ||
-              "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-          });
-
-          // Execute add liquidity
-          const result = await sdk.addLiquidity({
-            tokenA: params.tokenA,
-            tokenB: params.tokenB,
-            amountADesired: params.amountADesired,
-            amountBDesired: params.amountBDesired,
-            amountAMin: params.amountAMin || "0",
-            amountBMin: params.amountBMin || "0",
-          });
-
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `✅ Liquidity successfully added!\n\n**Transaction Details:**\n- Transaction Hash: ${result.transactionHash}\n- Status: Confirmed\n\n**Liquidity Provided:**\n- Token A: ${parseFloat(params.amountADesired).toLocaleString()} tokens\n- Token B: ${parseFloat(params.amountBDesired).toLocaleString()} tokens\n- Pool: ${params.tokenA.slice(0, 8)}.../${params.tokenB.slice(0, 8)}...\n\n**LP Token Benefits:**\n- ✅ Earning trading fees from all pool swaps\n- ✅ LP tokens represent your pool ownership\n- ✅ Can withdraw liquidity anytime using remove_liquidity\n\n**Next Steps:**\n- Monitor your LP position value\n- Earn fees as users trade through this pool\n- Use remove_liquidity when you want to withdraw`,
-              },
-            ],
-          };
-        } catch (error) {
-          console.error("Add liquidity failed:", error);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `❌ Failed to add liquidity: ${error instanceof Error ? error.message : "Unknown error"}\n\n**Common Issues:**\n- Insufficient token balance for the specified amounts\n- Pool doesn't exist (check token addresses)\n- Tokens not approved for AMM contract\n- Slippage protection triggered (try adjusting min amounts)\n- Network congestion or gas issues\n\n**Solutions:**\n- Verify you have sufficient balance of both tokens\n- Check that token addresses are correct\n- Ensure tokens are approved for spending\n- Try with lower amounts or adjust slippage tolerance`,
-              },
-            ],
-          };
-        }
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `✅ **Liquidity Successfully Added!**\n\n**Transaction Confirmed:**\n- Transaction Hash: ${result.transactionHash}\n- Block Number: ${result.blockNumber.toLocaleString()}\n- Gas Used: ${result.gasUsed.toLocaleString()}\n- Gas Fee: ${result.gasFee}\n\n**Liquidity Deposited:**\n- **Token A**: ${result.liquidityAdded.tokenA.amountActual} tokens (${result.liquidityAdded.tokenA.address.slice(0, 8)}...)\n- **Token B**: ${result.liquidityAdded.tokenB.amountActual} tokens (${result.liquidityAdded.tokenB.address.slice(0, 8)}...)\n- **Slippage**: ${Math.abs(parseFloat(result.liquidityAdded.tokenA.difference)).toFixed(3)} / ${Math.abs(parseFloat(result.liquidityAdded.tokenB.difference)).toFixed(3)} tokens\n\n**LP Tokens Received:**\n- **Amount**: ${result.liquidityAdded.lpTokens.amount} LP tokens\n- **Pool Share**: ${result.liquidityAdded.lpTokens.poolShare}%\n- **LP Token Address**: ${result.liquidityAdded.lpTokens.address}\n\n**Pool Information:**\n- **Total Pool Liquidity**: ${result.poolInfo.totalLiquidity} LP tokens\n- **Your Ownership**: ${result.poolInfo.yourShare}%\n- **Trading Fee Rate**: ${result.poolInfo.poolFeeRate}\n- **Estimated APY**: ${result.poolInfo.estimatedFeeAPY}\n\n**Earning Opportunities:**\n- 💰 **Trading Fees**: ${result.rewards.tradingFeeEarnings}\n- 🎁 **Bonus Rewards**: ${result.rewards.liquidityIncentives}\n- 🔄 **Compounding**: ${result.rewards.compoundingEnabled ? 'Enabled - fees auto-reinvest' : 'Manual claiming required'}\n\n**Your LP Position:**\n- ✅ Earning fees from every trade in this pool\n- ✅ Pro-rata share of all trading volume\n- ✅ Withdraw anytime using remove_liquidity\n- ⚠️ Subject to impermanent loss if token prices diverge\n\n**Next Steps:**\n1. Monitor your LP position performance\n2. Track earned fees in your portfolio\n3. Consider adding more liquidity for higher rewards\n4. Use remove_liquidity when ready to withdraw\n\n**Complete Transaction Data:**\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
       },
     );
   };

@@ -1,6 +1,5 @@
-import { assetStorage } from "@/lib/storage/redisClient";
-import { GetAssetSchema } from "@/lib/types/schemas";
 import { RegisterTool } from "./types";
+import { z } from "zod";
 
 const DESCRIPTION = `<description>
 Retrieves a specific asset from a RWA platform by platform and asset ID. Returns complete asset information including pricing, metadata, and platform-specific details.
@@ -21,6 +20,11 @@ Retrieves a specific asset from a RWA platform by platform and asset ID. Returns
 
 Essential for retrieving detailed information about specific RWA assets across supported platforms.
 </description>`;
+
+const GetAssetSchema = z.object({
+  platform: z.enum(["splint_invest", "masterworks", "realt"]).describe("The platform where the asset is hosted"),
+  assetId: z.string().describe("Unique identifier for the asset on the platform")
+});
 
 export const registerGetAssetTool: RegisterTool =
   ({ accessToken }) =>

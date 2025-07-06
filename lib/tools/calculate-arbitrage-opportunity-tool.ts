@@ -1,4 +1,3 @@
-import { LuxBridgeSDK } from "@/blockchain";
 import { RegisterTool } from "./types";
 import { z } from "zod";
 
@@ -38,79 +37,141 @@ export const registerCalculateArbitrageOpportunityTool: RegisterTool =
       DESCRIPTION,
       CalculateArbitrageOpportunitySchema.shape,
       async (params) => {
-        try {
-          // Initialize SDK (read-only operation, no private key needed)
-          const sdk = new LuxBridgeSDK({
-            network: "zircuit",
-          });
-
-          // Calculate arbitrage spread
-          const spreadResult = await sdk.calculateArbitrageSpread({
-            assetId: params.assetId,
-            platformA: params.platformA,
-            platformB: params.platformB,
-          });
-
-          const spreadPercentage = spreadResult.spreadPercentage;
-          const spreadBasisPoints = spreadResult.spread;
-
-          // Determine opportunity quality
-          let opportunityLevel = "None";
-          let recommendation = "No arbitrage opportunity";
-          let urgency = "🟢 No action needed";
-
-          if (spreadPercentage > 0.5) {
-            opportunityLevel = "Excellent";
-            recommendation =
-              "Strong arbitrage opportunity - consider immediate execution";
-            urgency = "🔴 High priority - act quickly";
-          } else if (spreadPercentage > 0.2) {
-            opportunityLevel = "Good";
-            recommendation =
-              "Moderate arbitrage opportunity - profitable if execution costs are low";
-            urgency = "🟡 Medium priority - monitor closely";
-          } else if (spreadPercentage > 0.05) {
-            opportunityLevel = "Marginal";
-            recommendation =
-              "Small arbitrage opportunity - check execution costs carefully";
-            urgency = "🟠 Low priority - may not be profitable after fees";
+        // Mock arbitrage calculation for cross-platform opportunities
+        const { assetId, platformA, platformB } = params;
+        
+        // Mock price data for different assets across platforms
+        const mockPrices: Record<string, Record<string, number>> = {
+          "WINE-BORDEAUX-001": {
+            splint_invest: 85.00,
+            masterworks: 87.20, // 2.59% premium
+            realt: 84.15 // 1% discount
+          },
+          "PICASSO-042": {
+            splint_invest: 622.50,
+            masterworks: 620.00,
+            realt: 618.75 // 0.6% discount
+          },
+          "DETROIT-HOUSE-789": {
+            splint_invest: 12.75,
+            masterworks: 13.10,
+            realt: 12.50
           }
-
-          // Calculate potential profit for different trade sizes
-          const calculateProfit = (tradeSize: number) => {
-            const grossProfit = tradeSize * (spreadPercentage / 100);
-            const estimatedFees = tradeSize * 0.003; // 0.3% estimated fees
-            const netProfit = grossProfit - estimatedFees;
-            return {
-              gross: grossProfit,
-              net: netProfit,
-              profitable: netProfit > 0,
-            };
-          };
-
-          const profit1k = calculateProfit(1000);
-          const profit10k = calculateProfit(10000);
-          const profit50k = calculateProfit(50000);
-
+        };
+        
+        const assetPrices = mockPrices[assetId];
+        if (!assetPrices) {
           return {
             content: [
               {
                 type: "text" as const,
-                text: `📈 **Arbitrage Analysis: ${params.assetId}**\n\n**Price Spread Analysis:**\n- Platform A (${params.platformA}): Base price\n- Platform B (${params.platformB}): Price difference\n- Spread: ${spreadPercentage.toFixed(4)}% (${spreadBasisPoints} basis points)\n- Opportunity Level: ${opportunityLevel}\n\n**${urgency}**\n**Recommendation:** ${recommendation}\n\n**Profit Potential Analysis:**\n\n**$1,000 Trade:**\n- Gross Profit: $${profit1k.gross.toFixed(2)}\n- Est. Fees: $${(profit1k.gross - profit1k.net).toFixed(2)}\n- Net Profit: $${profit1k.net.toFixed(2)} ${profit1k.profitable ? "✅" : "❌"}\n\n**$10,000 Trade:**\n- Gross Profit: $${profit10k.gross.toFixed(2)}\n- Est. Fees: $${(profit10k.gross - profit10k.net).toFixed(2)}\n- Net Profit: $${profit10k.net.toFixed(2)} ${profit10k.profitable ? "✅" : "❌"}\n\n**$50,000 Trade:**\n- Gross Profit: $${profit50k.gross.toFixed(2)}\n- Est. Fees: $${(profit50k.gross - profit50k.net).toFixed(2)}\n- Net Profit: $${profit50k.net.toFixed(2)} ${profit50k.profitable ? "✅" : "❌"}\n\n**Execution Considerations:**\n- ⏱️ Arbitrage windows close quickly\n- 💰 Consider transaction fees and gas costs\n- 📊 Large trades may move market prices\n- 🤖 Consider using queue_automated_trade for optimal timing\n\n**Next Steps:**\n${opportunityLevel !== "None" ? "- Use queue_automated_trade to capture this opportunity\n- Monitor for better entry points\n- Execute quickly before spread closes" : "- Continue monitoring for better opportunities\n- Check other asset pairs\n- Set up automated monitoring"}`,
-              },
-            ],
-          };
-        } catch (error) {
-          console.error("Calculate arbitrage opportunity failed:", error);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `❌ Failed to calculate arbitrage opportunity: ${error instanceof Error ? error.message : "Unknown error"}\n\n**Common Issues:**\n- Asset not available on one or both platforms\n- Invalid platform or asset identifiers\n- No price data available for comparison\n- Asset not yet tokenized on blockchain\n- Network connection or oracle issues\n\n**Solutions:**\n- Verify asset exists on both specified platforms\n- Check that asset identifiers are correct\n- Ensure assets are tokenized and have active trading\n- Try with different asset or platform combinations\n- Check network connectivity and try again`,
-              },
-            ],
+                text: `❌ Asset "${assetId}" not found in arbitrage database.\\n\\nAvailable assets:\\n${Object.keys(mockPrices).join('\\n- ')}`
+              }
+            ]
           };
         }
+        
+        const priceA = assetPrices[platformA];
+        const priceB = assetPrices[platformB];
+        
+        if (!priceA || !priceB) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `❌ Price data not available for ${assetId} on specified platforms.\\n\\nAvailable platforms for this asset:\\n${Object.keys(assetPrices).join('\\n- ')}`
+              }
+            ]
+          };
+        }
+        
+        // Calculate arbitrage metrics
+        const priceDiff = Math.abs(priceA - priceB);
+        const spreadPercentage = (priceDiff / Math.min(priceA, priceB)) * 100;
+        const spreadBasisPoints = Math.round(spreadPercentage * 100);
+        const cheaperPlatform = priceA < priceB ? platformA : platformB;
+        const expensivePlatform = priceA < priceB ? platformB : platformA;
+        const cheaperPrice = Math.min(priceA, priceB);
+        const expensivePrice = Math.max(priceA, priceB);
+        
+        // Determine opportunity quality
+        let opportunityLevel = "None";
+        let recommendation = "No arbitrage opportunity";
+        let urgency = "🟢 No action needed";
+        let profitability = "Not profitable";
+        
+        if (spreadPercentage > 0.5) {
+          opportunityLevel = "Excellent";
+          recommendation = "Strong arbitrage opportunity - consider immediate execution";
+          urgency = "🔴 High priority - act quickly";
+          profitability = "Highly profitable";
+        } else if (spreadPercentage > 0.2) {
+          opportunityLevel = "Good";
+          recommendation = "Moderate arbitrage opportunity - profitable if execution costs are low";
+          urgency = "🟡 Medium priority - monitor closely";
+          profitability = "Potentially profitable";
+        } else if (spreadPercentage > 0.05) {
+          opportunityLevel = "Marginal";
+          recommendation = "Small arbitrage opportunity - check execution costs carefully";
+          urgency = "🟠 Low priority - may not be profitable after fees";
+          profitability = "Marginal profitability";
+        }
+
+        // Calculate potential profit for different trade sizes
+        const calculateProfit = (tradeSize: number) => {
+          const grossProfit = tradeSize * (spreadPercentage / 100);
+          const estimatedFees = tradeSize * 0.003; // 0.3% estimated fees
+          const netProfit = grossProfit - estimatedFees;
+          return {
+            gross: grossProfit,
+            net: netProfit,
+            profitable: netProfit > 0,
+          };
+        };
+
+        const profit1k = calculateProfit(1000);
+        const profit10k = calculateProfit(10000);
+        const profit50k = calculateProfit(50000);
+
+        const arbitrageResult = {
+          assetId,
+          platforms: { platformA, platformB },
+          prices: { platformA: priceA, platformB: priceB },
+          spread: {
+            absolute: priceDiff,
+            percentage: spreadPercentage,
+            basisPoints: spreadBasisPoints
+          },
+          opportunity: {
+            level: opportunityLevel,
+            profitability,
+            recommendation,
+            urgency
+          },
+          execution: {
+            buyPlatform: cheaperPlatform,
+            sellPlatform: expensivePlatform,
+            buyPrice: cheaperPrice,
+            sellPrice: expensivePrice
+          },
+          profitAnalysis: {
+            small: profit1k,
+            medium: profit10k,
+            large: profit50k
+          },
+          timestamp: new Date().toISOString()
+        };
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `📈 **Arbitrage Analysis: ${assetId}**\n\n**Price Comparison:**\n- **${platformA}**: $${priceA.toFixed(2)}\n- **${platformB}**: $${priceB.toFixed(2)}\n- **Price Difference**: $${priceDiff.toFixed(2)}\n- **Spread**: ${spreadPercentage.toFixed(3)}% (${spreadBasisPoints} basis points)\n\n**Opportunity Assessment:**\n${urgency}\n- **Level**: ${opportunityLevel}\n- **Profitability**: ${profitability}\n- **Recommendation**: ${recommendation}\n\n**Execution Strategy:**\n🛒 **Buy on**: ${cheaperPlatform} at $${cheaperPrice.toFixed(2)}\n💰 **Sell on**: ${expensivePlatform} at $${expensivePrice.toFixed(2)}\n\n**Profit Analysis:**\n\n💵 **$1,000 Trade:**\n- Gross Profit: $${profit1k.gross.toFixed(2)}\n- Estimated Fees: $${(profit1k.gross - profit1k.net).toFixed(2)}\n- **Net Profit: $${profit1k.net.toFixed(2)}** ${profit1k.profitable ? '✅ Profitable' : '❌ Not profitable'}\n\n💵 **$10,000 Trade:**\n- Gross Profit: $${profit10k.gross.toFixed(2)}\n- Estimated Fees: $${(profit10k.gross - profit10k.net).toFixed(2)}\n- **Net Profit: $${profit10k.net.toFixed(2)}** ${profit10k.profitable ? '✅ Profitable' : '❌ Not profitable'}\n\n💵 **$50,000 Trade:**\n- Gross Profit: $${profit50k.gross.toFixed(2)}\n- Estimated Fees: $${(profit50k.gross - profit50k.net).toFixed(2)}\n- **Net Profit: $${profit50k.net.toFixed(2)}** ${profit50k.profitable ? '✅ Profitable' : '❌ Not profitable'}\n\n**Risk Considerations:**\n⚠️ **Execution Risk**: Prices may change during transaction\n⏰ **Time Sensitivity**: Arbitrage opportunities close quickly\n💸 **Cost Factors**: Gas fees, trading fees, slippage\n📊 **Market Impact**: Large trades may affect prices\n\n**Recommended Actions:**\n${opportunityLevel !== "None" ? 
+            "✅ **Execute Arbitrage:**\n1. Use queue_automated_trade for optimal timing\n2. Buy on " + cheaperPlatform + " first\n3. Immediately sell on " + expensivePlatform + "\n4. Monitor execution for price changes\n\n🤖 **Automation Tip**: Queue trades to capture fleeting opportunities" : 
+            "📊 **Continue Monitoring:**\n1. Check other asset pairs for better spreads\n2. Set up price alerts for this asset\n3. Look for opportunities on different platforms\n4. Consider market timing factors"}\n\n**Complete Arbitrage Data:**\n${JSON.stringify(arbitrageResult, null, 2)}`,
+            },
+          ],
+        };
       },
     );
   };

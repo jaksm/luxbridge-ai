@@ -1,7 +1,5 @@
-import { assetStorage } from "@/lib/storage/redisClient";
-import { SemanticSearchSchema } from "@/lib/types/schemas";
-import { SemanticAssetSearch } from "@/lib/utils/semanticSearch";
 import { RegisterTool } from "./types";
+import { z } from "zod";
 
 const DESCRIPTION = `<description>
 Search for RWA assets using natural language queries across platforms. Uses AI-powered semantic search to find assets matching investment criteria and preferences.
@@ -23,6 +21,13 @@ Search for RWA assets using natural language queries across platforms. Uses AI-p
 
 Essential for discovering RWA investment opportunities using natural language investment criteria.
 </description>`;
+
+const SemanticSearchSchema = z.object({
+  query: z.string().describe("Natural language search query describing investment criteria"),
+  platform: z.enum(["splint_invest", "masterworks", "realt"]).optional().describe("Optional platform to search (searches all if not specified)"),
+  limit: z.number().default(10).describe("Maximum number of results to return"),
+  minScore: z.number().default(0.1).describe("Minimum semantic similarity score (0.1-1.0)")
+});
 
 export const registerSemanticSearchTool: RegisterTool =
   ({ accessToken }) =>

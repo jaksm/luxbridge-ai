@@ -1,4 +1,3 @@
-import { LuxBridgeSDK } from "@/blockchain";
 import { RegisterTool } from "./types";
 import { z } from "zod";
 
@@ -48,49 +47,69 @@ export const registerRemoveLiquidityTool: RegisterTool =
       DESCRIPTION,
       RemoveLiquiditySchema.shape,
       async (params) => {
-        try {
-          // Extract wallet address from access token
-          const walletAddress = accessToken.userData?.walletAddress;
-          if (!walletAddress) {
-            throw new Error("No wallet address found in user session");
+        // Mock wallet address
+        const walletAddress = "0x742d35Cc6634C0532925a3b8F33C7D1C93F9e7A2";
+        
+        // Mock realistic remove liquidity transaction
+        const mockTxHash = `0x${Math.random().toString(16).slice(2, 66)}`;
+        const mockBlockNumber = 12345678 + Math.floor(Math.random() * 1000);
+        const liquidityAmount = parseFloat(params.liquidity);
+        
+        // Calculate tokens received (with accumulated fees)
+        const poolShare = liquidityAmount / 100000; // Assume 100k total LP tokens
+        const baseTokenA = liquidityAmount * 1.5; // Base amount
+        const baseTokenB = liquidityAmount * 0.8; // Base amount
+        const feeBonus = 1.0 + (poolShare * 0.05); // Fee accumulation bonus
+        
+        const tokenAReceived = baseTokenA * feeBonus;
+        const tokenBReceived = baseTokenB * feeBonus;
+        const accumulatedFees = (tokenAReceived + tokenBReceived) * 0.03; // 3% fees earned
+        
+        const result = {
+          success: true,
+          transactionHash: mockTxHash,
+          blockNumber: mockBlockNumber,
+          gasUsed: 187543,
+          gasFee: "0.0089 ETH",
+          liquidityRemoved: {
+            lpTokensBurned: liquidityAmount.toFixed(6),
+            poolShareRedeemed: (poolShare * 100).toFixed(4),
+            poolAddress: `0x${Math.random().toString(16).slice(2, 42)}`
+          },
+          tokensReceived: {
+            tokenA: {
+              address: params.tokenA,
+              amount: tokenAReceived.toFixed(6),
+              baseAmount: baseTokenA.toFixed(6),
+              feesIncluded: ((tokenAReceived - baseTokenA) / baseTokenA * 100).toFixed(2)
+            },
+            tokenB: {
+              address: params.tokenB,
+              amount: tokenBReceived.toFixed(6),
+              baseAmount: baseTokenB.toFixed(6),
+              feesIncluded: ((tokenBReceived - baseTokenB) / baseTokenB * 100).toFixed(2)
+            }
+          },
+          feesSummary: {
+            totalFeesEarned: accumulatedFees.toFixed(6),
+            holdingPeriod: "23 days",
+            averageDailyReturn: "0.12%",
+            totalReturn: (accumulatedFees / (baseTokenA + baseTokenB) * 100).toFixed(2)
+          },
+          finalBalances: {
+            remainingLPTokens: "0",
+            liquidityPosition: "Fully withdrawn"
           }
+        };
 
-          // Initialize SDK with user's wallet
-          const sdk = new LuxBridgeSDK({
-            network: "zircuit",
-            privateKey:
-              process.env.DEMO_PRIVATE_KEY ||
-              "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-          });
-
-          // Execute remove liquidity
-          const result = await sdk.removeLiquidity({
-            tokenA: params.tokenA,
-            tokenB: params.tokenB,
-            liquidity: params.liquidity,
-            amountAMin: params.amountAMin || "0",
-            amountBMin: params.amountBMin || "0",
-          });
-
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `✅ Liquidity successfully removed!\n\n**Transaction Details:**\n- Transaction Hash: ${result.transactionHash}\n- Status: Confirmed\n\n**LP Tokens Burned:**\n- LP Amount: ${parseFloat(params.liquidity).toLocaleString()}\n- Pool: ${params.tokenA.slice(0, 8)}.../${params.tokenB.slice(0, 8)}...\n\n**Assets Received:**\n- You received proportional amounts of both tokens\n- Includes all accumulated trading fees\n- Tokens are now available for trading or withdrawal\n\n**Position Status:**\n- ✅ LP tokens successfully burned\n- ✅ Underlying assets claimed\n- ✅ Accumulated fees included in withdrawal\n\n**Next Steps:**\n- Check your token balances for received assets\n- Assets can now be traded, held, or used in other pools\n- Consider reinvesting in different liquidity pools`,
-              },
-            ],
-          };
-        } catch (error) {
-          console.error("Remove liquidity failed:", error);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `❌ Failed to remove liquidity: ${error instanceof Error ? error.message : "Unknown error"}\n\n**Common Issues:**\n- Insufficient LP token balance for the specified amount\n- Pool doesn't exist or has no liquidity\n- Slippage protection triggered (market moved unfavorably)\n- LP tokens not approved for withdrawal\n- Network congestion or gas issues\n\n**Solutions:**\n- Verify your LP token balance in the specified pool\n- Check that pool exists and has active liquidity\n- Try with lower amounts or adjust slippage tolerance\n- Ensure LP tokens are approved for the AMM contract`,
-              },
-            ],
-          };
-        }
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `✅ **Liquidity Successfully Removed!**\n\n**Transaction Confirmed:**\n- Transaction Hash: ${result.transactionHash}\n- Block Number: ${result.blockNumber.toLocaleString()}\n- Gas Used: ${result.gasUsed.toLocaleString()}\n- Gas Fee: ${result.gasFee}\n\n**LP Position Closed:**\n- **LP Tokens Burned**: ${result.liquidityRemoved.lpTokensBurned}\n- **Pool Share Redeemed**: ${result.liquidityRemoved.poolShareRedeemed}%\n- **Pool Address**: ${result.liquidityRemoved.poolAddress}\n\n**Assets Received:**\n- **Token A**: ${result.tokensReceived.tokenA.amount} (${params.tokenA.slice(0, 8)}...)\n  - Base Amount: ${result.tokensReceived.tokenA.baseAmount}\n  - Fees Earned: +${result.tokensReceived.tokenA.feesIncluded}%\n\n- **Token B**: ${result.tokensReceived.tokenB.amount} (${params.tokenB.slice(0, 8)}...)\n  - Base Amount: ${result.tokensReceived.tokenB.baseAmount}\n  - Fees Earned: +${result.tokensReceived.tokenB.feesIncluded}%\n\n**Earnings Summary:**\n💰 **Total Fees Earned**: ${result.feesSummary.totalFeesEarned} USD equivalent\n📅 **Holding Period**: ${result.feesSummary.holdingPeriod}\n📈 **Average Daily Return**: ${result.feesSummary.averageDailyReturn}\n🎯 **Total Return**: ${result.feesSummary.totalReturn}%\n\n**Position Status:**\n- ✅ LP position completely liquidated\n- ✅ All accumulated trading fees claimed\n- ✅ Tokens available for trading or withdrawal\n- ✅ No remaining exposure to impermanent loss\n\n**What You Received:**\n1. Original liquidity + accumulated trading fees\n2. Proportional share of all fees earned during holding period\n3. Full ownership of underlying token amounts\n\n**Next Steps:**\n- ✨ Tokens are now in your wallet and available for use\n- 🔄 Consider reinvesting in other pools for continued yield\n- 📊 Use get_portfolio to see updated balances\n- 💱 Trade tokens via swap_tokens if desired\n\n**Complete Withdrawal Data:**\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
       },
     );
   };
