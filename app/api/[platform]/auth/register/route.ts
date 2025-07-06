@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { registerUser } from "@/lib/auth/authCommon";
+import { registerPlatformUser } from "@/lib/auth/authCommon";
 import { generateJWT } from "@/lib/auth/jwtUtils";
 import { PlatformType } from "@/lib/types/platformAsset";
 import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
@@ -49,10 +49,11 @@ export async function POST(
 
     const { email, password, name } = validation.data;
 
-    const result = await registerUser({
+    const result = await registerPlatformUser({
       email,
       password,
       name,
+      platform,
       scenario: "empty_portfolio",
     });
 
