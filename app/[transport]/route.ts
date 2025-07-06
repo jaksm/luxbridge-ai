@@ -9,6 +9,18 @@ import { registerGetUserPortfolioTool } from "@/lib/tools/get-user-portfolio-too
 import { registerListSupportedPlatformsTool } from "@/lib/tools/list-supported-platforms-tool";
 import { registerSearchAssetsTool } from "@/lib/tools/search-assets-tool";
 import { registerSemanticSearchTool } from "@/lib/tools/semantic-search-tool";
+// Blockchain tools
+import { registerAddLiquidityTool } from "@/lib/tools/add-liquidity-tool";
+import { registerCalculateArbitrageOpportunityTool } from "@/lib/tools/calculate-arbitrage-opportunity-tool";
+import { registerDelegateTradingPermissionsTool } from "@/lib/tools/delegate-trading-permissions-tool";
+import { registerExecuteAutomatedTradeTool } from "@/lib/tools/execute-automated-trade-tool";
+import { registerGetAssetMetadataTool } from "@/lib/tools/get-asset-metadata-tool";
+import { registerGetSwapQuoteTool } from "@/lib/tools/get-swap-quote-tool";
+import { registerQueueAutomatedTradeTool } from "@/lib/tools/queue-automated-trade-tool";
+import { registerRebalancePortfolioTool } from "@/lib/tools/rebalance-portfolio-tool";
+import { registerRemoveLiquidityTool } from "@/lib/tools/remove-liquidity-tool";
+import { registerSwapTokensTool } from "@/lib/tools/swap-tokens-tool";
+import { registerTokenizeAssetTool } from "@/lib/tools/tokenize-asset-tool";
 import { createMcpHandler } from "@vercel/mcp-adapter";
 import { NextRequest } from "next/server";
 
@@ -30,6 +42,7 @@ const handler = async (req: Request) => {
 
   return createMcpHandler(
     (server) => {
+      // Platform API tools
       registerGetAuthStateTool({ accessToken })(server);
       registerGetAssetTool({ accessToken })(server);
       registerGetAssetsByPlatformTool({ accessToken })(server);
@@ -38,6 +51,19 @@ const handler = async (req: Request) => {
       registerListSupportedPlatformsTool({ accessToken })(server);
       registerGeneratePlatformAuthLinksTool({ accessToken })(server);
       registerGetLinkedPlatformsTool({ accessToken })(server);
+
+      // Blockchain tools
+      registerTokenizeAssetTool({ accessToken })(server);
+      registerGetAssetMetadataTool({ accessToken })(server);
+      registerAddLiquidityTool({ accessToken })(server);
+      registerRemoveLiquidityTool({ accessToken })(server);
+      registerSwapTokensTool({ accessToken })(server);
+      registerGetSwapQuoteTool({ accessToken })(server);
+      registerDelegateTradingPermissionsTool({ accessToken })(server);
+      registerQueueAutomatedTradeTool({ accessToken })(server);
+      registerExecuteAutomatedTradeTool({ accessToken })(server);
+      registerCalculateArbitrageOpportunityTool({ accessToken })(server);
+      registerRebalancePortfolioTool({ accessToken })(server);
       registerGetPortfolioTool({ accessToken })(server);
       registerSearchAssetsTool({ accessToken })(server);
     },
@@ -53,7 +79,7 @@ const handler = async (req: Request) => {
       redisUrl: process.env.REDIS_URL,
       verboseLogs: true,
       maxDuration: 60,
-    },
+    }
   )(req);
 };
 
@@ -65,7 +91,7 @@ export async function OPTIONS() {
   response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization",
+    "Content-Type, Authorization"
   );
   return response;
 }
