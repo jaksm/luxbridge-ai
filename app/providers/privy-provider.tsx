@@ -13,7 +13,7 @@ export function PrivyClientProvider({
       clientId={process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID!}
       config={{
         embeddedWallets: {
-          createOnLogin: "users-without-wallets",
+          createOnLogin: "all-users",
         },
         loginMethods: ["email"],
         appearance: {
