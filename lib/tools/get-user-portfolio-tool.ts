@@ -1,4 +1,5 @@
 import { getUserById } from "@/lib/auth/authCommon";
+import { resolvePrivyUserToRedisUser } from "@/lib/auth/user-id-mapping";
 import { GetUserPortfolioSchema } from "@/lib/types/schemas";
 import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 import { RegisterTool } from "./types";
@@ -33,13 +34,31 @@ export const registerGetUserPortfolioTool: RegisterTool =
       GetUserPortfolioSchema.shape,
       async ({ platform, userId }) => {
         try {
-          const user = await getUserById(userId);
+          // First, try to resolve Privy DID to Redis user ID
+          let resolvedUserId = userId;
+          if (userId.startsWith('did:privy:')) {
+            const mappedUserId = await resolvePrivyUserToRedisUser(userId);
+            if (mappedUserId) {
+              resolvedUserId = mappedUserId;
+            } else {
+              return {
+                content: [
+                  {
+                    type: "text" as const,
+                    text: `User mapping not found for Privy ID: ${userId}. Please ensure the user has completed authentication.`,
+                  },
+                ],
+              };
+            }
+          }
+
+          const user = await getUserById(resolvedUserId);
           if (!user) {
             return {
               content: [
                 {
                   type: "text" as const,
-                  text: `User not found: ${userId}`,
+                  text: `User not found: ${resolvedUserId} (original: ${userId})`,
                 },
               ],
             };
