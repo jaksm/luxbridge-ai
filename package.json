@@ -13,6 +13,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "admin-cli": "dotenv -e .env.local -- npx tsx bin/admin-cli.ts",
+    "redis:cleanup:users": "dotenv -e .env.local -- npx tsx scripts/cleanup-redis-users.ts",
+    "redis:cleanup:users:force": "dotenv -e .env.local -- npx tsx scripts/cleanup-redis-users.ts --force",
     "blockchain:compile": "cd blockchain && hardhat compile",
     "blockchain:test": "cd blockchain && hardhat test",
     "blockchain:node": "cd blockchain && hardhat node",

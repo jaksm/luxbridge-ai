@@ -48,7 +48,7 @@ export const registerGetAssetMetadataTool: RegisterTool =
         try {
           // Initialize SDK (read-only operation, no private key needed)
           const sdk = new LuxBridgeSDK({
-            network: "localhost",
+            network: "zircuit",
           });
 
           // Get asset metadata from blockchain

@@ -56,7 +56,7 @@ export const registerTokenizeAssetTool: RegisterTool =
 
           // Initialize SDK with user's wallet (for demo, using localhost)
           const sdk = new LuxBridgeSDK({
-            network: "localhost",
+            network: "zircuit",
             privateKey:
               process.env.DEMO_PRIVATE_KEY ||
               "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", // Default hardhat account

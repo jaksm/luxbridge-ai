@@ -78,10 +78,10 @@ const NETWORK_CONFIGS: Record<string, NetworkConfig> = {
   zircuit: {
     rpcUrl: process.env.ZIRCUIT_RPC_URL || "https://zircuit1.p2pify.com",
     contracts: {
-      factory: "",
-      amm: "",
-      oracle: "",
-      automation: "",
+      factory: process.env.ZIRCUIT_FACTORY_ADDRESS || "",
+      amm: process.env.ZIRCUIT_AMM_ADDRESS || "",
+      oracle: process.env.ZIRCUIT_ORACLE_ADDRESS || "",
+      automation: process.env.ZIRCUIT_AUTOMATION_ADDRESS || "",
     },
   },
   sepolia: {
@@ -128,6 +128,22 @@ export class LuxBridgeSDK {
       ...networkConfig.contracts,
       ...config.contracts,
     };
+
+    // Validate contract addresses for non-local networks
+    if (config.network !== "localhost" && config.network !== "hardhat") {
+      const missingContracts = [];
+      if (!contractAddresses.factory) missingContracts.push("factory");
+      if (!contractAddresses.amm) missingContracts.push("amm");
+      if (!contractAddresses.oracle) missingContracts.push("oracle");
+      if (!contractAddresses.automation) missingContracts.push("automation");
+      
+      if (missingContracts.length > 0) {
+        throw new Error(
+          `Missing contract addresses for ${config.network} network: ${missingContracts.join(", ")}. ` +
+          `Please deploy contracts first using: npx hardhat run scripts/deploy/04-deploy-full-system.ts --network ${config.network}`
+        );
+      }
+    }
 
     const signerOrProvider = this.signer || this.provider;
 

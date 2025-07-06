@@ -41,7 +41,7 @@ export const registerCalculateArbitrageOpportunityTool: RegisterTool =
         try {
           // Initialize SDK (read-only operation, no private key needed)
           const sdk = new LuxBridgeSDK({
-            network: "localhost",
+            network: "zircuit",
           });
 
           // Calculate arbitrage spread

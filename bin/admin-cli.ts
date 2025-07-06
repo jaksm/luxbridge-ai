@@ -96,7 +96,8 @@ class AdminCLI {
       const user = await getUserByEmail(email.trim());
       
       if (!user) {
-        console.log(`❌ User not found: ${email}\n`);
+        console.log(`❌ User not found: ${email}`);
+        console.log(`   Note: Make sure this is a LuxBridge user email, not a platform-specific account.\n`);
         return;
       }
 
@@ -110,6 +111,7 @@ class AdminCLI {
       console.log(`   Email: ${user.email}`);
       console.log(`   Name: ${user.name}`);
       console.log(`   User ID: ${user.userId}`);
+      console.log(`   Created: ${new Date(user.createdAt).toLocaleDateString()}`);
       console.log(`   Connected Platforms: ${connectedPlatforms.length > 0 ? connectedPlatforms.join(', ') : 'None'}`);
       
       // Show portfolio summary
@@ -122,6 +124,7 @@ class AdminCLI {
 
   private async getConnectedPlatforms(userId: string): Promise<PlatformType[]> {
     const connectedPlatforms: PlatformType[] = [];
+    const uniquePlatforms = new Set<PlatformType>();
     
     // Method 1: Check session-based platform connections
     try {
@@ -129,15 +132,11 @@ class AdminCLI {
       
       Object.entries(platformLinks).forEach(([platform, link]) => {
         if (link && link.status === 'active') {
-          connectedPlatforms.push(platform as PlatformType);
+          uniquePlatforms.add(platform as PlatformType);
         }
       });
-      
-      if (connectedPlatforms.length > 0) {
-        return connectedPlatforms;
-      }
     } catch (error) {
-      // If session-based check fails, continue with other methods
+      console.error('Error checking session-based platform connections:', error);
     }
 
     // Method 2: Check if platform-specific user accounts exist
@@ -147,36 +146,28 @@ class AdminCLI {
       try {
         const platformUser = await getPlatformUserByEmail(platform, this.currentUser.email);
         if (platformUser) {
-          connectedPlatforms.push(platform);
+          uniquePlatforms.add(platform);
         }
       } catch (error) {
         // Platform user doesn't exist, continue
       }
     }
     
-    if (connectedPlatforms.length > 0) {
-      return connectedPlatforms;
-    }
-
-    // Method 3: Fallback to portfolio-based detection
-    const portfolios = await getUserPortfolio(userId);
-    
-    if (portfolios && typeof portfolios === 'object') {
-      Object.entries(portfolios).forEach(([platform, assets]) => {
-        if (Array.isArray(assets) && assets.length > 0) {
-          connectedPlatforms.push(platform as PlatformType);
-        }
-      });
-    }
-    
-    // Method 4: Default assumption for demo - if user exists, assume some connections
-    if (connectedPlatforms.length === 0) {
-      // For demo purposes, assume splint_invest and masterworks are connected
-      // This matches the user shown in the first image
-      connectedPlatforms.push('splint_invest', 'masterworks');
+    // Method 3: Check if user has assets in any platform (indicating a connection)
+    try {
+      const portfolios = await getUserPortfolio(userId);
+      if (portfolios && typeof portfolios === 'object' && !Array.isArray(portfolios)) {
+        Object.entries(portfolios).forEach(([platform, assets]) => {
+          if (Array.isArray(assets) && assets.length > 0) {
+            uniquePlatforms.add(platform as PlatformType);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking portfolio-based connections:', error);
     }
     
-    return connectedPlatforms;
+    return Array.from(uniquePlatforms);
   }
 
   private async showPortfolioSummary() {
@@ -185,21 +176,36 @@ class AdminCLI {
       
       if (!portfolios || typeof portfolios !== 'object') {
         console.log('   Portfolio: Empty');
+        console.log('   Portfolio Summary:');
+        console.log('     splint_invest: 0 assets');
+        console.log('     masterworks: 0 assets');
+        console.log('     realt: 0 assets');
+        console.log('   Total Assets: 0');
         return;
       }
 
       console.log('   Portfolio Summary:');
       let totalAssets = 0;
+      const platforms: PlatformType[] = ['splint_invest', 'masterworks', 'realt'];
       
-      Object.entries(portfolios).forEach(([platform, assets]) => {
-        if (Array.isArray(assets)) {
-          totalAssets += assets.length;
-          console.log(`     ${platform}: ${assets.length} asset${assets.length !== 1 ? 's' : ''}`);
+      platforms.forEach(platform => {
+        // Type guard to ensure portfolios is the correct type
+        if (!Array.isArray(portfolios) && portfolios[platform]) {
+          const assets = portfolios[platform];
+          if (Array.isArray(assets)) {
+            totalAssets += assets.length;
+            console.log(`     ${platform}: ${assets.length} asset${assets.length !== 1 ? 's' : ''}`);
+          } else {
+            console.log(`     ${platform}: 0 assets`);
+          }
+        } else {
+          console.log(`     ${platform}: 0 assets`);
         }
       });
       
       console.log(`   Total Assets: ${totalAssets}`);
     } catch (error) {
+      console.error('Error loading portfolio data:', error);
       console.log('   Portfolio: Error loading portfolio data');
     }
   }
@@ -236,7 +242,8 @@ class AdminCLI {
 
   private async addAssets() {
     if (this.connectedPlatforms.length === 0) {
-      console.log('❌ User has no connected platforms. Cannot add assets.\n');
+      console.log('\n❌ User has no connected platforms.');
+      console.log('   Please connect to a platform through the LuxBridge interface first.\n');
       return;
     }
 
@@ -247,38 +254,38 @@ class AdminCLI {
     const mockAssets = await this.getMockAssetsForPlatforms();
     
     if (mockAssets.length === 0) {
-      console.log('❌ No assets found for connected platforms.\n');
+      console.log('❌ No assets available from connected platforms.\n');
       return;
     }
 
-    const { selectedAsset } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selectedAsset',
-        message: 'Select an asset to add:',
-        choices: mockAssets.map(asset => ({
-          name: `${asset.name} (${asset.platform}) - $${asset.price} - ${asset.availableShares} available`,
-          value: asset
-        })),
-        pageSize: 10
-      }
-    ]);
-
-    const { shares } = await inquirer.prompt([
-      {
-        type: 'number',
-        name: 'shares',
-        message: `How many shares to add? (Available: ${selectedAsset.availableShares}):`,
-        validate: (input) => {
-          const num = Number(input);
-          if (isNaN(num) || num <= 0) return 'Shares must be a positive number';
-          if (num > selectedAsset.availableShares) return `Cannot exceed available shares (${selectedAsset.availableShares})`;
-          return true;
-        }
-      }
-    ]);
-
     try {
+      const { selectedAsset } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedAsset',
+          message: 'Select an asset to add:',
+          choices: mockAssets.map(asset => ({
+            name: `${asset.name} (${asset.platform}) - $${asset.price} - ${asset.availableShares} available`,
+            value: asset
+          })),
+          pageSize: 10
+        }
+      ]);
+
+      const { shares } = await inquirer.prompt([
+        {
+          type: 'number',
+          name: 'shares',
+          message: `How many shares to add? (Available: ${selectedAsset.availableShares}):`,
+          validate: (input) => {
+            const num = Number(input);
+            if (isNaN(num) || num <= 0) return 'Shares must be a positive number';
+            if (num > selectedAsset.availableShares) return `Cannot exceed available shares (${selectedAsset.availableShares})`;
+            return true;
+          }
+        }
+      ]);
+
       const portfolioHolding: UserPortfolioHolding = {
         assetId: selectedAsset.assetId,
         sharesOwned: shares,
@@ -287,12 +294,19 @@ class AdminCLI {
         currentValue: selectedAsset.price * shares
       };
 
-      await addAssetToPortfolio(this.currentUser.userId, selectedAsset.platform, portfolioHolding);
+      const updatedUser = await addAssetToPortfolio(this.currentUser.userId, selectedAsset.platform, portfolioHolding);
       
-      console.log(`\n✅ Successfully added ${shares} shares of ${selectedAsset.name} to portfolio`);
-      console.log(`   Total Value: $${(selectedAsset.price * shares).toLocaleString()}\n`);
+      if (updatedUser) {
+        console.log(`\n✅ Successfully added ${shares} shares of ${selectedAsset.name} to portfolio`);
+        console.log(`   Total Value: $${(selectedAsset.price * shares).toLocaleString()}\n`);
+        
+        // Update the current user reference
+        this.currentUser = updatedUser;
+      } else {
+        console.log(`\n❌ Failed to add asset to portfolio. Please try again.\n`);
+      }
     } catch (error) {
-      console.error(`❌ Error adding asset: ${error instanceof Error ? error.message : error}\n`);
+      console.error(`\n❌ Error adding asset: ${error instanceof Error ? error.message : error}\n`);
     }
   }
 
@@ -355,7 +369,8 @@ class AdminCLI {
       const portfolios = await getUserPortfolio(this.currentUser.userId);
       
       if (!portfolios || typeof portfolios !== 'object') {
-        console.log('\n📋 Portfolio is empty\n');
+        console.log('\n📋 Portfolio is empty');
+        console.log('   No assets in any platform\n');
         return;
       }
 
@@ -364,31 +379,44 @@ class AdminCLI {
 
       let totalValue = 0;
       let totalAssets = 0;
+      let hasAnyAssets = false;
 
-      Object.entries(portfolios).forEach(([platform, assets]) => {
-        if (Array.isArray(assets) && assets.length > 0) {
-          console.log(`\n🏢 ${platform.toUpperCase()}:`);
-          
-          assets.forEach(asset => {
-            totalAssets++;
-            const value = asset.currentValue || (asset.acquisitionPrice * asset.sharesOwned);
-            totalValue += value;
+      const platforms: PlatformType[] = ['splint_invest', 'masterworks', 'realt'];
+      
+      platforms.forEach(platform => {
+        // Type guard to ensure portfolios is the correct type
+        if (!Array.isArray(portfolios) && portfolios[platform]) {
+          const assets = portfolios[platform];
+          if (Array.isArray(assets) && assets.length > 0) {
+            hasAnyAssets = true;
+            console.log(`\n🏢 ${platform.toUpperCase().replace('_', ' ')}:`);
             
-            console.log(`   • ${asset.assetId}`);
-            console.log(`     Shares: ${asset.sharesOwned}`);
-            console.log(`     Acquisition Price: $${asset.acquisitionPrice}`);
-            console.log(`     Current Value: $${value.toLocaleString()}`);
-            console.log(`     Date: ${new Date(asset.acquisitionDate).toLocaleDateString()}`);
-          });
+            assets.forEach(asset => {
+              totalAssets++;
+              const value = asset.currentValue || (asset.acquisitionPrice * asset.sharesOwned);
+              totalValue += value;
+              
+              console.log(`   • ${asset.assetId}`);
+              console.log(`     Shares: ${asset.sharesOwned}`);
+              console.log(`     Acquisition Price: $${asset.acquisitionPrice.toLocaleString()}`);
+              console.log(`     Current Value: $${value.toLocaleString()}`);
+              console.log(`     Date: ${new Date(asset.acquisitionDate).toLocaleDateString()}`);
+            });
+          }
         }
       });
+
+      if (!hasAnyAssets) {
+        console.log('\n   No assets in any platform');
+      }
 
       console.log('\n=====================================');
       console.log(`Total Assets: ${totalAssets}`);
       console.log(`Total Portfolio Value: $${totalValue.toLocaleString()}`);
+      console.log(`Connected Platforms: ${this.connectedPlatforms.length > 0 ? this.connectedPlatforms.join(', ') : 'None'}`);
       console.log('');
     } catch (error) {
-      console.error(`❌ Error viewing portfolio: ${error instanceof Error ? error.message : error}\n`);
+      console.error(`\n❌ Error viewing portfolio: ${error instanceof Error ? error.message : error}\n`);
     }
   }
 

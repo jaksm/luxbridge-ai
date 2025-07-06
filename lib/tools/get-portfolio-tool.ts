@@ -63,9 +63,18 @@ export const registerGetPortfolioTool: RegisterTool =
   (server) => {
     server.tool("get_portfolio", DESCRIPTION, {}, async () => {
       try {
+        // Resolve Privy DID to Redis user ID if needed for session lookup
+        let sessionUserId = accessToken.userId;
+        if (accessToken.userId.startsWith('did:privy:')) {
+          const mappedUserId = await resolvePrivyUserToRedisUser(accessToken.userId);
+          if (mappedUserId) {
+            sessionUserId = mappedUserId;
+          }
+        }
+
         // Get user's connected platforms
         const connectedPlatforms = await getUserConnectedPlatforms(
-          accessToken.userId,
+          sessionUserId,
           accessToken.sessionId,
         );
 
