@@ -12,6 +12,11 @@ This directory contains all API route handlers for the LuxBridge AI Mock API sys
 - **Assets**: `/assets`, `/assets/[assetId]` - Asset discovery and retrieval
 - **Portfolio**: `/portfolio` - User portfolio management and metrics
 
+### Session-Based Authentication Routes (`auth/platforms/`)
+
+- `/auth/platforms/[platform]/complete` - Session-based platform linking endpoint
+- Handles session-to-platform credential linking for MCP authentication flow
+
 ### Cross-Platform Routes
 
 - **Analysis**: `/cross-platform/analysis` - Portfolio analysis across platforms

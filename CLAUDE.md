@@ -121,6 +121,8 @@ ETHERSCAN_API_KEY=...
 - **Authorization Flow** (`app/oauth/authorize/page.tsx`): Privy email-based OAuth UI
 - **Platform Auth Flow** (`app/oauth/[platform]/authorize/page.tsx`): Platform-specific login
 - **Registration Flow** (`app/oauth/[platform]/register/page.tsx`): New user registration
+- **Session-Based Auth** (`app/auth/[platform]/page.tsx`): Session-preserving platform authentication
+- **Session-Based Registration** (`app/auth/[platform]/register/page.tsx`): Session-preserving user registration
 - **Token Exchange** (`app/api/oauth/token/route.ts`): PKCE-compliant token endpoint
 - **Client Registration** (`app/api/oauth/register/route.ts`): Dynamic client registration
 - **Discovery Endpoints** (`app/.well-known/oauth-*`): OAuth server and resource metadata
@@ -257,7 +259,16 @@ server.tool(
 
 ### Platform Authentication Flow
 
-**User Registration** (New Users):
+**Session-Based Authentication** (Primary Flow):
+
+1. User visits `/auth/{platform}?session={sessionId}` (platform linking from MCP)
+2. **For existing users**: Enters credentials and links platform to active session
+3. **For new users**: Clicks "Register here" → navigates to `/auth/{platform}/register?session={sessionId}`
+4. **Registration flow**: Completes form → automatically redirected back to auth page with session preserved
+5. System links platform credentials to active LuxBridge session
+6. User gains access to platform-specific resources within MCP context
+
+**OAuth-Based Authentication** (Alternative Flow):
 
 1. User visits `/oauth/{platform}/register` (splint_invest, masterworks, realt)
 2. Fills registration form (email, password, name)

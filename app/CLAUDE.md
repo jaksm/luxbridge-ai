@@ -12,7 +12,7 @@ This directory contains the Next.js 15 app router implementation for LuxBridge A
 - `page.tsx` - Root application page
 - `layout.tsx` - Root layout and providers
 
-### OAuth Directory Structure
+### Authentication Directory Structure
 
 **LuxBridge OAuth 2.1** (Primary Authentication):
 
@@ -20,14 +20,20 @@ This directory contains the Next.js 15 app router implementation for LuxBridge A
 
 **Platform Authentication** (RWA Platform Access):
 
+**OAuth-Based Platform Auth**:
 - `oauth/[platform]/authorize/page.tsx` - Platform-specific login pages
 - `oauth/[platform]/register/page.tsx` - Platform-specific registration pages
 
+**Session-Based Platform Auth** (Primary Flow):
+- `auth/[platform]/page.tsx` - Session-preserving platform authentication
+- `auth/[platform]/register/page.tsx` - Session-preserving registration with auto-return
+- `auth/[platform]/complete/page.tsx` - Platform linking completion
+
 **Supported Platforms**:
 
-- `oauth/splint_invest/` - Splint Invest authentication flows
-- `oauth/masterworks/` - Masterworks authentication flows
-- `oauth/realt/` - RealT authentication flows
+- `oauth/splint_invest/` & `auth/splint-invest/` - Splint Invest authentication flows
+- `oauth/masterworks/` & `auth/masterworks/` - Masterworks authentication flows
+- `oauth/realt/` & `auth/realt/` - RealT authentication flows
 
 ## Development Rules
 
@@ -174,18 +180,38 @@ The app implements **two distinct authentication systems**:
 - `PlatformRegisterForm` - Reusable registration form with platform branding
 - `PlatformAuthorizeForm` - Reusable login form with platform-specific styling
 
-**Registration Flow Pattern**:
+**Session-Based Auth Flow Pattern** (Primary):
+
+```typescript
+// auth/[platform]/page.tsx - Session-preserving authentication
+export default function PlatformAuthPage({ params }: AuthPageProps) {
+  const { platform } = use(params);
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session");
+  
+  // Handles session-based platform linking with register navigation
+  return <PlatformAuthForm platform={platform} sessionId={sessionId} />;
+}
+
+// auth/[platform]/register/page.tsx - Session-preserving registration
+export default function PlatformRegisterPage({ params }: RegisterPageProps) {
+  const { platform } = use(params);
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session");
+  
+  // Auto-redirects back to auth page after successful registration
+  return <PlatformRegisterForm platform={platform} sessionId={sessionId} />;
+}
+```
+
+**OAuth-Based Flow Pattern** (Alternative):
 
 ```typescript
 // oauth/[platform]/register/page.tsx
 export default function PlatformRegisterPage() {
   return <PlatformRegisterForm platform="splint_invest" />;
 }
-```
 
-**Authorization Flow Pattern**:
-
-```typescript
 // oauth/[platform]/authorize/page.tsx
 export default function PlatformAuthorizePage() {
   return <PlatformAuthorizeForm platform="splint_invest" />;
@@ -198,7 +224,9 @@ export default function PlatformAuthorizePage() {
 - Password strength requirements (6+ characters)
 - Confirm password matching
 - Platform-specific branding and descriptions
-- Registration/login flow linking
+- **Session preservation**: Session ID maintained throughout auth/register flow
+- **Seamless navigation**: "Register here" and "Sign in here" links with session context
+- **Auto-redirect**: Registration automatically returns to auth page
 - Comprehensive error handling
 
 #### Platform Registration Form

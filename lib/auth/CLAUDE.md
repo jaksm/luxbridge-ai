@@ -26,6 +26,14 @@ This directory contains the complete authentication infrastructure for LuxBridge
 - **Implementation**: OAuth tokens include sessionId that links to platform authentication sessions
 - **Features**: Real-time platform connectivity, cross-platform data aggregation, unified portfolio views
 
+**Session-Based Authentication Flow** (Primary Platform Linking)
+
+- **Purpose**: Seamless platform authentication within active MCP sessions
+- **Entry Point**: `/auth/{platform}?session={sessionId}` - Session-preserving authentication pages
+- **Registration Flow**: Integrated "Register here" navigation with session preservation
+- **Auto-Return**: Registration automatically redirects back to auth page with session intact
+- **Context Preservation**: No loss of OAuth context during registration flow
+
 ## File Structure
 
 ```
@@ -359,6 +367,93 @@ const payload = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
 - Error handling for connection failures
 
 ## Development Patterns
+
+### Session-Based Authentication Implementation
+
+**Page Structure for Session-Preserving Auth**:
+
+```typescript
+// app/auth/[platform]/page.tsx
+export default function PlatformAuthPage({ params }: AuthPageProps) {
+  const { platform } = use(params);
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session");
+
+  // Validate session presence
+  if (!sessionId) {
+    return <InvalidSessionError />;
+  }
+
+  // Include register navigation with session preservation
+  return (
+    <PlatformAuthForm 
+      platform={platform} 
+      sessionId={sessionId}
+      onRegisterClick={() => 
+        router.push(`/auth/${platform}/register?session=${sessionId}`)
+      }
+    />
+  );
+}
+
+// app/auth/[platform]/register/page.tsx 
+export default function PlatformRegisterPage({ params }: RegisterPageProps) {
+  const { platform } = use(params);
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session");
+
+  // Auto-redirect back to auth page after successful registration
+  const handleRegistrationSuccess = () => {
+    router.push(`/auth/${platform}?session=${sessionId}`);
+  };
+
+  return (
+    <PlatformRegisterForm 
+      platform={platform}
+      sessionId={sessionId}
+      onSuccess={handleRegistrationSuccess}
+    />
+  );
+}
+```
+
+**Session Parameter Management**:
+
+```typescript
+// Always preserve session ID in navigation
+const navigateWithSession = (path: string, sessionId: string) => {
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set('session', sessionId);
+  router.push(url.toString());
+};
+
+// Example usage in register link
+<Button onClick={() => navigateWithSession(`/auth/${platform}/register`, sessionId)}>
+  Register here
+</Button>
+```
+
+**Form Integration Patterns**:
+
+```typescript
+// Registration form with auto-return
+const handleRegistrationSubmit = async (formData: RegistrationData) => {
+  const response = await fetch(`/api/${platform}/auth/register`, {
+    method: 'POST',
+    body: JSON.stringify(formData)
+  });
+  
+  if (response.ok) {
+    // Success: redirect back to auth page with session
+    router.push(`/auth/${platform}?session=${sessionId}`);
+  }
+};
+
+// Auth form with register navigation
+const handleRegisterNavigation = () => {
+  router.push(`/auth/${platform}/register?session=${sessionId}`);
+};
+```
 
 ### Adding New Authentication Methods
 
