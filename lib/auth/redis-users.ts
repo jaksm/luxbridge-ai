@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import { redis } from "../redis";
 import { PlatformType, UserPortfolioHolding } from "../types/platformAsset";
 import {

@@ -16,11 +16,9 @@ import { registerDelegateTradingPermissionsTool } from "@/lib/tools/delegate-tra
 import { registerExecuteAutomatedTradeTool } from "@/lib/tools/execute-automated-trade-tool";
 import { registerGetAssetMetadataTool } from "@/lib/tools/get-asset-metadata-tool";
 import { registerGetSwapQuoteTool } from "@/lib/tools/get-swap-quote-tool";
-import { registerGetUserPortfolioCrossPlatformTool } from "@/lib/tools/get-user-portfolio-cross-platform-tool";
 import { registerQueueAutomatedTradeTool } from "@/lib/tools/queue-automated-trade-tool";
 import { registerRebalancePortfolioTool } from "@/lib/tools/rebalance-portfolio-tool";
 import { registerRemoveLiquidityTool } from "@/lib/tools/remove-liquidity-tool";
-import { registerSearchAssetsCrossPlatformTool } from "@/lib/tools/search-assets-cross-platform-tool";
 import { registerSwapTokensTool } from "@/lib/tools/swap-tokens-tool";
 import { registerTokenizeAssetTool } from "@/lib/tools/tokenize-asset-tool";
 import { createMcpHandler } from "@vercel/mcp-adapter";
@@ -53,8 +51,6 @@ const handler = async (req: Request) => {
       registerListSupportedPlatformsTool({ accessToken })(server);
       registerGeneratePlatformAuthLinksTool({ accessToken })(server);
       registerGetLinkedPlatformsTool({ accessToken })(server);
-      registerGetUserPortfolioCrossPlatformTool({ accessToken })(server);
-      registerSearchAssetsCrossPlatformTool({ accessToken })(server);
 
       // Blockchain tools
       registerTokenizeAssetTool({ accessToken })(server);
