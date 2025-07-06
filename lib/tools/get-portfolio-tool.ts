@@ -150,12 +150,25 @@ export const registerGetPortfolioTool: RegisterTool =
                 `Platform API failed for ${platform}, falling back to Redis data`,
               );
 
-              // Use the already resolved sessionUserId
-              let user = await getUserById(sessionUserId);
-              let portfolios = user?.portfolios;
+              // Get the platform link to find the correct user ID
+              let portfolios;
+              const platformLink = connectedPlatforms[platform];
+              if (platformLink && platformLink.platformUserId) {
+                // Use the platformUserId from the platform link
+                const user = await getUserById(platformLink.platformUserId);
+                if (user) {
+                  portfolios = user.portfolios;
+                }
+              }
 
-              // If no LuxBridge user found, try to find platform-specific user
-              if (!user && accessToken.userData?.email) {
+              // Fallback: Use the session user ID
+              if (!portfolios) {
+                const user = await getUserById(sessionUserId);
+                portfolios = user?.portfolios;
+              }
+
+              // Final fallback: Try to find platform-specific user
+              if (!portfolios && accessToken.userData?.email) {
                 const platformUser = await getPlatformUserByEmail(
                   platform,
                   accessToken.userData.email,

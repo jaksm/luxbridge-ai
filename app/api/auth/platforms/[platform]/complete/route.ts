@@ -8,6 +8,7 @@ import {
   updateSessionPlatformLink,
 } from "@/lib/auth/session-manager";
 import { PlatformType } from "@/lib/types/platformAsset";
+import { ensureUserExistsForEmail } from "@/lib/auth/user-id-mapping";
 
 export async function POST(
   request: NextRequest,
@@ -72,11 +73,18 @@ export async function POST(
       );
     }
 
-    // Store platform link with JWT token
+    // Ensure we have a main Redis user (not platform-specific) for this email
+    const mainUserId = await ensureUserExistsForEmail(
+      email,
+      authResult.user.name || email,
+      session.luxUserId,
+    );
+
+    // Store platform link with JWT token using the main user ID
     const platformLink = await storePlatformLink({
       luxUserId: session.luxUserId,
       platform,
-      platformUserId: authResult.user.userId,
+      platformUserId: mainUserId, // Use the main Redis user ID instead of platform-specific ID
       platformEmail: email,
       accessToken: authResult.accessToken,
       tokenExpiry: authResult.expiresAt,

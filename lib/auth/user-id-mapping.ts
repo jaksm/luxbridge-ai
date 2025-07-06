@@ -119,6 +119,35 @@ export async function ensureUserExistsForPrivyId(
   return user.userId;
 }
 
+export async function ensureUserExistsForEmail(
+  email: string,
+  name: string,
+  luxUserId: string,
+): Promise<string> {
+  // First check if a regular user exists with this email
+  let user = await getUserByEmail(email);
+
+  if (!user) {
+    // Create a new regular user (not platform-specific)
+    try {
+      user = await createUser({
+        email,
+        password: `luxbridge_${luxUserId}_${Date.now()}`, // Generate unique password
+        name,
+        scenario: "empty_portfolio",
+      });
+    } catch (error) {
+      // If user already exists, fetch it
+      user = await getUserByEmail(email);
+      if (!user) {
+        throw new Error(`Failed to create or find user for email: ${email}`);
+      }
+    }
+  }
+
+  return user.userId;
+}
+
 export async function deleteUserIdMapping(privyUserId: string): Promise<void> {
   await ensureConnected();
   const key = `privy_user_mapping:${privyUserId}`;
