@@ -1,7 +1,7 @@
 import { makeAuthenticatedPlatformCall } from "@/lib/auth/platform-auth";
 import { getUserConnectedPlatforms } from "@/lib/auth/session-manager";
 import { getUserById } from "@/lib/auth/authCommon";
-import { getPlatformUserByEmail } from "@/lib/auth/redis-users";
+import { getPlatformUserByEmail, getUserByEmail } from "@/lib/auth/redis-users";
 import { resolvePrivyUserToRedisUser } from "@/lib/auth/user-id-mapping";
 import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 import { PlatformType } from "@/lib/types/platformAsset";
@@ -150,31 +150,28 @@ export const registerGetPortfolioTool: RegisterTool =
                 `Platform API failed for ${platform}, falling back to Redis data`,
               );
 
-              // Get the platform link to find the correct user ID
+              // First try to get the user by session user ID (which should be the main Redis user ID)
               let portfolios;
-              const platformLink = connectedPlatforms[platform];
-              if (platformLink && platformLink.platformUserId) {
-                // Use the platformUserId from the platform link
-                const user = await getUserById(platformLink.platformUserId);
-                if (user) {
-                  portfolios = user.portfolios;
-                }
+              const user = await getUserById(sessionUserId);
+              if (user) {
+                portfolios = user.portfolios;
               }
 
-              // Fallback: Use the session user ID
-              if (!portfolios) {
-                const user = await getUserById(sessionUserId);
-                portfolios = user?.portfolios;
-              }
-
-              // Final fallback: Try to find platform-specific user
+              // If no user found by session ID and we have email, try to find by email
               if (!portfolios && accessToken.userData?.email) {
-                const platformUser = await getPlatformUserByEmail(
-                  platform,
-                  accessToken.userData.email,
-                );
-                if (platformUser) {
-                  portfolios = platformUser.portfolios;
+                // First try regular user lookup by email
+                const userByEmail = await getUserByEmail(accessToken.userData.email);
+                if (userByEmail) {
+                  portfolios = userByEmail.portfolios;
+                } else {
+                  // Final fallback: Try platform-specific user
+                  const platformUser = await getPlatformUserByEmail(
+                    platform,
+                    accessToken.userData.email,
+                  );
+                  if (platformUser) {
+                    portfolios = platformUser.portfolios;
+                  }
                 }
               }
 
