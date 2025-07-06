@@ -195,7 +195,7 @@ async function testPortfolioToolCompatibility(testUsers: TestUser[]) {
     userId: "lux_user_123",
     sessionId: "session_456",
     clientId: "client_789",
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     token: "mock_token_123"
   };
 

@@ -14,10 +14,11 @@ describe("Search Assets Tool", () => {
   );
 
   const mockAccessToken = {
+    token: "mock_access_token",
     userId: "lux_user_123",
     sessionId: "session_456",
     clientId: "client_789",
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 
   beforeEach(() => {
@@ -707,8 +708,7 @@ describe("Search Assets Tool", () => {
       platform,
       luxUserId: "lux_user_123",
       platformUserId: `${platform}_user_456`,
-      email: "test@example.com",
-      name: "Test User",
+      platformEmail: "test@example.com",
       accessToken: `${platform}_token`,
       tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
       linkedAt: new Date().toISOString(),

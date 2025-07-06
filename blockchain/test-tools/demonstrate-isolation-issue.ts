@@ -223,7 +223,7 @@ async function demonstrateIssue() {
   console.log(`   ✓ Platform user created: ${platformUser.userId}`);
   
   console.log("\n📊 Testing Current Implementation:");
-  console.log("=" * 50);
+  console.log("=".repeat(50));
   
   // Test current implementation with LuxBridge user
   console.log("\n1. Testing LuxBridge user with current getUserById:");
@@ -236,7 +236,7 @@ async function demonstrateIssue() {
   console.log(`   Result: ${platformResult1.success ? '✅' : '❌'} ${platformResult1.message}`);
   
   console.log("\n📈 Testing Proposed Solution:");
-  console.log("=" * 50);
+  console.log("=".repeat(50));
   
   // Test unified implementation with LuxBridge user
   console.log("\n3. Testing LuxBridge user with unified getUserById:");
@@ -249,7 +249,7 @@ async function demonstrateIssue() {
   console.log(`   Result: ${platformResult2.success ? '✅' : '❌'} ${platformResult2.message}`);
   
   console.log("\n📋 Summary:");
-  console.log("=" * 50);
+  console.log("=".repeat(50));
   console.log("Current Implementation:");
   console.log(`   LuxBridge users: ${luxResult1.success ? '✅ Works' : '❌ Fails'}`);
   console.log(`   Platform users:  ${platformResult1.success ? '✅ Works' : '❌ Fails'}`);
@@ -260,7 +260,7 @@ async function demonstrateIssue() {
   
   // Show Redis key structure
   console.log("\n🔑 Redis Key Structure:");
-  console.log("=" * 50);
+  console.log("=".repeat(50));
   console.log("LuxBridge User Keys:");
   console.log(`   user:${luxUser.email} -> [user data]`);
   console.log(`   user_id:${luxUser.userId} -> ${luxUser.email}`);
