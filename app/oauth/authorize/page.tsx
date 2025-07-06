@@ -33,7 +33,7 @@ function OAuthAuthFormContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [authCode, setAuthCode] = useState<string | null>(null);
-  const [step, setStep] = useState<"params" | "email" | "verify" | "success">(
+  const [step, setStep] = useState<"params" | "email" | "verify" | "success" | "loading">(
     "params",
   );
 
@@ -76,8 +76,19 @@ function OAuthAuthFormContent() {
       if (response.ok) {
         setStep("success");
 
+        let verifyAttempts = 0;
+        const maxVerifyAttempts = 30; // 30 seconds timeout
+        
         const verifyAuthCode = async () => {
           try {
+            verifyAttempts++;
+            
+            if (verifyAttempts > maxVerifyAttempts) {
+              setError("Authentication verification timed out. Please try again.");
+              setIsLoading(false);
+              return;
+            }
+            
             const response = await fetch(`/api/oauth/verify-auth-code`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -206,12 +217,36 @@ function OAuthAuthFormContent() {
         user.wallet?.address ||
         user.linkedAccounts?.some((account) => account.type === "wallet");
 
-      // For new users, wait for wallet creation
+      // For new users, wait for wallet creation with timeout
       if (!hasWallet) {
         console.log("Waiting for wallet creation...");
-        // The wallet will be created automatically due to createOnLogin: "all-users"
-        // We'll check again on next render
-        return;
+        let walletCheckAttempts = 0;
+        const maxWalletCheckAttempts = 30; // 30 seconds timeout
+        
+        const walletCheckInterval = setInterval(() => {
+          walletCheckAttempts++;
+          
+          // Check if wallet was created
+          const updatedHasWallet =
+            user.wallet?.address ||
+            user.linkedAccounts?.some((account) => account.type === "wallet");
+          
+          if (updatedHasWallet) {
+            clearInterval(walletCheckInterval);
+            console.log("Wallet created, completing authentication...");
+            setTimeout(() => {
+              handleAuthenticationComplete();
+            }, 1000);
+          } else if (walletCheckAttempts >= maxWalletCheckAttempts) {
+            clearInterval(walletCheckInterval);
+            console.log("Wallet creation timeout, attempting authentication without wallet...");
+            setTimeout(() => {
+              handleAuthenticationComplete();
+            }, 1000);
+          }
+        }, 1000);
+        
+        return () => clearInterval(walletCheckInterval);
       }
 
       // Wait a moment to ensure Privy has processed everything
