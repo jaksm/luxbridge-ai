@@ -14,7 +14,7 @@ export interface SimpleToolTestResult {
 }
 
 export class SimpleToolTester {
-  private sdk: LuxBridgeSDK;
+  public sdk: LuxBridgeSDK;
   private contracts: DeployedContracts;
   private verbose: boolean;
 
@@ -29,8 +29,15 @@ export class SimpleToolTester {
   private async initializeSdk() {
     if (this.sdk) return; // Already initialized
     
-    const contracts = loadContractAddresses();
-    if (!contracts) {
+    // Force reload contract addresses from file
+    const fs = require("fs");
+    const path = require("path");
+    const addressesPath = path.join(__dirname, "..", "test-environment", "contract-addresses.json");
+    
+    let contracts;
+    if (fs.existsSync(addressesPath)) {
+      contracts = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
+    } else {
       throw new Error("No contract addresses found. Run setup-local-chain.ts first.");
     }
 
@@ -351,6 +358,374 @@ export class SimpleToolTester {
         lastSyncedAt: "2024-01-01T00:00:00Z",
       },
     };
+  }
+
+  // Oracle Testing Methods
+
+  async testMockPriceUpdate(platform: string, assetId: string, price: string): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`🔮 Testing mock_price_update: ${platform}:${assetId} @ $${price}`);
+    }
+
+    try {
+      const result = await this.sdk.mockPriceUpdate({
+        platform,
+        assetId,
+        price
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ mock_price_update succeeded in ${executionTime}ms`);
+        console.log(`📤 Transaction hash: ${result.transactionHash}`);
+      }
+
+      return {
+        toolName: "mock_price_update",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ mock_price_update failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "mock_price_update",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  async testGetPrice(platform: string, assetId: string): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`📊 Testing get_price: ${platform}:${assetId}`);
+    }
+
+    try {
+      const result = await this.sdk.getPrice({ platform, assetId });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ get_price succeeded in ${executionTime}ms`);
+        console.log(`💰 Price: $${result.price}, Timestamp: ${result.timestamp}`);
+      }
+
+      return {
+        toolName: "get_price",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ get_price failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "get_price",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  async testCrossPlatformPrices(assetId: string, platforms: string[]): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`🌐 Testing cross_platform_prices: ${assetId} across [${platforms.join(', ')}]`);
+    }
+
+    try {
+      const result = await this.sdk.requestCrossPlatformPrices({
+        assetId,
+        platforms
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ cross_platform_prices succeeded in ${executionTime}ms`);
+        console.log(`📤 Transaction hash: ${result.transactionHash}`);
+      }
+
+      return {
+        toolName: "cross_platform_prices",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ cross_platform_prices failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "cross_platform_prices",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  async testArbitrageSpread(assetId: string, platformA: string, platformB: string): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`⚖️ Testing arbitrage_spread: ${assetId} between ${platformA} and ${platformB}`);
+    }
+
+    try {
+      const result = await this.sdk.calculateArbitrageSpread({
+        assetId,
+        platformA,
+        platformB
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ arbitrage_spread succeeded in ${executionTime}ms`);
+        console.log(`📈 Spread: ${result.spread} basis points (${result.spreadPercentage}%)`);
+      }
+
+      return {
+        toolName: "arbitrage_spread",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ arbitrage_spread failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "arbitrage_spread",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  // Automation Testing Methods
+
+  async testDelegateTrading(maxTradeSize: string, maxDailyVolume: string, allowedAssets: string[]): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`🤖 Testing delegate_trading: maxTrade=$${maxTradeSize}, dailyLimit=$${maxDailyVolume}`);
+    }
+
+    try {
+      const result = await this.sdk.delegateTrading({
+        maxTradeSize,
+        maxDailyVolume,
+        allowedAssets
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ delegate_trading succeeded in ${executionTime}ms`);
+        console.log(`📤 Transaction hash: ${result.transactionHash}`);
+      }
+
+      return {
+        toolName: "delegate_trading",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ delegate_trading failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "delegate_trading",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  async testQueueAutomatedTrade(params: {
+    user: string;
+    sellPlatform: string;
+    sellAsset: string;
+    buyPlatform: string;
+    buyAsset: string;
+    amount: string;
+    deadline: number;
+  }): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`📋 Testing queue_automated_trade: ${params.sellPlatform}:${params.sellAsset} → ${params.buyPlatform}:${params.buyAsset}`);
+    }
+
+    try {
+      const result = await this.sdk.queueAutomatedTrade({
+        user: params.user,
+        sellPlatform: params.sellPlatform,
+        sellAsset: params.sellAsset,
+        buyPlatform: params.buyPlatform,
+        buyAsset: params.buyAsset,
+        amount: params.amount,
+        deadline: params.deadline
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ queue_automated_trade succeeded in ${executionTime}ms`);
+        console.log(`📤 Transaction hash: ${result.transactionHash}`);
+      }
+
+      return {
+        toolName: "queue_automated_trade",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ queue_automated_trade failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "queue_automated_trade",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  // Platform Management Testing Methods
+
+  async testRegisterPlatform(name: string, apiEndpoint: string): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`🏢 Testing register_platform: ${name} at ${apiEndpoint}`);
+    }
+
+    try {
+      const result = await this.sdk.registerPlatform({
+        name,
+        apiEndpoint
+      });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ register_platform succeeded in ${executionTime}ms`);
+        console.log(`📤 Transaction hash: ${result.transactionHash}`);
+      }
+
+      return {
+        toolName: "register_platform",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ register_platform failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "register_platform",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
+  }
+
+  async testGetPlatformInfo(platform: string): Promise<SimpleToolTestResult> {
+    await this.initializeSdk();
+    const startTime = Date.now();
+    
+    if (this.verbose) {
+      console.log(`📋 Testing get_platform_info: ${platform}`);
+    }
+
+    try {
+      const result = await this.sdk.getPlatformInfo({ platform });
+
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`✅ get_platform_info succeeded in ${executionTime}ms`);
+        console.log(`📊 Platform: ${result.name}, Active: ${result.isActive}, Assets: ${result.totalAssetsTokenized}`);
+      }
+
+      return {
+        toolName: "get_platform_info",
+        success: true,
+        result,
+        executionTime,
+      };
+    } catch (error) {
+      const executionTime = Date.now() - startTime;
+
+      if (this.verbose) {
+        console.log(`❌ get_platform_info failed in ${executionTime}ms`);
+        console.log(`💥 Error:`, error);
+      }
+
+      return {
+        toolName: "get_platform_info",
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        executionTime,
+      };
+    }
   }
 
   printSummary(results: SimpleToolTestResult[]): void {
