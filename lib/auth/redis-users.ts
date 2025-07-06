@@ -60,10 +60,82 @@ export async function createUser(params: CreateUserParams): Promise<RedisUser> {
   return user;
 }
 
+export async function createPlatformUser(
+  params: CreateUserParams & { platform: PlatformType },
+): Promise<RedisUser> {
+  await ensureConnected();
+
+  const { email, password, name, platform, scenario = "empty_portfolio" } = params;
+
+  const existingUser = await getPlatformUserByEmail(platform, email);
+  if (existingUser) {
+    throw new Error("User already exists on this platform");
+  }
+
+  const userId = `${platform}_user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  const user: RedisUser = {
+    userId,
+    email,
+    passwordHash,
+    name,
+    scenario,
+    portfolios: {
+      splint_invest: [],
+      masterworks: [],
+      realt: [],
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const key = `platform_user:${platform}:${email}`;
+  await redis.hSet(key, {
+    userId: user.userId,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    name: user.name,
+    scenario: user.scenario,
+    portfolios: JSON.stringify(user.portfolios),
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  });
+
+  await redis.set(`platform_user_id:${userId}`, `${platform}:${email}`);
+
+  return user;
+}
+
 export async function getUserByEmail(email: string): Promise<RedisUser | null> {
   await ensureConnected();
 
   const key = `user:${email}`;
+  const userData = await redis.hGetAll(key);
+
+  if (!userData.userId) {
+    return null;
+  }
+
+  return {
+    userId: userData.userId,
+    email: userData.email,
+    passwordHash: userData.passwordHash,
+    name: userData.name,
+    scenario: userData.scenario,
+    portfolios: JSON.parse(userData.portfolios),
+    createdAt: userData.createdAt,
+    updatedAt: userData.updatedAt,
+  };
+}
+
+export async function getPlatformUserByEmail(
+  platform: PlatformType,
+  email: string,
+): Promise<RedisUser | null> {
+  await ensureConnected();
+
+  const key = `platform_user:${platform}:${email}`;
   const userData = await redis.hGetAll(key);
 
   if (!userData.userId) {
@@ -98,6 +170,24 @@ export async function validateCredentials(
   password: string,
 ): Promise<RedisUserAuthResult> {
   const user = await getUserByEmail(email);
+  if (!user) {
+    return { success: false, error: "Invalid credentials" };
+  }
+
+  const isValid = await bcrypt.compare(password, user.passwordHash);
+  if (!isValid) {
+    return { success: false, error: "Invalid credentials" };
+  }
+
+  return { success: true, user };
+}
+
+export async function validatePlatformCredentials(
+  platform: PlatformType,
+  email: string,
+  password: string,
+): Promise<RedisUserAuthResult> {
+  const user = await getPlatformUserByEmail(platform, email);
   if (!user) {
     return { success: false, error: "Invalid credentials" };
   }
@@ -259,6 +349,19 @@ export async function registerUser(
 ): Promise<RedisUserAuthResult> {
   try {
     const user = await createUser(params);
+    return { success: true, user };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Registration failed";
+    return { success: false, error: errorMessage };
+  }
+}
+
+export async function registerPlatformUser(
+  params: CreateUserParams & { platform: PlatformType },
+): Promise<RedisUserAuthResult> {
+  try {
+    const user = await createPlatformUser(params);
     return { success: true, user };
   } catch (error) {
     const errorMessage =

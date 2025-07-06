@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateCredentials } from "@/lib/auth/authCommon";
+import { validatePlatformCredentials } from "@/lib/auth/authCommon";
 import { generateJWT } from "@/lib/auth/jwtUtils";
 import { PlatformType } from "@/lib/types/platformAsset";
 import { mapUrlPlatformToType, getSupportedUrlPlatforms } from "@/lib/utils/platform-mapping";
@@ -35,7 +35,7 @@ export async function POST(
       );
     }
 
-    const result = await validateCredentials(email, password);
+    const result = await validatePlatformCredentials(platform, email, password);
 
     if (!result.success) {
       return NextResponse.json(
