@@ -14,6 +14,8 @@ This directory contains the Next.js 15 app router implementation for LuxBridge A
 
 ### Authentication Directory Structure
 
+
+
 **LuxBridge OAuth 2.1** (Primary Authentication):
 
 - `oauth/authorize/page.tsx` - Main OAuth authorization with Privy integration
