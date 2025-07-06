@@ -77,14 +77,14 @@ function OAuthAuthFormContent() {
         setStep("success");
 
         let verifyAttempts = 0;
-        const maxVerifyAttempts = 30; // 30 seconds timeout
+        const maxVerifyAttempts = 5; // 5 seconds timeout
         
         const verifyAuthCode = async () => {
           try {
             verifyAttempts++;
             
             if (verifyAttempts > maxVerifyAttempts) {
-              setError("Authentication verification timed out. Please try again.");
+              setError("Authentication verification timed out after 5 seconds. Please try again.");
               setIsLoading(false);
               return;
             }
@@ -221,7 +221,7 @@ function OAuthAuthFormContent() {
       if (!hasWallet) {
         console.log("Waiting for wallet creation...");
         let walletCheckAttempts = 0;
-        const maxWalletCheckAttempts = 30; // 30 seconds timeout
+        const maxWalletCheckAttempts = 5; // 5 seconds timeout
         
         const walletCheckInterval = setInterval(() => {
           walletCheckAttempts++;
@@ -239,7 +239,7 @@ function OAuthAuthFormContent() {
             }, 1000);
           } else if (walletCheckAttempts >= maxWalletCheckAttempts) {
             clearInterval(walletCheckInterval);
-            console.log("Wallet creation timeout, attempting authentication without wallet...");
+            console.log("Wallet creation timeout after 5 seconds, attempting authentication without wallet...");
             setTimeout(() => {
               handleAuthenticationComplete();
             }, 1000);
