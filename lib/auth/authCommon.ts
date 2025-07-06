@@ -4,11 +4,13 @@ import {
   validateCredentials as redisValidateCredentials,
   validatePlatformCredentials as redisValidatePlatformCredentials,
   getUserById as redisGetUserById,
+  getPlatformUserByEmail as redisGetPlatformUserByEmail,
   registerUser as redisRegisterUser,
   registerPlatformUser as redisRegisterPlatformUser,
 } from "./redis-users";
 import { CreateUserParams, RedisUser } from "../types/redis-user";
 import { PlatformType } from "../types/platformAsset";
+import { redis } from "../redis";
 
 function convertRedisUserToUser(redisUser: RedisUser): User {
   return {
@@ -43,8 +45,27 @@ export function authenticateToken(authHeader?: string): TokenPayload | null {
 }
 
 export async function getUserById(userId: string): Promise<User | undefined> {
+  // First try regular user lookup (existing behavior)
   const redisUser = await redisGetUserById(userId);
-  return redisUser ? convertRedisUserToUser(redisUser) : undefined;
+  if (redisUser) {
+    return convertRedisUserToUser(redisUser);
+  }
+
+  // Then try platform user lookup (new functionality)
+  try {
+    const platformUserIdMapping = await redis.get(`platform_user_id:${userId}`);
+    if (platformUserIdMapping) {
+      const [platform, email] = platformUserIdMapping.split(':');
+      const platformUser = await redisGetPlatformUserByEmail(platform as PlatformType, email);
+      if (platformUser) {
+        return convertRedisUserToUser(platformUser);
+      }
+    }
+  } catch (error) {
+    console.error("Error looking up platform user:", error);
+  }
+
+  return undefined;
 }
 
 export async function registerUser(
