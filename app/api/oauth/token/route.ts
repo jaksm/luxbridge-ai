@@ -9,6 +9,7 @@ import {
   createAuthSession,
   storeLuxBridgeUser,
 } from "@/lib/auth/session-manager";
+import { ensureUserExistsForPrivyId } from "@/lib/auth/user-id-mapping";
 import { LuxBridgeUser } from "@/lib/types/luxbridge-auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -252,6 +253,15 @@ export async function POST(request: NextRequest) {
 
       await storeLuxBridgeUser(luxUser);
       sessionId = await createAuthSession(luxUser.userId, "");
+      
+      // Create user ID mapping for portfolio tools
+      if (authCode.userData.privyUserId && authCode.userData.email) {
+        await ensureUserExistsForPrivyId(
+          authCode.userData.privyUserId,
+          authCode.userData.email,
+          luxUser.name || "User"
+        );
+      }
     }
 
     const accessToken = generateAccessToken();
