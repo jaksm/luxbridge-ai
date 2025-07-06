@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
         await ensureUserExistsForPrivyId(
           authCode.userData.privyUserId,
           authCode.userData.email,
-          luxUser.name
+          luxUser.name || "User"
         );
       }
     }
