@@ -47,13 +47,23 @@ function OAuthAuthFormContent() {
     try {
       const privyToken = await getAccessToken();
 
+      // Get wallet address from either wallet or embeddedWallet
+      const walletAddress =
+        user?.wallet?.address ||
+        (
+          user?.linkedAccounts?.find(
+            (account) => account.type === "wallet",
+          ) as any
+        )?.address ||
+        null;
+
       const requestBody = {
         auth_code: authCode,
         privy_token: privyToken,
         user_data: {
           email: user?.email?.address,
           privy_user_id: user?.id,
-          wallet_address: user?.wallet?.address,
+          wallet_address: walletAddress,
         },
       };
 
@@ -188,10 +198,28 @@ function OAuthAuthFormContent() {
   };
 
   useEffect(() => {
-    if (user && step === "verify") {
-      handleAuthenticationComplete();
+    // Only auto-complete authentication if user has completed verification
+    // This ensures new users go through the verification flow
+    if (user && step === "verify" && code) {
+      // Check if user has a wallet (embedded or external)
+      const hasWallet =
+        user.wallet?.address ||
+        user.linkedAccounts?.some((account) => account.type === "wallet");
+
+      // For new users, wait for wallet creation
+      if (!hasWallet) {
+        console.log("Waiting for wallet creation...");
+        // The wallet will be created automatically due to createOnLogin: "all-users"
+        // We'll check again on next render
+        return;
+      }
+
+      // Wait a moment to ensure Privy has processed everything
+      setTimeout(() => {
+        handleAuthenticationComplete();
+      }, 1000);
     }
-  }, [user, step, handleAuthenticationComplete]);
+  }, [user, step, code, handleAuthenticationComplete]);
 
   if (
     step === "params" &&

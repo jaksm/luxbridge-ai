@@ -14,6 +14,8 @@ export function PrivyClientProvider({
       config={{
         embeddedWallets: {
           createOnLogin: "all-users",
+          requireUserPasswordOnCreate: false,
+          showWalletUIs: true,
         },
         loginMethods: ["email"],
         appearance: {
