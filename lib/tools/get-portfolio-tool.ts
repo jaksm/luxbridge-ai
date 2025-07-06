@@ -1,5 +1,8 @@
 import { makeAuthenticatedPlatformCall } from "@/lib/auth/platform-auth";
 import { getUserConnectedPlatforms } from "@/lib/auth/session-manager";
+import { getUserById } from "@/lib/auth/authCommon";
+import { resolvePrivyUserToRedisUser } from "@/lib/auth/user-id-mapping";
+import { constructUserPortfolio } from "@/lib/utils/portfolioCalculator";
 import { PlatformType } from "@/lib/types/platformAsset";
 import { RegisterTool } from "./types";
 
@@ -118,14 +121,38 @@ export const registerGetPortfolioTool: RegisterTool =
               continue;
             }
 
-            const portfolio = await makeAuthenticatedPlatformCall(
-              accessToken.sessionId,
-              platform,
-              "/portfolio",
-            );
+            let portfolio;
+            let holdings = [];
+            
+            try {
+              // Try platform API first
+              portfolio = await makeAuthenticatedPlatformCall(
+                accessToken.sessionId,
+                platform,
+                "/portfolio",
+              );
+              holdings = portfolio.holdings || [];
+            } catch (platformError) {
+              // Fallback to Redis portfolio data
+              console.log(`Platform API failed for ${platform}, falling back to Redis data`);
+              
+              // Resolve Privy DID to Redis user ID if needed
+              let resolvedUserId = accessToken.userId;
+              if (accessToken.userId.startsWith('did:privy:')) {
+                const mappedUserId = await resolvePrivyUserToRedisUser(accessToken.userId);
+                if (mappedUserId) {
+                  resolvedUserId = mappedUserId;
+                }
+              }
+              
+              const user = await getUserById(resolvedUserId);
+              if (user && user.portfolios[platform]) {
+                const rawHoldings = user.portfolios[platform];
+                holdings = await constructUserPortfolio(rawHoldings, platform);
+              }
+            }
 
             // Calculate platform metrics
-            const holdings = portfolio.holdings || [];
             const platformValue = holdings.reduce(
               (sum: number, holding: any) => sum + (holding.currentValue || 0),
               0,

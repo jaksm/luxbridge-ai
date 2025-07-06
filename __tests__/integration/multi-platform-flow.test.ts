@@ -4,6 +4,7 @@ import {
   mockFetchResponse,
 } from "@/__tests__/utils/testHelpers";
 import { PlatformType } from "@/lib/types/platformAsset";
+import { PlatformLink } from "@/lib/types/luxbridge-auth";
 
 // Mock all dependencies
 vi.mock("@/lib/redis");
@@ -217,11 +218,14 @@ describe("Multi-Platform Integration Flow", () => {
             { assetId: "ART-001", currentValue: 2000, unrealizedGain: 200 },
           ],
         },
+        realt: {
+          holdings: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockPortfolioData[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockPortfolioData[platform]);
         },
       );
 
@@ -382,11 +386,14 @@ describe("Multi-Platform Integration Flow", () => {
             },
           ],
         },
+        realt: {
+          holdings: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockPortfolios[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockPortfolios[platform]);
         },
       );
 
@@ -478,12 +485,15 @@ describe("Multi-Platform Integration Flow", () => {
             },
           ],
         },
+        realt: {
+          assets: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
           if (endpoint.includes("/assets/search")) {
-            return Promise.resolve(mockSearchResults[platform as PlatformType]);
+            return Promise.resolve(mockSearchResults[platform]);
           }
           return Promise.reject(new Error("Unexpected endpoint"));
         },

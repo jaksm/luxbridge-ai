@@ -80,7 +80,7 @@ describe("Cross-Platform Analysis Route", () => {
       const emptyUser = mockUsers["empty@example.com"];
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(emptyUser);
+      vi.mocked(getUserById).mockResolvedValue(emptyUser);
 
       const request = createMockRequestWithAuth({}, mockJWTTokens.valid);
 
@@ -115,7 +115,7 @@ describe("Cross-Platform Analysis Route", () => {
       const demoUser = mockUsers["jaksa.malisic@gmail.com"];
 
       vi.mocked(authenticateToken).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(demoUser);
+      vi.mocked(getUserById).mockResolvedValue(demoUser);
 
       const request = createMockRequestWithAuth({}, mockJWTTokens.valid);
 

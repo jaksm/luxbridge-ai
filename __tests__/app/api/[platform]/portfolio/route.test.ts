@@ -88,7 +88,7 @@ describe("Platform Portfolio Route", () => {
       const emptyUser = mockUsers["empty@example.com"];
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(emptyUser);
+      vi.mocked(getUserById).mockResolvedValue(emptyUser);
 
       const request = createMockRequestWithPlatform(
         "splint_invest",
@@ -119,7 +119,7 @@ describe("Platform Portfolio Route", () => {
       const demoUser = mockUsers["jaksa.malisic@gmail.com"];
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(demoUser);
+      vi.mocked(getUserById).mockResolvedValue(demoUser);
 
       const request = createMockRequestWithPlatform(
         "splint_invest",
@@ -341,7 +341,7 @@ describe("Platform Portfolio Route", () => {
       const emptyUser = mockUsers["empty@example.com"];
 
       vi.mocked(validateJWT).mockReturnValue(mockTokenPayloads.valid);
-      vi.mocked(getUserById).mockReturnValue(emptyUser);
+      vi.mocked(getUserById).mockResolvedValue(emptyUser);
 
       const beforeRequest = new Date().toISOString();
 

@@ -26,7 +26,7 @@ function analyzeCodeStructure() {
     const redisUsersContent = readFileSync(redisUsersFile, 'utf8');
     
     console.log("📄 File Analysis Results:");
-    console.log("=" * 50);
+    console.log("=".repeat(50));
     
     // Analyze portfolio tool
     console.log("\n1. Portfolio Tool Analysis (get-user-portfolio-tool.ts):");
@@ -106,9 +106,9 @@ function analyzeCodeStructure() {
 }
 
 function showDetailedSolution() {
-  console.log("\n" + "=" * 60);
+  console.log("\n" + "=".repeat(60));
   console.log("🛠️  DETAILED SOLUTION PROPOSAL");
-  console.log("=" * 60);
+  console.log("=".repeat(60));
   
   console.log("\n📋 Recommended Solution: Unified getUserById Function");
   console.log("\nStep 1: Update authCommon.ts getUserById function:");
@@ -169,9 +169,9 @@ export async function getUserById(userId: string): Promise<User | undefined> {
 analyzeCodeStructure();
 showDetailedSolution();
 
-console.log("\n" + "=" * 60);
+console.log("\n" + "=".repeat(60));
 console.log("🎯 CONCLUSION");
-console.log("=" * 60);
+console.log("=".repeat(60));
 console.log("\nThe current get-user-portfolio-tool implementation has a critical");
 console.log("compatibility issue with the platform user data isolation system.");
 console.log("Platform users cannot be retrieved via getUserById, causing the");

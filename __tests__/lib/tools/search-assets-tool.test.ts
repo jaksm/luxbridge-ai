@@ -7,17 +7,18 @@ import { PlatformType } from "@/lib/types/platformAsset";
 vi.mock("@/lib/auth/platform-auth");
 vi.mock("@/lib/auth/session-manager");
 
-describe("Search Assets Tool", () => {
+describe("Search Assets Tool", async () => {
   const mockPlatformAuth = vi.mocked(await import("@/lib/auth/platform-auth"));
   const mockSessionManager = vi.mocked(
     await import("@/lib/auth/session-manager"),
   );
 
   const mockAccessToken = {
+    token: "mock_access_token",
     userId: "lux_user_123",
     sessionId: "session_456",
     clientId: "client_789",
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 
   beforeEach(() => {
@@ -236,8 +237,8 @@ describe("Search Assets Tool", () => {
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockSearchResults[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockSearchResults[platform]);
         },
       );
 
@@ -336,11 +337,14 @@ describe("Search Assets Tool", () => {
             },
           ],
         },
+        realt: {
+          assets: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockSearchResults[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockSearchResults[platform]);
         },
       );
 
@@ -613,11 +617,14 @@ describe("Search Assets Tool", () => {
             },
           ],
         },
+        realt: {
+          assets: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockSearchResults[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockSearchResults[platform]);
         },
       );
 
@@ -707,8 +714,7 @@ describe("Search Assets Tool", () => {
       platform,
       luxUserId: "lux_user_123",
       platformUserId: `${platform}_user_456`,
-      email: "test@example.com",
-      name: "Test User",
+      platformEmail: "test@example.com",
       accessToken: `${platform}_token`,
       tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
       linkedAt: new Date().toISOString(),
