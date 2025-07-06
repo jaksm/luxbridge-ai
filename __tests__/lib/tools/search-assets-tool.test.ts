@@ -7,7 +7,7 @@ import { PlatformType } from "@/lib/types/platformAsset";
 vi.mock("@/lib/auth/platform-auth");
 vi.mock("@/lib/auth/session-manager");
 
-describe("Search Assets Tool", () => {
+describe("Search Assets Tool", async () => {
   const mockPlatformAuth = vi.mocked(await import("@/lib/auth/platform-auth"));
   const mockSessionManager = vi.mocked(
     await import("@/lib/auth/session-manager"),
@@ -237,8 +237,8 @@ describe("Search Assets Tool", () => {
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockSearchResults[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockSearchResults[platform]);
         },
       );
 
@@ -337,11 +337,14 @@ describe("Search Assets Tool", () => {
             },
           ],
         },
+        realt: {
+          assets: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockSearchResults[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockSearchResults[platform]);
         },
       );
 
@@ -614,11 +617,14 @@ describe("Search Assets Tool", () => {
             },
           ],
         },
+        realt: {
+          assets: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockSearchResults[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockSearchResults[platform]);
         },
       );
 

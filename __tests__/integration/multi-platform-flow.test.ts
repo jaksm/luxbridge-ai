@@ -317,7 +317,7 @@ describe("Multi-Platform Integration Flow", () => {
 
       // Only active platforms should be considered for operations
       const activePlatforms = Object.entries(connectedPlatforms)
-        .filter(([_, link]): link is [string, PlatformLink] => link !== null && link.status === "active")
+        .filter(([_, link]) => link !== null && link.status === "active")
         .map(([platform, _]) => platform);
 
       expect(activePlatforms).toHaveLength(0);

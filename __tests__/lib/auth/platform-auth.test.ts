@@ -27,7 +27,7 @@ vi.mock("@/lib/redis", () => ({
 
 vi.mock("@/lib/auth/session-manager");
 
-describe("Platform Authentication", () => {
+describe("Platform Authentication", async () => {
   const mockRedis = vi.mocked(await import("@/lib/redis"));
   const mockSessionManager = vi.mocked(
     await import("@/lib/auth/session-manager"),
@@ -168,8 +168,7 @@ describe("Platform Authentication", () => {
         platform: "splint_invest" as PlatformType,
         luxUserId: "lux_user_123",
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
       };
 
@@ -195,8 +194,7 @@ describe("Platform Authentication", () => {
         platform: "masterworks" as PlatformType,
         luxUserId: "lux_user_123",
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry,
       };
@@ -217,8 +215,7 @@ describe("Platform Authentication", () => {
         platform: "realt" as PlatformType,
         luxUserId: "lux_user_123",
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry,
       };
@@ -241,8 +238,7 @@ describe("Platform Authentication", () => {
         platform,
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),
@@ -278,8 +274,7 @@ describe("Platform Authentication", () => {
         platform,
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() - 1000, // Expired 1 second ago
         linkedAt: new Date().toISOString(),
@@ -342,8 +337,7 @@ describe("Platform Authentication", () => {
         platform,
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),
@@ -383,13 +377,15 @@ describe("Platform Authentication", () => {
       const mockSession = {
         sessionId,
         luxUserId: "lux_user_123",
+        privyToken: "privy_token_123",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         platforms: {
           splint_invest: {
             platform,
             luxUserId: "lux_user_123",
             platformUserId: "platform_user_456",
-            email: "test@example.com",
-            name: "Test User",
+            platformEmail: "test@example.com",
             accessToken: "access_token_789",
             tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
             linkedAt: new Date().toISOString(),
@@ -447,6 +443,9 @@ describe("Platform Authentication", () => {
       const mockSession = {
         sessionId,
         luxUserId: "lux_user_123",
+        privyToken: "privy_token_123",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         platforms: {
           splint_invest: null,
           masterworks: null, // Not linked
@@ -469,13 +468,15 @@ describe("Platform Authentication", () => {
       const mockSession = {
         sessionId,
         luxUserId: "lux_user_123",
+        privyToken: "privy_token_123",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         platforms: {
           splint_invest: {
             platform,
             luxUserId: "lux_user_123",
             platformUserId: "platform_user_456",
-            email: "test@example.com",
-            name: "Test User",
+            platformEmail: "test@example.com",
             accessToken: "expired_token",
             tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
             linkedAt: new Date().toISOString(),
@@ -502,13 +503,15 @@ describe("Platform Authentication", () => {
       const mockSession = {
         sessionId,
         luxUserId: "lux_user_123",
+        privyToken: "privy_token_123",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         platforms: {
           splint_invest: {
             platform,
             luxUserId: "lux_user_123",
             platformUserId: "platform_user_456",
-            email: "test@example.com",
-            name: "Test User",
+            platformEmail: "test@example.com",
             accessToken: "invalid_token",
             tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
             linkedAt: new Date().toISOString(),
@@ -543,13 +546,15 @@ describe("Platform Authentication", () => {
       const mockSession = {
         sessionId,
         luxUserId: "lux_user_123",
+        privyToken: "privy_token_123",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         platforms: {
           splint_invest: {
             platform,
             luxUserId: "lux_user_123",
             platformUserId: "platform_user_456",
-            email: "test@example.com",
-            name: "Test User",
+            platformEmail: "test@example.com",
             accessToken: "access_token_789",
             tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
             linkedAt: new Date().toISOString(),
@@ -577,13 +582,15 @@ describe("Platform Authentication", () => {
       const mockSession = {
         sessionId,
         luxUserId: "lux_user_123",
+        privyToken: "privy_token_123",
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         platforms: {
           splint_invest: {
             platform,
             luxUserId: "lux_user_123",
             platformUserId: "platform_user_456",
-            email: "test@example.com",
-            name: "Test User",
+            platformEmail: "test@example.com",
             accessToken: "access_token_789",
             tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
             linkedAt: new Date().toISOString(),
@@ -671,8 +678,7 @@ describe("Platform Authentication", () => {
         platform: "splint_invest",
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),
@@ -708,8 +714,7 @@ describe("Platform Authentication", () => {
         platform: "splint_invest",
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "expired_token",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),
@@ -739,8 +744,7 @@ describe("Platform Authentication", () => {
         platform: "splint_invest",
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),
@@ -770,8 +774,7 @@ describe("Platform Authentication", () => {
         platform: "splint_invest",
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),
@@ -803,8 +806,7 @@ describe("Platform Authentication", () => {
         platform: "splint_invest",
         luxUserId,
         platformUserId: "platform_user_456",
-        email: "test@example.com",
-        name: "Test User",
+        platformEmail: "test@example.com",
         accessToken: "access_token_789",
         tokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
         linkedAt: new Date().toISOString(),

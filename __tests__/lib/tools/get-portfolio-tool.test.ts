@@ -14,10 +14,11 @@ describe("Get Portfolio Tool", () => {
   );
 
   const mockAccessToken = {
+    token: "mock_access_token",
     userId: "lux_user_123",
     sessionId: "session_456",
     clientId: "client_789",
-    expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 
   beforeEach(() => {
@@ -253,8 +254,8 @@ describe("Get Portfolio Tool", () => {
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockPortfolios[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockPortfolios[platform]);
         },
       );
 
@@ -369,11 +370,14 @@ describe("Get Portfolio Tool", () => {
             },
           ],
         },
+        realt: {
+          holdings: [],
+        },
       };
 
       mockPlatformAuth.makeAuthenticatedPlatformCall.mockImplementation(
-        (sessionId, platform, endpoint) => {
-          return Promise.resolve(mockPortfolios[platform as PlatformType]);
+        (sessionId: string, platform: PlatformType, endpoint: string) => {
+          return Promise.resolve(mockPortfolios[platform]);
         },
       );
 
@@ -391,8 +395,11 @@ describe("Get Portfolio Tool", () => {
     it("should handle missing sessionId gracefully", async () => {
       const server = createMockMCPServer();
       const accessTokenWithoutSession = {
-        ...mockAccessToken,
+        token: "mock_access_token",
+        userId: "lux_user_123",
         sessionId: undefined,
+        clientId: "client_789",
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       };
       registerGetPortfolioTool({ accessToken: accessTokenWithoutSession })(
         server,
