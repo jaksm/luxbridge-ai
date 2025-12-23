@@ -40,11 +40,11 @@
     "register-oauth-clients": "dotenv -e .env.local -- npx tsx scripts/register-oauth-clients.ts"
   },
   "dependencies": {
-    "@chainlink/contracts": "^1.2.0",
+    "@chainlink/contracts": "^1.4.0",
     "@hookform/resolvers": "^5.1.1",
     "@langchain/openai": "^0.5.18",
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/contracts": "^5.4.0",
     "@pinecone-database/pinecone": "^6.1.1",
     "@privy-io/react-auth": "^2.17.3",
     "@privy-io/server-auth": "^1.28.2",
